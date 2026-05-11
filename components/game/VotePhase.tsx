@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
 import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen } from "@/components/ui";
+import RulesModal from "./RulesModal";
 
 interface Props {
   gameState: GameState;
@@ -16,6 +17,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [voteRevealed, setVoteRevealed] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
   const myPlayer = gameState.players.find((p) => p.id === localPlayer.id);
@@ -106,7 +108,22 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
 
   return (
     <Screen>
-      <TopBar title={`Vote — Round ${gameState.round}`} sub="Who do you think is the Wordspy?" />
+      <TopBar
+        title={`Vote — Round ${gameState.round}`}
+        sub="Who do you think is the Wordspy?"
+        right={
+          <button
+            onClick={() => setShowRules(true)}
+            style={{
+              background: "none", border: "none", fontSize: 20, cursor: "pointer",
+            }}
+            title="Rules"
+          >
+            ❓
+          </button>
+        }
+      />
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 
         <InfoBox

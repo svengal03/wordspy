@@ -1,7 +1,9 @@
 "use client";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
 import { Card, Btn, RoleBadge, tokens, TopBar, Screen, Badge } from "@/components/ui";
+import RulesModal from "./RulesModal";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
 
@@ -18,6 +20,7 @@ const winnerConfig = {
 };
 
 export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: Props) {
+  const [showRules, setShowRules] = useState(false);
   const router = useRouter();
   const { reset } = useGameStore();
   const winner = gameState.winner!;
@@ -36,7 +39,22 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
 
   return (
     <Screen>
-      <TopBar title="Game Over" sub="Here's how it went" />
+      <TopBar
+        title="Game Over"
+        sub="Here's how it went"
+        right={
+          <button
+            onClick={() => setShowRules(true)}
+            style={{
+              background: "none", border: "none", fontSize: 20, cursor: "pointer",
+            }}
+            title="Rules"
+          >
+            ❓
+          </button>
+        }
+      />
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 
         {/* Winner banner */}

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
 import { Card, Btn, RoleBadge, tokens, TopBar, Screen } from "@/components/ui";
+import RulesModal from "./RulesModal";
 
 interface Props {
   gameState: GameState;
@@ -14,6 +15,7 @@ interface Props {
 export default function EliminationScreen({ gameState, localPlayer, onGhostGuess, onContinue }: Props) {
   const [guess, setGuess] = useState("");
   const [guessSubmitted, setGuessSubmitted] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const eliminated = gameState.players.find((p) => p.id === gameState.eliminatedThisRound);
   if (!eliminated) return null;
@@ -29,7 +31,21 @@ export default function EliminationScreen({ gameState, localPlayer, onGhostGuess
 
   return (
     <Screen style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
-      <TopBar title="Eliminated!" />
+      <TopBar
+        title="Eliminated!"
+        right={
+          <button
+            onClick={() => setShowRules(true)}
+            style={{
+              background: "none", border: "none", fontSize: 20, cursor: "pointer",
+            }}
+            title="Rules"
+          >
+            ❓
+          </button>
+        }
+      />
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <motion.div
           initial={{ opacity: 0, scale: 0.85 }}
@@ -51,20 +67,6 @@ export default function EliminationScreen({ gameState, localPlayer, onGhostGuess
             was voted out by the group
           </div>
 
-          {/* Role reveal card */}
-          <Card style={{ marginBottom: 20, padding: "20px 24px" }}>
-            <div style={{ fontSize: 13, color: tokens.grey3, marginBottom: 6 }}>
-              {eliminated.name} was the
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: eliminated.role === "civilian" ? tokens.green : eliminated.role === "ghost" ? tokens.yellow : tokens.coral }}>
-              {eliminated.role === "civilian" ? "😅 Civilian!" : eliminated.role === "undercover" ? "🕵️ Undercover!" : "👻 Ghost!"}
-            </div>
-            {eliminated.word && (
-              <div style={{ fontSize: 14, color: tokens.grey3, marginTop: 8 }}>
-                Their word was: <strong style={{ color: tokens.black }}>{eliminated.word}</strong>
-              </div>
-            )}
-          </Card>
 
           {/* Ghost last chance */}
           {isGhost && gameState.ghostGuessAllowed && !guessSubmitted && (

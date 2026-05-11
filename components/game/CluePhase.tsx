@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
 import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen } from "@/components/ui";
+import RulesModal from "./RulesModal";
 import ChatPanel from "./ChatPanel";
 
 interface Props {
@@ -19,6 +20,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
   const [showChat, setShowChat] = useState(false);
   const [lastReadCount, setLastReadCount] = useState(0);
   const [wordRevealed, setWordRevealed] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
   const currentPlayer = gameState.players[gameState.currentCluePlayerIndex];
@@ -44,27 +46,39 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
         title={`Round ${gameState.round} — Clue Phase`}
         sub={isSafeRound ? "🛡️ Safe Round — no elimination this round" : undefined}
         right={
-          !isOffline ? (
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             <button
-              onClick={() => {
-                setShowChat(!showChat);
-                if (!showChat) setLastReadCount(gameState.chat.length);
-              }}
+              onClick={() => setShowRules(true)}
               style={{
-                background: "none", border: "none", fontSize: 20, cursor: "pointer", position: "relative"
+                background: "none", border: "none", fontSize: 20, cursor: "pointer",
               }}
+              title="Rules"
             >
-              💬
-              {gameState.chat.length > lastReadCount && (
-                <span style={{
-                  position: "absolute", top: -4, right: -4, width: 8, height: 8,
-                  borderRadius: 4, background: tokens.coral,
-                }} />
-              )}
+              ❓
             </button>
-          ) : undefined
+            {!isOffline && (
+              <button
+                onClick={() => {
+                  setShowChat(!showChat);
+                  if (!showChat) setLastReadCount(gameState.chat.length);
+                }}
+                style={{
+                  background: "none", border: "none", fontSize: 20, cursor: "pointer", position: "relative"
+                }}
+              >
+                💬
+                {gameState.chat.length > lastReadCount && (
+                  <span style={{
+                    position: "absolute", top: -4, right: -4, width: 8, height: 8,
+                    borderRadius: 4, background: tokens.coral,
+                  }} />
+                )}
+              </button>
+            )}
+          </div>
         }
       />
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
 
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, Btn, SectionLabel, Toggle, tokens, Logo } from "@/components/ui";
+import RulesModal from "./RulesModal";
 import { WORD_PACKS } from "@/lib/wordPacks";
 import { GameConfig, GameState } from "@/lib/types";
 import { useGameStore } from "@/lib/store";
@@ -16,6 +17,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
   const { localPlayer, config, setConfig } = useGameStore();
   const isHost = localPlayer?.isHost;
   const [copied, setCopied] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   function update(partial: Partial<GameConfig>) {
     const next = { ...config, ...partial };
@@ -57,10 +59,32 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
       {/* Top bar */}
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${tokens.border}`, background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Logo />
-        <div style={{ fontSize: 12, color: tokens.grey3 }}>
-          {isHost ? "You are host" : "Waiting for host"}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={() => setShowRules(true)}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              border: `1.5px solid ${tokens.border}`,
+              background: tokens.white,
+              cursor: "pointer",
+              fontSize: 18,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.15s",
+            }}
+            title="Rules"
+          >
+            ❓
+          </button>
+          <div style={{ fontSize: 12, color: tokens.grey3 }}>
+            {isHost ? "You are host" : "Waiting for host"}
+          </div>
         </div>
       </div>
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
 
       <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 16, maxWidth: 480, margin: "0 auto" }}>
 
