@@ -80,7 +80,7 @@ export function Btn({ children, variant = "primary", fullWidth, style, ...props 
     warning: { background: tokens.yellowBg, color: tokens.yellow, border: `1.5px solid #FDE047` },
   };
   return (
-    <motion.button whileTap={{ scale: 0.97 }} style={{ ...base, ...variants[variant] }} {...(props as any)}>
+    <motion.button whileHover={{ opacity: 0.88 }} whileTap={{ scale: 0.97 }} style={{ ...base, ...variants[variant] }} {...(props as any)}>
       {children}
     </motion.button>
   );
@@ -192,6 +192,7 @@ export function OptionsMenu({ onExit, onNewGame }: { onExit: () => void; onNewGa
     <div style={{ position: "relative" }}>
       <button
         onClick={() => setOpen(!open)}
+        aria-label="Options"
         style={{
           padding: "6px 12px", borderRadius: 8,
           border: `1.5px solid ${tokens.border}`,

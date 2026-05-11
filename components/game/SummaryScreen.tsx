@@ -85,7 +85,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
                   <div style={{ fontSize: 11, color: tokens.grey3, marginBottom: 4 }}>Civilians had</div>
                   <div style={{ fontSize: 24, fontWeight: 800, color: tokens.black }}>{gameState.wordPair.civilian}</div>
                 </div>
-                <div style={{ fontSize: 22, color: tokens.grey4 }}>⟷</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3 }}>vs</div>
                 <div style={{ textAlign: "center", flex: 1 }}>
                   <div style={{ fontSize: 11, color: tokens.grey3, marginBottom: 4 }}>Undercover had</div>
                   <div style={{ fontSize: 24, fontWeight: 800, color: tokens.coral }}>{gameState.wordPair.undercover}</div>

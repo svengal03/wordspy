@@ -179,7 +179,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
                 <div style={{ fontSize: 13, color: tokens.grey2 }}>
                   {totalVotes} of {activePlayers.length} player{activePlayers.length > 1 ? "s" : ""} {totalVotes === 1 ? "has" : "have"} voted
                 </div>
-                <div style={{ height: 6, background: tokens.border, borderRadius: 3, marginTop: 8 }}>
+                <div style={{ height: 6, background: "#E0E0E0", borderRadius: 3, marginTop: 8 }}>
                   <div style={{
                     height: "100%", borderRadius: 3, background: tokens.coral,
                     width: `${(totalVotes / activePlayers.length) * 100}%`,

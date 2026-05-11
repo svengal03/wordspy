@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, Btn, SectionLabel, Toggle, tokens, Logo, OptionsMenu } from "@/components/ui";
+import { Card, Btn, SectionLabel, Toggle, tokens, Logo, OptionsMenu, Badge } from "@/components/ui";
 import RulesModal from "./RulesModal";
 import { WORD_PACKS } from "@/lib/wordPacks";
 import { GameConfig, GameState } from "@/lib/types";
@@ -77,9 +77,9 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
           >
             Rules
           </button>
-          <div style={{ fontSize: 12, color: tokens.grey3 }}>
-            {isHost ? "You are host" : "Waiting for host"}
-          </div>
+          <Badge color={isHost ? tokens.coral : tokens.grey3}>
+            {isHost ? "Host" : "Waiting for host"}
+          </Badge>
           {onLeave && <OptionsMenu onExit={onLeave} />}
         </div>
       </div>
@@ -137,9 +137,10 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
                       <button
                         onClick={() => onRemovePlayer(p.id)}
                         title="Remove player"
+                        aria-label={`Remove ${p.name}`}
                         style={{
-                          width: 24, height: 24, borderRadius: 6, border: `1px solid ${tokens.border}`,
-                          background: "transparent", cursor: "pointer", fontSize: 13, color: tokens.grey3,
+                          width: 36, height: 36, borderRadius: 8, border: `1px solid ${tokens.border}`,
+                          background: "transparent", cursor: "pointer", fontSize: 16, color: tokens.grey3,
                           display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
                         }}
                       >×</button>
@@ -190,7 +191,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
                   const canAddUndercover = total - (undercovers + 1) - ghosts >= 2;
                   const canAddGhost = total - undercovers - (ghosts + 1) >= 2;
                   const stepperStyle = {
-                    width: 30, height: 30, borderRadius: 8,
+                    width: 40, height: 40, borderRadius: 10,
                     border: `1.5px solid ${tokens.border}`,
                     background: tokens.white, cursor: "pointer",
                     fontSize: 18, fontWeight: 600, color: tokens.grey1,
@@ -227,19 +228,16 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
                             onClick={() => update({ undercoverCount: undercovers + 1 })}>+</button>
                         </div>
                       </div>
-                      {/* Ghost stepper */}
+                      {/* WordSpy toggle — binary on/off, not a counter */}
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>WordSpy 👻</div>
                           <div style={{ fontSize: 12, color: tokens.grey3 }}>Gets no word — must bluff blindly</div>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <button style={ghosts <= 0 ? disabledStyle : stepperStyle} disabled={ghosts <= 0}
-                            onClick={() => update({ ghostCount: 0 })}>−</button>
-                          <span style={{ fontSize: 16, fontWeight: 700, minWidth: 20, textAlign: "center", color: tokens.black }}>{ghosts}</span>
-                          <button style={!canAddGhost ? disabledStyle : stepperStyle} disabled={!canAddGhost}
-                            onClick={() => update({ ghostCount: 1 })}>+</button>
-                        </div>
+                        <Toggle
+                          value={ghosts > 0}
+                          onChange={(v) => update({ ghostCount: v && canAddGhost ? 1 : 0 })}
+                        />
                       </div>
                     </div>
                   );

@@ -186,7 +186,7 @@ export default function HomeScreen() {
               style={{
                 background: "none", border: "none", cursor: "pointer",
                 fontSize: 13, fontWeight: 600, color: tokens.grey2,
-                padding: "0 0 24px", fontFamily: "inherit",
+                padding: "12px 16px 24px 0", fontFamily: "inherit",
               }}
             >
               ← Back
@@ -258,7 +258,7 @@ export default function HomeScreen() {
       </div>
 
       <div style={{ textAlign: "center", padding: "16px 24px", color: tokens.grey4, fontSize: 12 }}>
-        Wordspy · Made with ❤️
+        Wordspy · Made with haste..;
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />

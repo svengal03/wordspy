@@ -94,9 +94,16 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
                   </div>
                 </>
               ) : (
-                <div style={{ fontSize: 18, fontWeight: 700, color: tokens.black, marginBottom: 24 }}>
-                  Your role is ready
-                </div>
+                <>
+                  <motion.div
+                    animate={{ opacity: [0.6, 1, 0.6] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    style={{ fontSize: 20, fontWeight: 800, color: tokens.coral, marginBottom: 8, letterSpacing: -0.3 }}
+                  >
+                    Your role is ready
+                  </motion.div>
+                  <div style={{ fontSize: 13, color: tokens.grey3, marginBottom: 20 }}>Tap to reveal</div>
+                </>
               )}
               <Btn fullWidth onClick={() => setRevealed(true)} style={{ padding: "14px", fontSize: 15 }}>
                 Reveal →
