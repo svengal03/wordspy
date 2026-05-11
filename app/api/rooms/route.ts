@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateRoomCode, createInitialGameState } from "@/lib/gameEngine";
+import { generateRoomCode, createInitialGameState, castVote } from "@/lib/gameEngine";
 import { DEFAULT_CONFIG } from "@/lib/types";
 import type { GameState } from "@/lib/types";
 
@@ -39,6 +39,32 @@ export async function POST(req: NextRequest) {
     }
     rooms[roomCode] = gameState;
     return NextResponse.json({ ok: true });
+  }
+
+  if (action === "remove-player") {
+    const state = rooms[roomCode];
+    if (!state) return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    const { playerId } = body;
+    const updated = { ...state, players: state.players.filter((p) => p.id !== playerId) };
+    rooms[roomCode] = updated;
+    return NextResponse.json({ gameState: updated });
+  }
+
+  // Atomically apply a single vote server-side to prevent race conditions
+  if (action === "cast-vote") {
+    const state = rooms[roomCode];
+    if (!state) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+    const { voterId, targetId } = body;
+    const voter = state.players.find((p) => p.id === voterId);
+    if (voter?.hasVoted) {
+      // Idempotent: already voted, return current state
+      return NextResponse.json({ gameState: state });
+    }
+    const updated = castVote(state, voterId, targetId, false);
+    rooms[roomCode] = updated;
+    return NextResponse.json({ gameState: updated });
   }
 
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });

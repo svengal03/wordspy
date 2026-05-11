@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Logo, Btn, Card, tokens, Badge } from "@/components/ui";
+import { Btn, Card, tokens } from "@/components/ui";
+import RulesModal from "@/components/game/RulesModal";
 import { useGameStore } from "@/lib/store";
 import { createPlayer } from "@/lib/gameEngine";
 
@@ -20,9 +21,10 @@ export default function HomeScreen() {
   const [mode, setMode] = useState<null | "create" | "join" | "offline">(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showRules, setShowRules] = useState(false);
 
   async function handleCreate() {
-    if (!name.trim()) return setError("Enter your name first");
+    if (!name.trim()) return setError("Enter your name");
     setLoading(true);
     try {
       const res = await fetch("/api/rooms", {
@@ -44,8 +46,8 @@ export default function HomeScreen() {
   }
 
   async function handleJoin() {
-    if (!name.trim()) return setError("Enter your name first");
     if (!joinCode.trim()) return setError("Enter a room code");
+    if (!name.trim()) return setError("Enter your name");
     setLoading(true);
     try {
       const res = await fetch("/api/rooms", {
@@ -53,8 +55,20 @@ export default function HomeScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "get", roomCode: joinCode.toUpperCase().trim() }),
       });
-      if (!res.ok) return setError("Room not found. Check the code.");
+      if (!res.ok) { setLoading(false); return setError("Room not found. Check the code."); }
       const data = await res.json();
+      const trimmedName = name.trim().toLowerCase();
+      const duplicate = data.gameState.players.find(
+        (p: any) => p.name.toLowerCase() === trimmedName
+      );
+      if (duplicate) {
+        setLocalPlayer(duplicate);
+        setRoomCode(joinCode.toUpperCase().trim());
+        setGameState(data.gameState);
+        router.push(`/room/${joinCode.toUpperCase().trim()}`);
+        setLoading(false);
+        return;
+      }
       const player = createPlayer(name.trim(), false);
       setLocalPlayer(player);
       setRoomCode(joinCode.toUpperCase().trim());
@@ -68,11 +82,25 @@ export default function HomeScreen() {
   }
 
   function handleOffline() {
-    if (!name.trim()) return setError("Enter your name first");
+    if (!name.trim()) return setError("Enter your name");
     const player = createPlayer(name.trim(), true);
     setLocalPlayer(player);
     setOffline(true);
     router.push("/offline");
+  }
+
+  function back() {
+    setMode(null);
+    setError("");
+    setName("");
+    setJoinCode("");
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key !== "Enter") return;
+    if (mode === "create") handleCreate();
+    else if (mode === "join") handleJoin();
+    else if (mode === "offline") handleOffline();
   }
 
   return (
@@ -80,147 +108,160 @@ export default function HomeScreen() {
       minHeight: "100dvh", background: tokens.bg,
       fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
       display: "flex", flexDirection: "column",
+      overflowY: "auto",
     }}>
-      <div style={{ flex: 1, padding: "48px 24px 24px", maxWidth: 480, margin: "0 auto", width: "100%" }}>
+      <div style={{ flex: 1, maxWidth: 480, margin: "0 auto", width: "100%", padding: "0 24px 40px", boxSizing: "border-box" }}>
 
-        {/* Hero */}
-        <motion.div {...fadeUp(0.05)}>
-          <div style={{ fontSize: 40, fontWeight: 800, color: tokens.black, letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 10 }}>
-            Find the<br />
-            <span style={{ color: tokens.coral }}>Wordspy.</span>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0 36px" }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>
+            Word<span style={{ color: tokens.coral }}>spy</span>
           </div>
-          <div style={{ fontSize: 15, color: tokens.grey2, lineHeight: 1.6, marginBottom: 32, maxWidth: 300 }}>
-            Social deduction word game for 3–10 players. Bluff, deduce, expose the infiltrators.
-          </div>
-        </motion.div>
-
-        {/* Name input — always shown */}
-        <motion.div {...fadeUp(0.1)} style={{ marginBottom: 16 }}>
-          <Card>
-            <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
-              Your Name
-            </div>
-            <input
-              value={name}
-              onChange={(e) => { setName(e.target.value); setError(""); }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleCreate();
-              }}
-              placeholder="e.g. Rahul, Priya…"
-              maxLength={20}
-              autoFocus
-              style={{
-                width: "100%", padding: "12px 14px", borderRadius: 10,
-                border: `1.5px solid ${tokens.border}`, fontSize: 15,
-                fontFamily: "inherit", background: "#FAFAFA", outline: "none",
-                color: tokens.black, boxSizing: "border-box",
-              }}
-            />
-          </Card>
-        </motion.div>
-
-        {/* Mode buttons */}
-        <motion.div {...fadeUp(0.15)} style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-          <Btn
-            fullWidth
-            onClick={() => {
-              if (!name.trim()) {
-                setError("Enter your name first");
-              } else {
-                handleCreate();
-              }
+          <button
+            onClick={() => setShowRules(true)}
+            style={{
+              padding: "7px 14px", borderRadius: 10,
+              border: `1.5px solid ${tokens.border}`,
+              background: tokens.white, cursor: "pointer",
+              fontSize: 13, fontWeight: 600, color: tokens.grey1,
+              fontFamily: "inherit", transition: "all 0.15s",
             }}
-            disabled={loading}
-            style={{ padding: "15px 24px", fontSize: 16 }}
           >
-            {loading ? "Creating…" : "🎮 Create Room"}
-          </Btn>
-          <Btn
-            fullWidth
-            variant="ghost"
-            onClick={() => { setMode("join"); setError(""); }}
-            style={{ padding: "15px 24px", fontSize: 16 }}
-          >
-            🔗 Join with Code
-          </Btn>
-          <Btn
-            fullWidth
-            variant="secondary"
-            onClick={() => {
-              if (!name.trim()) {
-                setError("Enter your name first");
-              } else {
-                handleOffline();
-              }
-            }}
-            style={{ padding: "15px 24px", fontSize: 16 }}
-          >
-            📱 Play Offline (Pass Phone)
-          </Btn>
-        </motion.div>
+            Rules
+          </button>
+        </div>
 
-        {/* Sub-form based on mode */}
-        {mode === "join" && (
+        {mode === null ? (
+          <>
+            <motion.div {...fadeUp(0.05)}>
+              <div style={{ fontSize: 40, fontWeight: 800, color: tokens.black, letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 10 }}>
+                Find the<br />
+                <span style={{ color: tokens.coral }}>Wordspy.</span>
+              </div>
+              <div style={{ fontSize: 15, color: tokens.grey2, lineHeight: 1.6, marginBottom: 32, maxWidth: 300 }}>
+                Social deduction word game for 3–10 players. Bluff, deduce, expose the infiltrators.
+              </div>
+            </motion.div>
+
+            <motion.div {...fadeUp(0.15)} style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
+              <Btn fullWidth onClick={() => { setMode("create"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
+                Create Room
+              </Btn>
+              <Btn fullWidth variant="ghost" onClick={() => { setMode("join"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
+                Join with Code
+              </Btn>
+              <Btn fullWidth variant="secondary" onClick={() => { setMode("offline"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
+                Play Offline
+              </Btn>
+            </motion.div>
+
+            <motion.div {...fadeUp(0.2)}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
+                How it works
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {[
+                  { icon: "🃏", title: "Get your word", desc: "Everyone gets a secret word — except the WordSpy who gets none." },
+                  { icon: "💬", title: "Give clues", desc: "Take turns describing your word without revealing it." },
+                  { icon: "🗳️", title: "Vote & expose", desc: "Find the infiltrators before they outlast the Civilians." },
+                ].map((s, i) => (
+                  <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 12, background: "#F5F0ED",
+                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
+                    }}>{s.icon}</div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{s.title}</div>
+                      <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        ) : (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <Card style={{ marginBottom: 16 }}>
+            <button
+              onClick={back}
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                fontSize: 13, fontWeight: 600, color: tokens.grey2,
+                padding: "0 0 24px", fontFamily: "inherit",
+              }}
+            >
+              ← Back
+            </button>
+
+            {mode === "join" && (
+              <Card style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
+                  Room Code
+                </div>
+                <input
+                  value={joinCode}
+                  onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setError(""); }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="e.g. ABC123"
+                  maxLength={6}
+                  autoFocus
+                  style={{
+                    width: "100%", padding: "12px 14px", borderRadius: 10,
+                    border: `1.5px solid ${tokens.border}`, fontSize: 20, fontWeight: 700,
+                    letterSpacing: 4, fontFamily: "inherit", background: "#FAFAFA",
+                    outline: "none", color: tokens.coral, boxSizing: "border-box",
+                  }}
+                />
+              </Card>
+            )}
+
+            <Card style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
-                Room Code
+                Your Name
               </div>
               <input
-                value={joinCode}
-                onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setError(""); }}
-                placeholder="e.g. ABC123"
-                maxLength={6}
+                value={name}
+                onChange={(e) => { setName(e.target.value); setError(""); }}
+                onKeyDown={handleKeyDown}
+                placeholder="e.g. Rahul, Priya…"
+                maxLength={20}
+                autoFocus={mode !== "join"}
                 style={{
                   width: "100%", padding: "12px 14px", borderRadius: 10,
-                  border: `1.5px solid ${tokens.border}`, fontSize: 20, fontWeight: 700,
-                  letterSpacing: 4, fontFamily: "inherit", background: "#FAFAFA",
-                  outline: "none", color: tokens.coral, boxSizing: "border-box", marginBottom: 14,
+                  border: `1.5px solid ${tokens.border}`, fontSize: 15,
+                  fontFamily: "inherit", background: "#FAFAFA", outline: "none",
+                  color: tokens.black, boxSizing: "border-box",
                 }}
               />
-              <Btn fullWidth onClick={handleJoin} disabled={loading}>
-                {loading ? "Joining…" : "Join Room →"}
-              </Btn>
             </Card>
+
+            {error && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                style={{ background: tokens.redBg, border: `1.5px solid #FECACA`, borderRadius: 12, padding: "12px 16px", color: tokens.red, fontSize: 14, marginBottom: 14 }}>
+                {error}
+              </motion.div>
+            )}
+
+            <Btn
+              fullWidth
+              onClick={mode === "create" ? handleCreate : mode === "join" ? handleJoin : handleOffline}
+              disabled={loading}
+              style={{ padding: "15px 24px", fontSize: 16 }}
+            >
+              {loading
+                ? (mode === "create" ? "Creating…" : mode === "join" ? "Joining…" : "Starting…")
+                : mode === "create" ? "Create Room →"
+                : mode === "join" ? "Join Room →"
+                : "Play Offline →"}
+            </Btn>
           </motion.div>
         )}
-
-        {error && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            style={{ background: tokens.redBg, border: `1.5px solid #FECACA`, borderRadius: 12, padding: "12px 16px", color: tokens.red, fontSize: 14, marginBottom: 16 }}>
-            {error}
-          </motion.div>
-        )}
-
-        {/* How it works */}
-        <motion.div {...fadeUp(0.2)}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
-            How it works
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {[
-              { icon: "🃏", title: "Get your word", desc: "Everyone gets a secret word — except the Ghost who gets none." },
-              { icon: "💬", title: "Give clues", desc: "Take turns describing your word without revealing it." },
-              { icon: "🗳️", title: "Vote & expose", desc: "Find the infiltrators before they outlast the Civilians." },
-            ].map((s, i) => (
-              <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 12, background: "#F5F0ED",
-                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
-                }}>{s.icon}</div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{s.title}</div>
-                  <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </div>
 
       <div style={{ textAlign: "center", padding: "16px 24px", color: tokens.grey4, fontSize: 12 }}>
         Wordspy · Made with ❤️
       </div>
+
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
     </div>
   );
 }

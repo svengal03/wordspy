@@ -1,4 +1,4 @@
-import { GameState, Player, Role, GameConfig, getRoleCounts } from "./types";
+import { GameState, Player, Role, GameConfig } from "./types";
 import { getRandomPair } from "./wordPacks";
 import { nanoid } from "nanoid";
 
@@ -17,15 +17,17 @@ export function assignRoles(
   pair?: { civilian: string; undercover: string }
 ): { players: Player[]; pair: { civilian: string; undercover: string } } {
   const wordPair = pair || getRandomPair(config.packId);
-  const { undercovers, ghosts } = getRoleCounts(players.length, config.ghostEnabled);
+
+  // Clamp config values to valid range for actual player count
+  const undercovers = Math.min(config.undercoverCount, Math.max(1, players.length - 2));
+  const ghosts = Math.min(config.ghostCount, Math.max(0, players.length - undercovers - 2));
+  const civilians = players.length - undercovers - ghosts;
 
   // Build role pool
   const roles: Role[] = [
     ...Array(undercovers).fill("undercover"),
-    ...Array(config.ghostEnabled ? ghosts : 0).fill("ghost"),
-    ...Array(
-      players.length - undercovers - (config.ghostEnabled ? ghosts : 0)
-    ).fill("civilian"),
+    ...Array(ghosts).fill("ghost"),
+    ...Array(civilians).fill("civilian"),
   ];
 
   // Shuffle roles
@@ -70,6 +72,7 @@ export function createInitialGameState(
     ghostGuessAllowed: false,
     ghostGuess: null,
     winner: null,
+    isTiebreaker: false,
     chat: [],
     createdAt: Date.now(),
   };
@@ -94,23 +97,41 @@ export function startGame(state: GameState): GameState {
   };
 }
 
+// ─── Check duplicate clues ────────────────────────────────────────────────────
+export function isDuplicateClue(
+  state: GameState,
+  playerId: string,
+  newClue: string
+): boolean {
+  const activeClues = state.players
+    .filter((p) => !p.isEliminated && p.id !== playerId && p.clue)
+    .map((p) => p.clue!.toLowerCase().trim());
+
+  return activeClues.includes(newClue.toLowerCase().trim());
+}
+
 // ─── Submit clue ──────────────────────────────────────────────────────────────
 export function submitClue(
   state: GameState,
   playerId: string,
   clue: string
-): GameState {
+): { state: GameState; error?: string } {
+  // Check for duplicate clue in current round
+  if (isDuplicateClue(state, playerId, clue)) {
+    return { state, error: "That clue was already used! Try another one." };
+  }
+
   const players = state.players.map((p) =>
     p.id === playerId ? { ...p, clue } : p
   );
 
-  // Find next active player (skip eliminated)
+  // Find next active player who still needs to give a clue (skip eliminated + already-clued)
   const activePlayers = players.filter((p) => !p.isEliminated);
   let nextIdx = state.currentCluePlayerIndex;
   let found = false;
   for (let i = 0; i < players.length; i++) {
     nextIdx = (state.currentCluePlayerIndex + 1 + i) % players.length;
-    if (!players[nextIdx].isEliminated) {
+    if (!players[nextIdx].isEliminated && !players[nextIdx].clue) {
       found = true;
       break;
     }
@@ -121,10 +142,12 @@ export function submitClue(
   const allClued = activePlayers.every((p) => p.clue !== null);
 
   return {
-    ...state,
-    players,
-    currentCluePlayerIndex: nextIdx,
-    phase: allClued ? "discussion" : "clue",
+    state: {
+      ...state,
+      players,
+      currentCluePlayerIndex: nextIdx,
+      phase: allClued ? "discussion" : "clue",
+    },
   };
 }
 
@@ -171,16 +194,23 @@ function processVotes(state: GameState): GameState {
   // Tie and tiebreaker enabled → go back to clue phase with tied players only
   if (topVoted.length > 1 && state.config.tieBreaker) {
     const players = state.players.map((p) => {
-      if (topVoted.find((tv) => tv.id === p.id)) {
-        return { ...p, votes: 0, hasVoted: false, clue: null };
-      }
+      const isTied = !!topVoted.find((tv) => tv.id === p.id);
+      if (isTied) return { ...p, votes: 0, hasVoted: false, clue: null };
+      // Reset all active players so the whole group can revote
+      if (!p.isEliminated) return { ...p, votes: 0, hasVoted: false };
       return p;
     });
-    return { ...state, players, phase: "clue" };
+    const firstTiedIdx = players.findIndex((p) => topVoted[0].id === p.id);
+    return { ...state, players, phase: "clue", currentCluePlayerIndex: firstTiedIdx, currentVoterIndex: 0, isTiebreaker: true };
   }
 
-  // Eliminate player with most votes (random if tie & no tiebreaker)
-  const eliminated = topVoted[Math.floor(Math.random() * topVoted.length)];
+  // Tie but no tiebreaker → host picks who to eliminate
+  if (topVoted.length > 1) {
+    return { ...state, phase: "host-pick" };
+  }
+
+  // Eliminate player with most votes
+  const eliminated = topVoted[0];
   const players = state.players.map((p) =>
     p.id === eliminated.id ? { ...p, isEliminated: true } : p
   );
@@ -196,12 +226,19 @@ function processVotes(state: GameState): GameState {
   };
 }
 
-// ─── Prepare vote phase ───────────────────────────────────────────────────────
-export function prepareVotePhase(state: GameState): GameState {
+// ─── Host manually eliminates a tied player ───────────────────────────────────
+export function eliminatePlayer(state: GameState, playerId: string): GameState {
+  const target = state.players.find((p) => p.id === playerId);
+  if (!target) return state;
+  const players = state.players.map((p) =>
+    p.id === playerId ? { ...p, isEliminated: true } : p
+  );
   return {
     ...state,
-    phase: "vote",
-    currentVoterIndex: 0,
+    players,
+    phase: "elimination",
+    eliminatedThisRound: playerId,
+    ghostGuessAllowed: target.role === "ghost",
   };
 }
 
@@ -214,12 +251,11 @@ export function checkWinCondition(
   const undercovers = active.filter((p) => p.role === "undercover");
   const ghosts = active.filter((p) => p.role === "ghost");
 
-  // All undercovers and ghosts eliminated → civilians win
-  if (undercovers.length === 0 && ghosts.length === 0) return "civilians";
+  // All undercovers eliminated → civilians win (ghost surviving is not a threat)
+  if (undercovers.length === 0) return "civilians";
 
-  // Only 1 civilian left with infiltrators → undercover/ghost win
-  if (civilians.length <= 1 && (undercovers.length > 0 || ghosts.length > 0))
-    return "undercover";
+  // Undercovers equal or outnumber civilians + ghosts → they control the vote and win
+  if (undercovers.length >= civilians.length + ghosts.length) return "undercover";
 
   return null;
 }
@@ -252,6 +288,7 @@ export function nextRound(state: GameState): GameState {
     eliminatedThisRound: null,
     ghostGuessAllowed: false,
     ghostGuess: null,
+    isTiebreaker: false,
   };
 }
 
@@ -260,8 +297,11 @@ export function processGhostGuess(
   state: GameState,
   guess: string
 ): GameState {
-  const civilianWord = state.wordPair?.civilian?.toLowerCase().trim() ?? "";
-  const correct = guess.toLowerCase().trim() === civilianWord;
+  const normalizeText = (text: string) =>
+    text.toLowerCase().trim().replace(/\s+/g, " ");
+
+  const civilianWord = normalizeText(state.wordPair?.civilian ?? "");
+  const correct = normalizeText(guess) === civilianWord;
 
   if (correct) {
     return { ...state, phase: "summary", winner: "ghost", ghostGuess: guess };

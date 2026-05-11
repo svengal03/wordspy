@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { ChatMessage, Player } from "@/lib/types";
 import { tokens, Card } from "@/components/ui";
 
-const EMOJIS = ["😂", "👀", "🤔", "😱", "🎯", "🤫", "😅", "🔥", "💀", "🫣"];
+const EMOJIS = ["😂", "👀", "🤔", "😱", "🕵️", "🤫", "😅", "🔥", "💀", "🫣"];
 
 interface Props {
   messages: ChatMessage[];

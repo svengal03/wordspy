@@ -1,7 +1,9 @@
 "use client";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
 import { Card, Btn, RoleBadge, tokens, TopBar, Screen, Badge } from "@/components/ui";
+import RulesModal from "./RulesModal";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
 
@@ -12,12 +14,13 @@ interface Props {
 }
 
 const winnerConfig = {
-  civilians: { emoji: "🏆", label: "Civilians Win!", color: tokens.green, bg: tokens.greenBg },
+  civilians: { emoji: "🥳", label: "Civilians Win!", color: tokens.green, bg: tokens.greenBg },
   undercover: { emoji: "🕵️", label: "Undercover Wins!", color: tokens.coral, bg: tokens.coralBg },
-  ghost: { emoji: "👻", label: "Ghost Wins!", color: tokens.yellow, bg: tokens.yellowBg },
+  ghost: { emoji: "👻", label: "WordSpy Wins!", color: tokens.yellow, bg: tokens.yellowBg },
 };
 
 export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: Props) {
+  const [showRules, setShowRules] = useState(false);
   const router = useRouter();
   const { reset } = useGameStore();
   const winner = gameState.winner!;
@@ -36,7 +39,25 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
 
   return (
     <Screen>
-      <TopBar title="Game Over" sub="Here's how it went" />
+      <TopBar
+        title="Game Over"
+        sub="Here's how it went"
+        right={
+          <button
+            onClick={() => setShowRules(true)}
+            style={{
+              padding: "7px 14px", borderRadius: 10,
+              border: `1.5px solid ${tokens.border}`,
+              background: tokens.white, cursor: "pointer",
+              fontSize: 13, fontWeight: 600, color: tokens.grey1,
+              fontFamily: "inherit", transition: "all 0.15s",
+            }}
+          >
+            Rules
+          </button>
+        }
+      />
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 
         {/* Winner banner */}
@@ -57,7 +78,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}` }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: tokens.coral, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
-                🃏 Word Pair Revealed
+                🔍 Word Pair Revealed
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
                 <div style={{ textAlign: "center", flex: 1 }}>

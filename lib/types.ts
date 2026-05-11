@@ -21,6 +21,7 @@ export type GamePhase =
   | "clue"        // everyone gives a clue
   | "discussion"  // open chat + debate
   | "vote"        // voting who to eliminate
+  | "host-pick"   // host manually picks who to eliminate on tie (no tiebreaker)
   | "elimination" // show who got eliminated + ghost guess
   | "summary";    // end of game
 
@@ -29,11 +30,12 @@ export interface GameConfig {
   packId: string;
   playerCount: number;
   undercoverCount: number;
-  ghostEnabled: boolean;
+  ghostCount: number;      // 0 = no ghost role, 1 = one ghost/Mr. White
   safeRound: boolean;      // no elimination in round 1
   tieBreaker: boolean;     // re-clue and revote on ties
   jurySystem: boolean;     // eliminated players vote in final round
   clueTimerSeconds: number | null; // null = no timer
+  showVotesLive: boolean;          // show vote counts to everyone during voting
 }
 
 // ─── Chat Message ─────────────────────────────────────────────────────────────
@@ -60,6 +62,7 @@ export interface GameState {
   ghostGuessAllowed: boolean;
   ghostGuess: string | null;
   winner: "civilians" | "undercover" | "ghost" | null;
+  isTiebreaker: boolean;
   chat: ChatMessage[];
   createdAt: number;
 }
@@ -88,11 +91,12 @@ export const DEFAULT_CONFIG: GameConfig = {
   packId: "bollywood",
   playerCount: 5,
   undercoverCount: 1,
-  ghostEnabled: true,
-  safeRound: true,
-  tieBreaker: true,
+  ghostCount: 1,
+  safeRound: false,
+  tieBreaker: false,
   jurySystem: false,
   clueTimerSeconds: null,
+  showVotesLive: false,
 };
 
 // ─── Role counts by player count ─────────────────────────────────────────────

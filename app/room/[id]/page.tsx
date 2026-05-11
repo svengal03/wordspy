@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useCallback, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
 import { usePusherRoom } from "@/lib/usePusher";
 import { GameState, ChatMessage, GameEvent } from "@/lib/types";
 import {
-  startGame, submitClue, castVote, processGhostGuess,
-  nextRound,
+  startGame, submitClue, processGhostGuess,
+  nextRound, eliminatePlayer,
 } from "@/lib/gameEngine";
 import { nanoid } from "nanoid";
 
@@ -20,10 +20,12 @@ import SummaryScreen from "@/components/game/SummaryScreen";
 export default function RoomPage() {
   const params = useParams();
   const roomCode = params.id as string;
+  const router = useRouter();
+  const [roomError, setRoomError] = useState<string | null>(null);
 
   const {
     localPlayer, gameState, setGameState,
-    setRoomCode, config,
+    setRoomCode, config, reset,
   } = useGameStore();
 
   async function pushState(state: GameState) {
@@ -63,12 +65,17 @@ export default function RoomPage() {
     setRoomCode(roomCode);
 
     (async () => {
+      try {
       const res = await fetch("/api/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "get", roomCode }),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        setRoomError("Room not found — the session may have ended. Taking you home…");
+        setTimeout(() => router.push("/"), 3000);
+        return;
+      }
       const data = await res.json();
       const state = data.gameState as GameState;
 
@@ -83,6 +90,10 @@ export default function RoomPage() {
         }
       } else {
         setGameState(state);
+      }
+      } catch {
+        setRoomError("Connection error — taking you home…");
+        setTimeout(() => router.push("/"), 3000);
       }
     })();
   }, [roomCode]);
@@ -103,15 +114,24 @@ export default function RoomPage() {
 
   async function handleClue(clue: string) {
     if (!gameState || !localPlayer) return;
-    const updated = submitClue(gameState, localPlayer.id, clue);
-    await pushState(updated);
-    await publish("game-state-update", updated);
+    const result = submitClue(gameState, localPlayer.id, clue);
+    if (result.error) return result.error;
+    await pushState(result.state);
+    await publish("game-state-update", result.state);
   }
 
   async function handleVote(targetId: string) {
     if (!gameState || !localPlayer) return;
-    const updated = castVote(gameState, localPlayer.id, targetId);
-    await pushState(updated);
+    // Server applies vote atomically to prevent race conditions from simultaneous votes
+    const res = await fetch("/api/rooms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "cast-vote", roomCode, voterId: localPlayer.id, targetId }),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const updated = data.gameState as GameState;
+    setGameState(updated);
     await publish("game-state-update", updated);
   }
 
@@ -144,6 +164,29 @@ export default function RoomPage() {
     await publish("game-state-update", updated);
   }
 
+  async function handleRemovePlayer(playerId: string) {
+    if (!gameState) return;
+    const res = await fetch("/api/rooms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "remove-player", roomCode, playerId }),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const updated = data.gameState as GameState;
+    setGameState(updated);
+    await publish("game-state-update", updated);
+  }
+
+  function handleLeave() {
+    if (!localPlayer) return;
+    const msg = localPlayer.isHost ? "End game and return home?" : "Leave this game?";
+    if (!window.confirm(msg)) return;
+    handleRemovePlayer(localPlayer.id);
+    reset();
+    router.push("/");
+  }
+
   async function handlePlayAgain() {
     if (!gameState) return;
     const reset: GameState = {
@@ -161,21 +204,39 @@ export default function RoomPage() {
       ghostGuessAllowed: false,
       ghostGuess: null,
       winner: null,
+      isTiebreaker: false,
       chat: [],
     };
     await pushState(reset);
     await publish("game-state-update", reset);
   }
 
-  if (!gameState || !localPlayer) {
+  const isKicked = gameState && localPlayer &&
+    gameState.phase === "lobby" &&
+    !gameState.players.find((p) => p.id === localPlayer.id);
+
+  if (!gameState || !localPlayer || isKicked) {
+    const msg = isKicked
+      ? "You were removed from the room by the host."
+      : roomError ?? "Loading room…";
     return (
       <div style={{
         minHeight: "100dvh", display: "flex", alignItems: "center",
-        justifyContent: "center", fontFamily: "system-ui", color: "#888",
+        justifyContent: "center", fontFamily: "system-ui",
         flexDirection: "column", gap: 12,
       }}>
-        <div style={{ fontSize: 32 }}>🕵️</div>
-        <div>Loading room…</div>
+        <div style={{ fontSize: 32 }}>{(isKicked || roomError) ? "😔" : "🕵️"}</div>
+        <div style={{ color: (isKicked || roomError) ? "#EF4444" : "#888", textAlign: "center", maxWidth: 280, lineHeight: 1.5 }}>
+          {msg}
+        </div>
+        {isKicked && (
+          <button
+            onClick={() => router.push("/")}
+            style={{ marginTop: 8, padding: "10px 20px", borderRadius: 10, border: "1.5px solid #E5E0DC", background: "white", cursor: "pointer", fontSize: 14 }}
+          >
+            Back to Home
+          </button>
+        )}
       </div>
     );
   }
@@ -183,7 +244,7 @@ export default function RoomPage() {
   const phase = gameState.phase;
 
   if (phase === "lobby") {
-    return <LobbySetup gameState={gameState} onStart={handleStart} onUpdateConfig={handleUpdateConfig} />;
+    return <LobbySetup gameState={gameState} onStart={handleStart} onUpdateConfig={handleUpdateConfig} onRemovePlayer={handleRemovePlayer} onLeave={handleLeave} />;
   }
 
   if (phase === "role-reveal") {
@@ -193,6 +254,8 @@ export default function RoomPage() {
         localPlayer={localPlayer}
         isOffline={false}
         revealIndex={0}
+        onLeave={handleLeave}
+        onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
         onDone={async () => {
           const updated = { ...gameState, phase: "clue" as const };
           await pushState(updated);
@@ -210,6 +273,8 @@ export default function RoomPage() {
         isOffline={false}
         onSubmitClue={handleClue}
         onSendChat={handleChat}
+        onLeave={handleLeave}
+        onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
         onStartVoting={async () => {
           const updated = { ...gameState, phase: "vote" as const };
           await pushState(updated);
@@ -225,6 +290,8 @@ export default function RoomPage() {
         gameState={gameState}
         localPlayer={localPlayer}
         onVote={handleVote}
+        onLeave={handleLeave}
+        onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
         onContinue={async () => {
           const updated = nextRound(gameState);
           await pushState(updated);
@@ -234,8 +301,77 @@ export default function RoomPage() {
     );
   }
 
+  if (phase === "host-pick") {
+    const activePlayers = gameState.players.filter((p) => !p.isEliminated);
+    const maxVotes = Math.max(...activePlayers.map((p) => p.votes));
+    const tiedPlayers = activePlayers.filter((p) => p.votes === maxVotes);
+    const isHost = localPlayer.isHost;
+    return (
+      <div style={{
+        minHeight: "100dvh", background: "#FAFAF8",
+        fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
+        display: "flex", flexDirection: "column",
+      }}>
+        <div style={{ padding: "16px 20px 14px", borderBottom: "1px solid #F0F0F0", background: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#AAA", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>Final Elimination</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#1A1A1A", letterSpacing: -0.5 }}>Votes are tied</div>
+            <div style={{ fontSize: 13, color: "#888", marginTop: 2 }}>
+              {isHost ? "Choose who is eliminated" : "Waiting for host to decide…"}
+            </div>
+          </div>
+          <button onClick={handleLeave} style={{ padding: "7px 14px", borderRadius: 10, border: "1.5px solid #E5E0DC", background: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#888", fontFamily: "inherit" }}>
+            Leave
+          </button>
+        </div>
+        <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 12, maxWidth: 480, margin: "0 auto", width: "100%" }}>
+          {tiedPlayers.map((p) => (
+            <button
+              key={p.id}
+              disabled={!isHost}
+              onClick={async () => {
+                if (!isHost) return;
+                const updated = eliminatePlayer(gameState, p.id);
+                await pushState(updated);
+                await publish("game-state-update", updated);
+              }}
+              style={{
+                display: "flex", alignItems: "center", gap: 14, padding: "16px 18px",
+                borderRadius: 16, border: "1.5px solid #CC785C30",
+                background: isHost ? "#fff" : "#FAFAFA",
+                cursor: isHost ? "pointer" : "default", textAlign: "left",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.05)", width: "100%",
+                opacity: isHost ? 1 : 0.7,
+              }}
+            >
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, background: "#FFF8F5",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 18, fontWeight: 700, color: "#CC785C", flexShrink: 0,
+              }}>{p.name[0].toUpperCase()}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "#1A1A1A" }}>{p.name}</div>
+                <div style={{ fontSize: 13, color: "#888", marginTop: 2 }}>{p.votes} vote{p.votes !== 1 ? "s" : ""}</div>
+              </div>
+              {isHost && <div style={{ fontSize: 13, fontWeight: 600, color: "#CC785C" }}>Eliminate →</div>}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (phase === "elimination") {
-    return <EliminationScreen gameState={gameState} localPlayer={localPlayer} onGhostGuess={handleGhostGuess} onContinue={handleContinue} />;
+    return (
+      <EliminationScreen
+        gameState={gameState}
+        localPlayer={localPlayer}
+        onGhostGuess={handleGhostGuess}
+        onContinue={handleContinue}
+        onLeave={handleLeave}
+        onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
+      />
+    );
   }
 
   if (phase === "summary") {

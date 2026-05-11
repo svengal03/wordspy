@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, Btn, SectionLabel, Toggle, tokens, Logo } from "@/components/ui";
+import { Card, Btn, SectionLabel, Toggle, tokens, Logo, OptionsMenu } from "@/components/ui";
+import RulesModal from "./RulesModal";
 import { WORD_PACKS } from "@/lib/wordPacks";
 import { GameConfig, GameState } from "@/lib/types";
 import { useGameStore } from "@/lib/store";
@@ -10,12 +11,15 @@ interface Props {
   gameState: GameState;
   onStart: () => void;
   onUpdateConfig: (config: GameConfig) => void;
+  onRemovePlayer?: (playerId: string) => void;
+  onLeave?: () => void;
 }
 
-export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props) {
+export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemovePlayer, onLeave }: Props) {
   const { localPlayer, config, setConfig } = useGameStore();
   const isHost = localPlayer?.isHost;
   const [copied, setCopied] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   function update(partial: Partial<GameConfig>) {
     const next = { ...config, ...partial };
@@ -47,8 +51,6 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
     }
   }
 
-  const activePlayers = gameState.players.filter((p) => !p.isEliminated);
-
   return (
     <div style={{
       minHeight: "100dvh", background: tokens.bg,
@@ -57,10 +59,31 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
       {/* Top bar */}
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${tokens.border}`, background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Logo />
-        <div style={{ fontSize: 12, color: tokens.grey3 }}>
-          {isHost ? "You are host" : "Waiting for host"}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={() => setShowRules(true)}
+            style={{
+              padding: "7px 14px",
+              borderRadius: 10,
+              border: `1.5px solid ${tokens.border}`,
+              background: tokens.white,
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 600,
+              color: tokens.grey1,
+              fontFamily: "inherit",
+              transition: "all 0.15s",
+            }}
+          >
+            Rules
+          </button>
+          <div style={{ fontSize: 12, color: tokens.grey3 }}>
+            {isHost ? "You are host" : "Waiting for host"}
+          </div>
+          {onLeave && <OptionsMenu onExit={onLeave} />}
         </div>
       </div>
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
 
       <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 16, maxWidth: 480, margin: "0 auto" }}>
 
@@ -110,6 +133,17 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
                     <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: tokens.black }}>{p.name}</div>
                     {p.isHost && <span style={{ fontSize: 11, color: tokens.coral, fontWeight: 700 }}>HOST</span>}
                     {p.id === localPlayer?.id && <span style={{ fontSize: 11, color: tokens.green, fontWeight: 700 }}>YOU</span>}
+                    {isHost && p.id !== localPlayer?.id && !p.isHost && onRemovePlayer && (
+                      <button
+                        onClick={() => onRemovePlayer(p.id)}
+                        title="Remove player"
+                        style={{
+                          width: 24, height: 24, borderRadius: 6, border: `1px solid ${tokens.border}`,
+                          background: "transparent", cursor: "pointer", fontSize: 13, color: tokens.grey3,
+                          display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+                        }}
+                      >×</button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -144,16 +178,85 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
               </Card>
             </motion.div>
 
-            {/* Host Options */}
+            {/* Role Distribution */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <Card>
+                <SectionLabel>Role Distribution</SectionLabel>
+                {(() => {
+                  const total = gameState.players.length || 5;
+                  const undercovers = Math.min(config.undercoverCount, Math.max(1, total - 2));
+                  const ghosts = Math.min(config.ghostCount, Math.max(0, total - undercovers - 2));
+                  const civilians = total - undercovers - ghosts;
+                  const canAddUndercover = total - (undercovers + 1) - ghosts >= 2;
+                  const canAddGhost = total - undercovers - (ghosts + 1) >= 2;
+                  const stepperStyle = {
+                    width: 30, height: 30, borderRadius: 8,
+                    border: `1.5px solid ${tokens.border}`,
+                    background: tokens.white, cursor: "pointer",
+                    fontSize: 18, fontWeight: 600, color: tokens.grey1,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  } as React.CSSProperties;
+                  const disabledStyle = { ...stepperStyle, opacity: 0.3, cursor: "not-allowed" };
+                  return (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                      {/* Preview pill row */}
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ padding: "4px 12px", borderRadius: 20, background: "#EDF6FF", color: "#2563EB", fontSize: 13, fontWeight: 600 }}>
+                          👤 {civilians} civilian{civilians !== 1 ? "s" : ""}
+                        </span>
+                        <span style={{ padding: "4px 12px", borderRadius: 20, background: "#FFF3F0", color: tokens.coral, fontSize: 13, fontWeight: 600 }}>
+                          🕵️ {undercovers} undercover{undercovers !== 1 ? "s" : ""}
+                        </span>
+                        {ghosts > 0 && (
+                          <span style={{ padding: "4px 12px", borderRadius: 20, background: "#F3F0FF", color: "#7C3AED", fontSize: 13, fontWeight: 600 }}>
+                            👻 {ghosts} ghost
+                          </span>
+                        )}
+                      </div>
+                      {/* Undercover stepper */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Undercovers 🕵️</div>
+                          <div style={{ fontSize: 12, color: tokens.grey3 }}>Know the other word, stay hidden</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <button style={undercovers <= 1 ? disabledStyle : stepperStyle} disabled={undercovers <= 1}
+                            onClick={() => update({ undercoverCount: Math.max(1, undercovers - 1) })}>−</button>
+                          <span style={{ fontSize: 16, fontWeight: 700, minWidth: 20, textAlign: "center", color: tokens.black }}>{undercovers}</span>
+                          <button style={!canAddUndercover ? disabledStyle : stepperStyle} disabled={!canAddUndercover}
+                            onClick={() => update({ undercoverCount: undercovers + 1 })}>+</button>
+                        </div>
+                      </div>
+                      {/* Ghost stepper */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>WordSpy 👻</div>
+                          <div style={{ fontSize: 12, color: tokens.grey3 }}>Gets no word — must bluff blindly</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <button style={ghosts <= 0 ? disabledStyle : stepperStyle} disabled={ghosts <= 0}
+                            onClick={() => update({ ghostCount: 0 })}>−</button>
+                          <span style={{ fontSize: 16, fontWeight: 700, minWidth: 20, textAlign: "center", color: tokens.black }}>{ghosts}</span>
+                          <button style={!canAddGhost ? disabledStyle : stepperStyle} disabled={!canAddGhost}
+                            onClick={() => update({ ghostCount: 1 })}>+</button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </Card>
+            </motion.div>
+
+            {/* Host Options */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <Card>
                 <SectionLabel>Host Options</SectionLabel>
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   {[
                     { key: "safeRound", label: "Safe Round", desc: "No elimination in round 1 — just clues" },
                     { key: "tieBreaker", label: "Tie Breaker", desc: "Tied players re-clue and group revotes" },
+                    { key: "showVotesLive", label: "Show Live Votes", desc: "Everyone sees vote counts as they come in" },
                     { key: "jurySystem", label: "Jury System", desc: "Eliminated players cast a collective vote in the final round" },
-                    { key: "ghostEnabled", label: "Ghost Role", desc: "One player gets no word and must bluff" },
                   ].map((opt) => (
                     <div key={opt.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                       <div>
