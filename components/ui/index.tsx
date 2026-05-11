@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, ButtonHTMLAttributes } from "react";
+import { ReactNode, ButtonHTMLAttributes, useState } from "react";
 import { motion } from "framer-motion";
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
@@ -185,6 +185,68 @@ export function InfoBox({ icon, title, body, color = tokens.coral }: { icon: str
   );
 }
 
+// ─── Options Menu ─────────────────────────────────────────────────────────────
+export function OptionsMenu({ onExit, onNewGame }: { onExit: () => void; onNewGame?: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          padding: "6px 12px", borderRadius: 8,
+          border: `1.5px solid ${tokens.border}`,
+          background: tokens.white, cursor: "pointer",
+          fontSize: 16, fontWeight: 700, color: tokens.grey1,
+          fontFamily: "inherit", lineHeight: 1,
+        }}
+      >
+        ⋮
+      </button>
+      {open && (
+        <>
+          <div
+            onClick={() => setOpen(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 100 }}
+          />
+          <div style={{
+            position: "absolute", top: "calc(100% + 6px)", right: 0,
+            background: tokens.white, borderRadius: 12,
+            border: `1.5px solid ${tokens.border}`,
+            boxShadow: "0 4px 20px rgba(0,0,0,.12)",
+            zIndex: 101, minWidth: 150, overflow: "hidden",
+          }}>
+            {onNewGame && (
+              <button
+                onClick={() => { setOpen(false); onNewGame(); }}
+                style={{
+                  display: "block", width: "100%", padding: "12px 16px",
+                  background: "none", border: "none", cursor: "pointer",
+                  fontSize: 14, fontWeight: 600, color: tokens.black,
+                  textAlign: "left", fontFamily: "inherit",
+                  borderBottom: `1px solid ${tokens.border}`,
+                }}
+              >
+                New Game
+              </button>
+            )}
+            <button
+              onClick={() => { setOpen(false); onExit(); }}
+              style={{
+                display: "block", width: "100%", padding: "12px 16px",
+                background: "none", border: "none", cursor: "pointer",
+                fontSize: 14, fontWeight: 600, color: tokens.red,
+                textAlign: "left", fontFamily: "inherit",
+              }}
+            >
+              Exit Game
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─── Divider ──────────────────────────────────────────────────────────────────
 export function Divider() {
   return <div style={{ height: 1, background: tokens.border, margin: "4px 0" }} />;
@@ -195,7 +257,7 @@ export function RoleBadge({ role }: { role: "civilian" | "undercover" | "ghost" 
   const map = {
     civilian: { emoji: "🎭", label: "Civilian", color: tokens.green },
     undercover: { emoji: "🕵️", label: "Undercover", color: tokens.coral },
-    ghost: { emoji: "👻", label: "Ghost", color: tokens.yellow },
+    ghost: { emoji: "", label: "WordSpy", color: tokens.yellow },
   };
   const { emoji, label, color } = map[role];
   return <Badge color={color}>{emoji} {label}</Badge>;

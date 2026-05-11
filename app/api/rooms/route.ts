@@ -41,6 +41,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  if (action === "remove-player") {
+    const state = rooms[roomCode];
+    if (!state) return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    const { playerId } = body;
+    const updated = { ...state, players: state.players.filter((p) => p.id !== playerId) };
+    rooms[roomCode] = updated;
+    return NextResponse.json({ gameState: updated });
+  }
+
   // Atomically apply a single vote server-side to prevent race conditions
   if (action === "cast-vote") {
     const state = rooms[roomCode];

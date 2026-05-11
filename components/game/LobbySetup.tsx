@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, Btn, SectionLabel, Toggle, tokens, Logo } from "@/components/ui";
+import { Card, Btn, SectionLabel, Toggle, tokens, Logo, OptionsMenu } from "@/components/ui";
 import RulesModal from "./RulesModal";
 import { WORD_PACKS } from "@/lib/wordPacks";
 import { GameConfig, GameState } from "@/lib/types";
@@ -11,9 +11,11 @@ interface Props {
   gameState: GameState;
   onStart: () => void;
   onUpdateConfig: (config: GameConfig) => void;
+  onRemovePlayer?: (playerId: string) => void;
+  onLeave?: () => void;
 }
 
-export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props) {
+export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemovePlayer, onLeave }: Props) {
   const { localPlayer, config, setConfig } = useGameStore();
   const isHost = localPlayer?.isHost;
   const [copied, setCopied] = useState(false);
@@ -61,25 +63,24 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
           <button
             onClick={() => setShowRules(true)}
             style={{
-              width: 36,
-              height: 36,
+              padding: "7px 14px",
               borderRadius: 10,
               border: `1.5px solid ${tokens.border}`,
               background: tokens.white,
               cursor: "pointer",
-              fontSize: 18,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              fontSize: 13,
+              fontWeight: 600,
+              color: tokens.grey1,
+              fontFamily: "inherit",
               transition: "all 0.15s",
             }}
-            title="Rules"
           >
-            ❓
+            Rules
           </button>
           <div style={{ fontSize: 12, color: tokens.grey3 }}>
             {isHost ? "You are host" : "Waiting for host"}
           </div>
+          {onLeave && <OptionsMenu onExit={onLeave} />}
         </div>
       </div>
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
@@ -132,6 +133,17 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
                     <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: tokens.black }}>{p.name}</div>
                     {p.isHost && <span style={{ fontSize: 11, color: tokens.coral, fontWeight: 700 }}>HOST</span>}
                     {p.id === localPlayer?.id && <span style={{ fontSize: 11, color: tokens.green, fontWeight: 700 }}>YOU</span>}
+                    {isHost && p.id !== localPlayer?.id && !p.isHost && onRemovePlayer && (
+                      <button
+                        onClick={() => onRemovePlayer(p.id)}
+                        title="Remove player"
+                        style={{
+                          width: 24, height: 24, borderRadius: 6, border: `1px solid ${tokens.border}`,
+                          background: "transparent", cursor: "pointer", fontSize: 13, color: tokens.grey3,
+                          display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+                        }}
+                      >×</button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -218,7 +230,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
                       {/* Ghost stepper */}
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Mr. White / Ghost 👻</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>WordSpy 👻</div>
                           <div style={{ fontSize: 12, color: tokens.grey3 }}>Gets no word — must bluff blindly</div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -243,6 +255,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
                   {[
                     { key: "safeRound", label: "Safe Round", desc: "No elimination in round 1 — just clues" },
                     { key: "tieBreaker", label: "Tie Breaker", desc: "Tied players re-clue and group revotes" },
+                    { key: "showVotesLive", label: "Show Live Votes", desc: "Everyone sees vote counts as they come in" },
                     { key: "jurySystem", label: "Jury System", desc: "Eliminated players cast a collective vote in the final round" },
                   ].map((opt) => (
                     <div key={opt.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>

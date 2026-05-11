@@ -21,6 +21,7 @@ export type GamePhase =
   | "clue"        // everyone gives a clue
   | "discussion"  // open chat + debate
   | "vote"        // voting who to eliminate
+  | "host-pick"   // host manually picks who to eliminate on tie (no tiebreaker)
   | "elimination" // show who got eliminated + ghost guess
   | "summary";    // end of game
 
@@ -34,6 +35,7 @@ export interface GameConfig {
   tieBreaker: boolean;     // re-clue and revote on ties
   jurySystem: boolean;     // eliminated players vote in final round
   clueTimerSeconds: number | null; // null = no timer
+  showVotesLive: boolean;          // show vote counts to everyone during voting
 }
 
 // ─── Chat Message ─────────────────────────────────────────────────────────────
@@ -90,10 +92,11 @@ export const DEFAULT_CONFIG: GameConfig = {
   playerCount: 5,
   undercoverCount: 1,
   ghostCount: 1,
-  safeRound: true,
-  tieBreaker: true,
+  safeRound: false,
+  tieBreaker: false,
   jurySystem: false,
   clueTimerSeconds: null,
+  showVotesLive: false,
 };
 
 // ─── Role counts by player count ─────────────────────────────────────────────

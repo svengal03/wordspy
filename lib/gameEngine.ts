@@ -204,8 +204,13 @@ function processVotes(state: GameState): GameState {
     return { ...state, players, phase: "clue", currentCluePlayerIndex: firstTiedIdx, currentVoterIndex: 0, isTiebreaker: true };
   }
 
-  // Eliminate player with most votes (random if tie & no tiebreaker)
-  const eliminated = topVoted[Math.floor(Math.random() * topVoted.length)];
+  // Tie but no tiebreaker → host picks who to eliminate
+  if (topVoted.length > 1) {
+    return { ...state, phase: "host-pick" };
+  }
+
+  // Eliminate player with most votes
+  const eliminated = topVoted[0];
   const players = state.players.map((p) =>
     p.id === eliminated.id ? { ...p, isEliminated: true } : p
   );
@@ -221,6 +226,22 @@ function processVotes(state: GameState): GameState {
   };
 }
 
+// ─── Host manually eliminates a tied player ───────────────────────────────────
+export function eliminatePlayer(state: GameState, playerId: string): GameState {
+  const target = state.players.find((p) => p.id === playerId);
+  if (!target) return state;
+  const players = state.players.map((p) =>
+    p.id === playerId ? { ...p, isEliminated: true } : p
+  );
+  return {
+    ...state,
+    players,
+    phase: "elimination",
+    eliminatedThisRound: playerId,
+    ghostGuessAllowed: target.role === "ghost",
+  };
+}
+
 // ─── Check win condition ──────────────────────────────────────────────────────
 export function checkWinCondition(
   state: GameState
@@ -230,14 +251,11 @@ export function checkWinCondition(
   const undercovers = active.filter((p) => p.role === "undercover");
   const ghosts = active.filter((p) => p.role === "ghost");
 
-  // All undercovers and ghosts eliminated → civilians win
-  if (undercovers.length === 0 && ghosts.length === 0) return "civilians";
+  // All undercovers eliminated → civilians win (ghost surviving is not a threat)
+  if (undercovers.length === 0) return "civilians";
 
   // Undercovers equal or outnumber civilians + ghosts → they control the vote and win
-  if (undercovers.length > 0 && undercovers.length >= civilians.length + ghosts.length) return "undercover";
-
-  // All civilians eliminated with no undercovers left → ghost wins
-  if (civilians.length === 0 && undercovers.length === 0 && ghosts.length > 0) return "ghost";
+  if (undercovers.length >= civilians.length + ghosts.length) return "undercover";
 
   return null;
 }

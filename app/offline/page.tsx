@@ -4,12 +4,13 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
 import {
   startGame, submitClue, castVote, processGhostGuess,
-  nextRound, createInitialGameState, createPlayer,
+  nextRound, createInitialGameState, createPlayer, eliminatePlayer,
 } from "@/lib/gameEngine";
 import { GameState, GameConfig } from "@/lib/types";
-import { tokens, Btn, Card, SectionLabel, Toggle } from "@/components/ui";
+import { tokens, Btn, Card, SectionLabel, Toggle, OptionsMenu } from "@/components/ui";
 import RulesModal from "@/components/game/RulesModal";
 import { WORD_PACKS } from "@/lib/wordPacks";
+import { motion } from "framer-motion";
 
 import RoleReveal from "@/components/game/RoleReveal";
 import CluePhase from "@/components/game/CluePhase";
@@ -26,15 +27,40 @@ export default function OfflinePage() {
 
   const [newName, setNewName] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
-  const [showRules, setShowRules] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showRoundStart, setShowRoundStart] = useState(false);
+
+  function handleLeave() {
+    if (!window.confirm("Exit game?")) return;
+    reset();
+    router.push("/");
+  }
+
+  function handleNewGame() {
+    if (!gameState) return;
+    const fresh = createInitialGameState("OFFLINE", config);
+    setGameState({
+      ...fresh,
+      players: gameState.players.map((p) => ({
+        ...p, role: "civilian" as const, word: null, isEliminated: false,
+        clue: null, votes: 0, hasVoted: false,
+      })),
+    });
+    setRevealIndex(0);
+  }
+
+  function handleNextRound() {
+    const next = nextRound(gameState!);
+    setGameState(next);
+    if (next.phase === "clue" && next.round > 1) {
+      setShowRoundStart(true);
+    }
+  }
 
   useEffect(() => {
     if (!localPlayer) { router.push("/"); return; }
-    if (!gameState) {
-      const state = createInitialGameState("OFFLINE", config);
-      const withHost = { ...state, players: [{ ...localPlayer, isHost: true }] };
-      setGameState(withHost);
-    }
+    const state = createInitialGameState("OFFLINE", config);
+    setGameState({ ...state, players: [{ ...localPlayer, isHost: true }] });
   }, []);
 
   if (!gameState || !localPlayer) {
@@ -77,31 +103,33 @@ export default function OfflinePage() {
     return (
       <div style={{ minHeight: "100dvh", background: tokens.bg, fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif" }}>
         <div style={{ padding: "16px 20px", borderBottom: `1px solid ${tokens.border}`, background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 20, fontWeight: 700, color: tokens.black }}>📱 Offline Game</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={() => { reset(); router.push("/"); }}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              fontSize: 13, fontWeight: 600, color: tokens.grey2,
+              padding: 0, fontFamily: "inherit",
+            }}
+          >
+            ← Home
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <button
-              onClick={() => setShowRules(true)}
+              onClick={() => setShowHelp(true)}
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
+                padding: "7px 14px", borderRadius: 10,
                 border: `1.5px solid ${tokens.border}`,
-                background: tokens.white,
-                cursor: "pointer",
-                fontSize: 18,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "all 0.15s",
+                background: tokens.white, cursor: "pointer",
+                fontSize: 13, fontWeight: 600, color: tokens.grey1,
+                fontFamily: "inherit", transition: "all 0.15s",
               }}
-              title="Rules"
             >
-              ❓
+              Rules
             </button>
-            <div style={{ fontSize: 12, color: tokens.grey3 }}>Pass-phone mode</div>
           </div>
         </div>
-        <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+
+        <RulesModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
         <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
           {/* Players - moved first for better UX */}
@@ -124,16 +152,21 @@ export default function OfflinePage() {
             <div style={{ display: "flex", gap: 8 }}>
               <input
                 value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+                onChange={(e) => { setNewName(e.target.value); setNameError(null); }}
                 onKeyDown={(e) => e.key === "Enter" && addPlayer()}
                 placeholder="Add player name…"
                 maxLength={20}
-                style={{ flex: 1, padding: "10px 13px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, fontSize: 14, fontFamily: "inherit", outline: "none", color: tokens.black, background: "#FAFAFA" }}
+                style={{ flex: 1, padding: "10px 13px", borderRadius: 10, border: `1.5px solid ${nameError ? tokens.coral : tokens.border}`, fontSize: 14, fontFamily: "inherit", outline: "none", color: tokens.black, background: "#FAFAFA" }}
               />
               <button onClick={addPlayer} style={{ padding: "10px 18px", borderRadius: 10, background: tokens.coral, border: "none", color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                 Add
               </button>
             </div>
+            {nameError && (
+              <div style={{ marginTop: 8, fontSize: 13, fontWeight: 600, color: tokens.coral }}>
+                {nameError}
+              </div>
+            )}
           </Card>
 
           {/* Word Pack */}
@@ -188,7 +221,7 @@ export default function OfflinePage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Undercovers 🕵️</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Undercovers</div>
                       <div style={{ fontSize: 12, color: tokens.grey3 }}>Know the other word, stay hidden</div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -201,7 +234,7 @@ export default function OfflinePage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Mr. White / Ghost 👻</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>WordSpy 👻</div>
                       <div style={{ fontSize: 12, color: tokens.grey3 }}>Gets no word — must bluff blindly</div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -224,6 +257,7 @@ export default function OfflinePage() {
               {[
                 { key: "safeRound", label: "Safe Round", desc: "No elimination in round 1" },
                 { key: "tieBreaker", label: "Tie Breaker", desc: "Tied players re-clue and revote" },
+                { key: "showVotesLive", label: "Show Live Votes", desc: "Everyone sees vote counts as they come in" },
               ].map((opt) => (
                 <div key={opt.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                   <div>
@@ -264,7 +298,70 @@ export default function OfflinePage() {
         isOffline={true}
         revealIndex={revealIndex}
         onDone={handleRevealDone}
+        onLeave={handleLeave}
+        onNewGame={handleNewGame}
       />
+    );
+  }
+
+  // ─── Round start announcement ─────────────────────────────────────────────
+  if (showRoundStart && gameState.phase === "clue") {
+    const activePlayers = gameState.players.filter((p) => !p.isEliminated);
+    const eliminated = gameState.players.filter((p) => p.isEliminated);
+    return (
+      <div style={{
+        minHeight: "100dvh", background: tokens.bg,
+        fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
+        display: "flex", flexDirection: "column",
+      }}>
+        <div style={{ padding: "14px 20px", borderBottom: `1px solid ${tokens.border}`, background: tokens.white, display: "flex", justifyContent: "flex-end" }}>
+          <OptionsMenu onExit={handleLeave} onNewGame={handleNewGame} />
+        </div>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ textAlign: "center", maxWidth: 360, width: "100%" }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+            Starting
+          </div>
+          <div style={{ fontSize: 52, fontWeight: 800, color: tokens.black, letterSpacing: -2, lineHeight: 1, marginBottom: 4 }}>
+            Round {gameState.round}
+          </div>
+          <div style={{ fontSize: 15, color: tokens.grey2, marginBottom: 28 }}>
+            {activePlayers.length} player{activePlayers.length !== 1 ? "s" : ""} remaining
+          </div>
+
+          {eliminated.length > 0 && (
+            <div style={{
+              background: tokens.white, border: `1.5px solid ${tokens.border}`,
+              borderRadius: 16, padding: "14px 16px", marginBottom: 24, textAlign: "left",
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
+                Eliminated
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {eliminated.map((p) => (
+                  <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{
+                      width: 30, height: 30, borderRadius: 8, background: "#F5F5F5",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 13, fontWeight: 700, color: tokens.grey3,
+                    }}>{p.name[0].toUpperCase()}</div>
+                    <span style={{ fontSize: 14, color: tokens.grey2, textDecoration: "line-through" }}>{p.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Btn fullWidth onClick={() => setShowRoundStart(false)} style={{ padding: "16px", fontSize: 16 }}>
+            Begin Round {gameState.round} →
+          </Btn>
+        </motion.div>
+        </div>
+      </div>
     );
   }
 
@@ -273,12 +370,10 @@ export default function OfflinePage() {
     const currentPlayer = gameState.players[gameState.currentCluePlayerIndex];
     const handleClue = (clue: string) => {
       const result = submitClue(gameState, currentPlayer.id, clue);
-      if (result.error) {
-        alert(result.error);
-        return;
-      }
+      if (result.error) return result.error;
       const allClued = result.state.players.filter((p) => !p.isEliminated).every((p) => p.clue !== null);
-      setGameState(allClued ? { ...result.state, phase: "vote" } : result.state);
+      // Land on discussion so players can talk before voting, not skip straight to vote
+      setGameState(allClued ? { ...result.state, phase: "discussion" } : result.state);
     };
     return (
       <CluePhase
@@ -288,6 +383,8 @@ export default function OfflinePage() {
         onSubmitClue={handleClue}
         onSendChat={() => {}}
         onStartVoting={() => setGameState({ ...gameState, phase: "vote" })}
+        onLeave={handleLeave}
+        onNewGame={handleNewGame}
       />
     );
   }
@@ -305,7 +402,9 @@ export default function OfflinePage() {
         localPlayer={currentVoter}
         isOffline={true}
         onVote={handleVote}
-        onContinue={() => setGameState(nextRound(gameState))}
+        onContinue={handleNextRound}
+        onLeave={handleLeave}
+        onNewGame={handleNewGame}
       />
     );
   }
@@ -317,9 +416,72 @@ export default function OfflinePage() {
         gameState={gameState}
         localPlayer={localPlayer}
         isOffline={true}
-        onGhostGuess={(guess) => setGameState(processGhostGuess(gameState, guess))}
-        onContinue={() => setGameState(nextRound(gameState))}
+        onGhostGuess={(guess) => {
+          const result = processGhostGuess(gameState, guess);
+          setGameState(result);
+          if (result.phase === "clue" && result.round > 1) {
+            setShowRoundStart(true);
+          }
+        }}
+        onContinue={handleNextRound}
+        onLeave={handleLeave}
+        onNewGame={handleNewGame}
       />
+    );
+  }
+
+  // ─── Host pick (tie with no tiebreaker) ──────────────────────────────────
+  if (gameState.phase === "host-pick") {
+    const activePlayers = gameState.players.filter((p) => !p.isEliminated);
+    const maxVotes = Math.max(...activePlayers.map((p) => p.votes));
+    const tiedPlayers = activePlayers.filter((p) => p.votes === maxVotes);
+    return (
+      <div style={{
+        minHeight: "100dvh", background: tokens.bg,
+        fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
+        display: "flex", flexDirection: "column",
+      }}>
+        <div style={{ padding: "16px 20px 14px", borderBottom: `1px solid ${tokens.border}`, background: tokens.white }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>Final Elimination</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>Votes are tied</div>
+              <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2 }}>Host must choose who is eliminated</div>
+            </div>
+            <OptionsMenu onExit={handleLeave} onNewGame={handleNewGame} />
+          </div>
+        </div>
+        <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 12, maxWidth: 480, margin: "0 auto", width: "100%" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {tiedPlayers.map((p) => (
+              <motion.button
+                key={p.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setGameState(eliminatePlayer(gameState, p.id))}
+                style={{
+                  display: "flex", alignItems: "center", gap: 14, padding: "16px 18px",
+                  borderRadius: 16, border: `1.5px solid ${tokens.coralBorder}`,
+                  background: tokens.white, cursor: "pointer", textAlign: "left",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+                }}
+              >
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12, background: tokens.coralBg,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 18, fontWeight: 700, color: tokens.coral, flexShrink: 0,
+                }}>{p.name[0].toUpperCase()}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: tokens.black }}>{p.name}</div>
+                  <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2 }}>{p.votes} vote{p.votes !== 1 ? "s" : ""}</div>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: tokens.coral }}>Eliminate →</div>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 

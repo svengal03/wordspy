@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
-import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen } from "@/components/ui";
+import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen, OptionsMenu } from "@/components/ui";
 import RulesModal from "./RulesModal";
 import ChatPanel from "./ChatPanel";
 
@@ -13,9 +13,11 @@ interface Props {
   onSubmitClue: (clue: string) => string | undefined | void | Promise<string | undefined | void>;
   onSendChat: (text: string) => void;
   onStartVoting?: () => void;
+  onLeave?: () => void;
+  onNewGame?: () => void;
 }
 
-export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitClue, onSendChat, onStartVoting }: Props) {
+export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitClue, onSendChat, onStartVoting, onLeave, onNewGame }: Props) {
   const [clue, setClue] = useState("");
   const [clueError, setClueError] = useState<string | null>(null);
   const [showChat, setShowChat] = useState(false);
@@ -53,15 +55,18 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
         title={`Round ${gameState.round} — Clue Phase`}
         sub={isSafeRound ? "🛡️ Safe Round — no elimination this round" : undefined}
         right={
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <button
               onClick={() => setShowRules(true)}
               style={{
-                background: "none", border: "none", fontSize: 20, cursor: "pointer",
+                padding: "7px 14px", borderRadius: 10,
+                border: `1.5px solid ${tokens.border}`,
+                background: tokens.white, cursor: "pointer",
+                fontSize: 13, fontWeight: 600, color: tokens.grey1,
+                fontFamily: "inherit", transition: "all 0.15s",
               }}
-              title="Rules"
             >
-              ❓
+              Rules
             </button>
             {!isOffline && (
               <button
@@ -70,18 +75,23 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
                   if (!showChat) setLastReadCount(gameState.chat.length);
                 }}
                 style={{
-                  background: "none", border: "none", fontSize: 20, cursor: "pointer", position: "relative"
+                  padding: "6px 12px", borderRadius: 8,
+                  border: `1.5px solid ${tokens.border}`,
+                  background: tokens.white, cursor: "pointer",
+                  fontSize: 12, fontWeight: 600, color: tokens.grey1,
+                  fontFamily: "inherit", position: "relative",
                 }}
               >
-                💬
+                Chat
                 {gameState.chat.length > lastReadCount && (
                   <span style={{
-                    position: "absolute", top: -4, right: -4, width: 8, height: 8,
+                    position: "absolute", top: -3, right: -3, width: 7, height: 7,
                     borderRadius: 4, background: tokens.coral,
                   }} />
                 )}
               </button>
             )}
+            {onLeave && <OptionsMenu onExit={onLeave} onNewGame={onNewGame} />}
           </div>
         }
       />
@@ -89,98 +99,20 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
 
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 
-        {/* Round progress */}
-        <div style={{ display: "flex", gap: 5 }}>
-          {Array.from({ length: Math.max(4, gameState.round + 1) }, (_, i) => i + 1).map((r) => (
-            <div key={r} style={{
-              flex: 1, height: 4, borderRadius: 2,
-              background: r <= gameState.round ? tokens.coral : tokens.border,
+        {/* Round progress — one dot per round played */}
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          {Array.from({ length: gameState.round }, (_, i) => (
+            <div key={i} style={{
+              width: 8, height: 8, borderRadius: 4,
+              background: tokens.coral,
             }} />
           ))}
+          <div style={{ fontSize: 12, color: tokens.grey3, marginLeft: 4 }}>
+            Round {gameState.round}
+          </div>
         </div>
 
-        {/* Transition: Reveal word — offline only (pass-phone handoff before giving clue) */}
-        {isOffline && isMyTurn && !currentPlayer?.clue && !wordRevealed && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: tokens.bg,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 24,
-              zIndex: 1000,
-            }}
-          >
-            <div style={{ textAlign: "center", maxWidth: 360 }}>
-              <div style={{
-                width: 100,
-                height: 100,
-                borderRadius: 28,
-                background: "#F5F0ED",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 44,
-                margin: "0 auto 20px",
-                border: `3px dashed ${tokens.coral}40`,
-              }}>📱</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, marginBottom: 6, letterSpacing: -0.5 }}>
-                Pass phone to {currentPlayer?.name}
-              </div>
-              <div style={{ fontSize: 15, color: tokens.grey2, marginBottom: 28, lineHeight: 1.6 }}>
-                {isOffline ? "Make sure nobody else can see the screen, then tap to reveal your word and give a clue." : "Tap to reveal your word and give your clue."}
-              </div>
-              <Btn
-                fullWidth
-                onClick={() => setWordRevealed(true)}
-                style={{ padding: "16px", fontSize: 16 }}
-              >
-                Give Clue →
-              </Btn>
-            </div>
-          </motion.div>
-        )}
-
-        {/* My word — shown after reveal during current turn */}
-        {isMyTurn && wordRevealed && myPlayer && myPlayer.word !== null && !currentPlayer?.clue && (
-          <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: tokens.coral, letterSpacing: 1, textTransform: "uppercase" }}>Your word</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, marginTop: 2 }}>
-                  {myPlayer.word}
-                </div>
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3 }}>
-                {myPlayer.role.toUpperCase()}
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Ghost has no word */}
-        {isMyTurn && wordRevealed && myPlayer && myPlayer.role === "ghost" && !currentPlayer?.clue && (
-          <Card style={{ background: "rgba(139, 69, 19, 0.08)", border: `1.5px solid rgba(139, 69, 19, 0.2)` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey2, letterSpacing: 1, textTransform: "uppercase" }}>Your role</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, marginTop: 2 }}>
-                  👻 Ghost
-                </div>
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3 }}>
-                LISTEN & GUESS
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Player clue list */}
+        {/* Player clue list — always shown first */}
         <Card>
           <SectionLabel>Clues This Round</SectionLabel>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -209,7 +141,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
                       <div style={{ fontSize: 12, color: tokens.grey4 }}>Waiting</div>
                     )}
                   </div>
-                  {p.clue && <div style={{ fontSize: 16 }}>✅</div>}
+                  {p.clue && <div style={{ width: 8, height: 8, borderRadius: 4, background: tokens.green, flexShrink: 0 }} />}
                   {isActive && !p.clue && (
                     <div style={{
                       background: tokens.coral, color: "#fff",
@@ -240,6 +172,49 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           </div>
         </Card>
 
+        {/* Offline pass card — reveal word before giving clue */}
+        {isOffline && isMyTurn && !currentPlayer?.clue && !wordRevealed && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <Card style={{ textAlign: "center", padding: "20px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, marginBottom: 14, letterSpacing: -0.3 }}>
+                Pass to {currentPlayer?.name}
+              </div>
+              <Btn fullWidth onClick={() => setWordRevealed(true)} style={{ padding: "13px", fontSize: 14 }}>
+                Reveal & Give Clue →
+              </Btn>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Offline: pass phone to next person when not your turn */}
+        {isOffline && !currentPlayer?.clue && !isMyTurn && (
+          <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}`, textAlign: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>
+              Pass phone to {currentPlayer?.name}
+            </div>
+            <div style={{ fontSize: 12, color: tokens.grey2, marginTop: 4 }}>
+              They will reveal their word and give a clue
+            </div>
+          </Card>
+        )}
+
+        {/* My word card — shown after reveal (ghost sees same card with blank word) */}
+        {isMyTurn && wordRevealed && myPlayer && !currentPlayer?.clue && (
+          <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: tokens.coral, letterSpacing: 1, textTransform: "uppercase" }}>Your word</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, marginTop: 2 }}>
+                  {myPlayer.role === "ghost" ? " " : myPlayer.word}
+                </div>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3 }}>
+                {myPlayer.role === "ghost" ? "WORDSPY" : myPlayer.role.toUpperCase()}
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Clue input — only show during clue phase, after word is revealed */}
         {gameState.phase === "clue" && !currentPlayer?.clue && isMyTurn && wordRevealed && (
           <motion.div key={currentPlayer?.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -248,7 +223,13 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
               <InfoBox
                 icon="💡"
                 title="One word or short phrase only"
-                body="Be specific enough to prove you know your word, but vague enough that the Ghost can't guess it."
+                body={
+                  myPlayer?.role === "ghost"
+                    ? "You have NO word — make up a convincing clue that fits what you've heard, to avoid being voted out."
+                    : myPlayer?.role === "undercover"
+                    ? "Your word is similar but different — blend in with the civilians without revealing you're different."
+                    : "Be specific enough to prove you know your word, but vague enough that the WordSpy can't guess it."
+                }
               />
               {clueError && (
                 <div style={{
@@ -282,27 +263,15 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           </motion.div>
         )}
 
-        {/* Offline mode: show who's giving clue if not your turn */}
-        {isOffline && !currentPlayer?.clue && !isMyTurn && (
-          <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}`, textAlign: "center" }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>
-              📱 Pass phone to {currentPlayer?.name}
-            </div>
-            <div style={{ fontSize: 12, color: tokens.grey2, marginTop: 4 }}>
-              They will reveal their word and give a clue
-            </div>
-          </Card>
-        )}
-
         {/* All clued — move to voting */}
         {allClued && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <InfoBox
-              icon="🎤"
+              icon="📣"
               title="All clues given!"
-              body={localPlayer.isHost ? "Discuss with the group, then start the vote." : "Waiting for host to start the vote…"}
+              body={isOffline ? "Discuss with the group, then start the vote." : localPlayer.isHost ? "Discuss with the group, then start the vote." : "Waiting for host to start the vote…"}
             />
-            {localPlayer.isHost && onStartVoting && (
+            {(isOffline || localPlayer.isHost) && onStartVoting && (
               <Btn
                 fullWidth
                 onClick={onStartVoting}
