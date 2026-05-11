@@ -11,11 +11,13 @@ interface Props {
   isOffline: boolean;
   onSubmitClue: (clue: string) => void;
   onSendChat: (text: string) => void;
+  onStartVoting?: () => void;
 }
 
-export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitClue, onSendChat }: Props) {
+export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitClue, onSendChat, onStartVoting }: Props) {
   const [clue, setClue] = useState("");
   const [showChat, setShowChat] = useState(false);
+  const [lastReadCount, setLastReadCount] = useState(0);
 
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
   const currentPlayer = gameState.players[gameState.currentCluePlayerIndex];
@@ -37,11 +39,17 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
         sub={isSafeRound ? "🛡️ Safe Round — no elimination this round" : undefined}
         right={
           !isOffline ? (
-            <button onClick={() => setShowChat(!showChat)} style={{
-              background: "none", border: "none", fontSize: 20, cursor: "pointer", position: "relative"
-            }}>
+            <button
+              onClick={() => {
+                setShowChat(!showChat);
+                if (!showChat) setLastReadCount(gameState.chat.length);
+              }}
+              style={{
+                background: "none", border: "none", fontSize: 20, cursor: "pointer", position: "relative"
+              }}
+            >
               💬
-              {gameState.chat.length > 0 && (
+              {gameState.chat.length > lastReadCount && (
                 <span style={{
                   position: "absolute", top: -4, right: -4, width: 8, height: 8,
                   borderRadius: 4, background: tokens.coral,
@@ -56,7 +64,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
 
         {/* Round progress */}
         <div style={{ display: "flex", gap: 5 }}>
-          {[1, 2, 3, 4].map((r) => (
+          {Array.from({ length: Math.max(4, gameState.round + 1) }, (_, i) => i + 1).map((r) => (
             <div key={r} style={{
               flex: 1, height: 4, borderRadius: 2,
               background: r <= gameState.round ? tokens.coral : tokens.border,
@@ -120,12 +128,30 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
                 </motion.div>
               );
             })}
+            {gameState.players.some((p) => p.isEliminated) && (
+              <>
+                <div style={{ fontSize: 12, color: tokens.grey4, marginTop: 8, marginBottom: 4 }}>Eliminated</div>
+                {gameState.players.filter((p) => p.isEliminated).map((p) => (
+                  <div
+                    key={p.id}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 12, padding: "10px 12px",
+                      borderRadius: 12, background: "#F5F5F5", opacity: 0.6,
+                      textDecoration: "line-through", color: tokens.grey3,
+                    }}
+                  >
+                    <Avatar name={p.name} size={36} />
+                    <div style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>{p.name}</div>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </Card>
 
         {/* My turn to clue */}
         {isMyTurn && !myPlayer?.clue && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div key={currentPlayer?.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <Card>
               <SectionLabel>Your Turn — Give a Clue</SectionLabel>
               <InfoBox
@@ -135,6 +161,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
               />
               <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                 <input
+                  key={currentPlayer?.id}
                   value={clue}
                   onChange={(e) => setClue(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
@@ -155,14 +182,23 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           </motion.div>
         )}
 
-        {/* All clued — move to discussion */}
+        {/* All clued — move to voting */}
         {allClued && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <InfoBox
               icon="🎤"
               title="All clues given!"
-              body="Discuss with the group. When ready, the host moves to voting."
+              body={localPlayer.isHost ? "Discuss with the group, then start the vote." : "Waiting for host to start the vote…"}
             />
+            {localPlayer.isHost && onStartVoting && (
+              <Btn
+                fullWidth
+                onClick={onStartVoting}
+                style={{ padding: "16px", fontSize: 16, marginTop: 14 }}
+              >
+                Start Voting →
+              </Btn>
+            )}
           </motion.div>
         )}
 

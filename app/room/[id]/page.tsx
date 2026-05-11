@@ -2,8 +2,8 @@
 import { useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useGameStore } from "@/lib/store";
-import { usePusherRoom, GameEvent } from "@/lib/usePusher";
-import { GameState, ChatMessage } from "@/lib/types";
+import { usePusherRoom } from "@/lib/usePusher";
+import { GameState, ChatMessage, GameEvent } from "@/lib/types";
 import {
   startGame, submitClue, castVote, processGhostGuess,
   nextRound,
@@ -156,6 +156,7 @@ export default function RoomPage() {
       })),
       wordPair: null,
       currentCluePlayerIndex: 0,
+      currentVoterIndex: 0,
       eliminatedThisRound: null,
       ghostGuessAllowed: false,
       ghostGuess: null,
@@ -202,11 +203,35 @@ export default function RoomPage() {
   }
 
   if (phase === "clue" || phase === "discussion") {
-    return <CluePhase gameState={gameState} localPlayer={localPlayer} isOffline={false} onSubmitClue={handleClue} onSendChat={handleChat} />;
+    return (
+      <CluePhase
+        gameState={gameState}
+        localPlayer={localPlayer}
+        isOffline={false}
+        onSubmitClue={handleClue}
+        onSendChat={handleChat}
+        onStartVoting={async () => {
+          const updated = { ...gameState, phase: "vote" as const };
+          await pushState(updated);
+          await publish("game-state-update", updated);
+        }}
+      />
+    );
   }
 
   if (phase === "vote") {
-    return <VotePhase gameState={gameState} localPlayer={localPlayer} onVote={handleVote} />;
+    return (
+      <VotePhase
+        gameState={gameState}
+        localPlayer={localPlayer}
+        onVote={handleVote}
+        onContinue={async () => {
+          const updated = nextRound(gameState);
+          await pushState(updated);
+          await publish("game-state-update", updated);
+        }}
+      />
+    );
   }
 
   if (phase === "elimination") {

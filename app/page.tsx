@@ -84,9 +84,6 @@ export default function HomeScreen() {
       <div style={{ flex: 1, padding: "48px 24px 24px", maxWidth: 480, margin: "0 auto", width: "100%" }}>
 
         {/* Hero */}
-        <motion.div {...fadeUp(0)} style={{ marginBottom: 8 }}>
-          <Badge>🇮🇳 India Edition</Badge>
-        </motion.div>
         <motion.div {...fadeUp(0.05)}>
           <div style={{ fontSize: 40, fontWeight: 800, color: tokens.black, letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 10 }}>
             Find the<br />
@@ -106,8 +103,12 @@ export default function HomeScreen() {
             <input
               value={name}
               onChange={(e) => { setName(e.target.value); setError(""); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCreate();
+              }}
               placeholder="e.g. Rahul, Priya…"
               maxLength={20}
+              autoFocus
               style={{
                 width: "100%", padding: "12px 14px", borderRadius: 10,
                 border: `1.5px solid ${tokens.border}`, fontSize: 15,
@@ -120,31 +121,45 @@ export default function HomeScreen() {
 
         {/* Mode buttons */}
         <motion.div {...fadeUp(0.15)} style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-          <Btn fullWidth onClick={() => { setMode("create"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
-            🎮 Create Room
+          <Btn
+            fullWidth
+            onClick={() => {
+              if (!name.trim()) {
+                setError("Enter your name first");
+              } else {
+                handleCreate();
+              }
+            }}
+            disabled={loading}
+            style={{ padding: "15px 24px", fontSize: 16 }}
+          >
+            {loading ? "Creating…" : "🎮 Create Room"}
           </Btn>
-          <Btn fullWidth variant="ghost" onClick={() => { setMode("join"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
+          <Btn
+            fullWidth
+            variant="ghost"
+            onClick={() => { setMode("join"); setError(""); }}
+            style={{ padding: "15px 24px", fontSize: 16 }}
+          >
             🔗 Join with Code
           </Btn>
-          <Btn fullWidth variant="secondary" onClick={() => { setMode("offline"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
+          <Btn
+            fullWidth
+            variant="secondary"
+            onClick={() => {
+              if (!name.trim()) {
+                setError("Enter your name first");
+              } else {
+                handleOffline();
+              }
+            }}
+            style={{ padding: "15px 24px", fontSize: 16 }}
+          >
             📱 Play Offline (Pass Phone)
           </Btn>
         </motion.div>
 
         {/* Sub-form based on mode */}
-        {mode === "create" && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <Card style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 14, color: tokens.grey2, margin: "0 0 14px" }}>
-                A room will be created and you'll get a code to share with friends.
-              </p>
-              <Btn fullWidth onClick={handleCreate} disabled={loading}>
-                {loading ? "Creating…" : "Create & Get Code →"}
-              </Btn>
-            </Card>
-          </motion.div>
-        )}
-
         {mode === "join" && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <Card style={{ marginBottom: 16 }}>
@@ -165,19 +180,6 @@ export default function HomeScreen() {
               />
               <Btn fullWidth onClick={handleJoin} disabled={loading}>
                 {loading ? "Joining…" : "Join Room →"}
-              </Btn>
-            </Card>
-          </motion.div>
-        )}
-
-        {mode === "offline" && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <Card style={{ marginBottom: 16 }}>
-              <p style={{ fontSize: 14, color: tokens.grey2, margin: "0 0 14px" }}>
-                Everyone plays on one phone. Pass the phone around for each player to see their secret word privately.
-              </p>
-              <Btn fullWidth onClick={handleOffline}>
-                Start Offline Game →
               </Btn>
             </Card>
           </motion.div>
@@ -217,7 +219,7 @@ export default function HomeScreen() {
       </div>
 
       <div style={{ textAlign: "center", padding: "16px 24px", color: tokens.grey4, fontSize: 12 }}>
-        Wordspy · India Edition · Built with ❤️
+        Wordspy · Made with ❤️
       </div>
     </div>
   );

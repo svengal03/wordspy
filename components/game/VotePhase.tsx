@@ -8,9 +8,10 @@ interface Props {
   gameState: GameState;
   localPlayer: Player;
   onVote: (targetId: string) => void;
+  onContinue?: () => void;
 }
 
-export default function VotePhase({ gameState, localPlayer, onVote }: Props) {
+export default function VotePhase({ gameState, localPlayer, onVote, onContinue }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
 
@@ -30,13 +31,18 @@ export default function VotePhase({ gameState, localPlayer, onVote }: Props) {
     return (
       <Screen>
         <TopBar title="Safe Round" sub="No elimination — it's round 1" />
-        <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto" }}>
+        <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
           <InfoBox
             icon="🛡️"
             title="Safe Round Active"
             body="No one gets eliminated in round 1. Use this time to observe clues and form your strategy."
             color={tokens.green}
           />
+          {localPlayer.isHost && onContinue && (
+            <Btn fullWidth onClick={onContinue} style={{ padding: "16px", fontSize: 16 }}>
+              Continue to Next Round →
+            </Btn>
+          )}
         </div>
       </Screen>
     );
@@ -57,7 +63,7 @@ export default function VotePhase({ gameState, localPlayer, onVote }: Props) {
           <SectionLabel>Choose Wisely</SectionLabel>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {activePlayers
-              .filter((p) => p.id !== localPlayer.id)
+              .filter((p) => !p.isEliminated && p.id !== localPlayer.id)
               .map((p, i) => {
                 const isSelected = selected === p.id;
                 return (
@@ -100,10 +106,10 @@ export default function VotePhase({ gameState, localPlayer, onVote }: Props) {
         </Card>
 
         {/* Vote progress */}
-        {totalVotes > 0 && (
+        {totalVotes >= 1 && (
           <Card style={{ textAlign: "center", padding: "14px" }}>
             <div style={{ fontSize: 13, color: tokens.grey2 }}>
-              {totalVotes} of {activePlayers.length} players have voted
+              {totalVotes} of {activePlayers.length} player{activePlayers.length > 1 ? "s" : ""} {totalVotes === 1 ? "has" : "have"} voted
             </div>
             <div style={{ height: 6, background: tokens.border, borderRadius: 3, marginTop: 8 }}>
               <div style={{

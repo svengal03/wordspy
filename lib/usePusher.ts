@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useCallback } from "react";
 import PusherClient from "pusher-js";
-import { AblyEventType } from "./types";
+import { GameEventType, GameEvent } from "./types";
 
 let pusherClient: PusherClient | null = null;
 
@@ -11,13 +11,6 @@ function getPusherClient(): PusherClient {
     cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
   });
   return pusherClient;
-}
-
-export interface GameEvent {
-  type: AblyEventType;
-  payload: unknown;
-  senderId: string;
-  timestamp: number;
 }
 
 export function usePusherRoom(
@@ -48,7 +41,7 @@ export function usePusherRoom(
   }, [roomCode, playerId]);
 
   const publish = useCallback(
-    async (type: AblyEventType, payload: unknown) => {
+    async (type: GameEventType, payload: unknown) => {
       const event: GameEvent = {
         type,
         payload,

@@ -55,6 +55,7 @@ export interface GameState {
   config: GameConfig;
   wordPair: { civilian: string; undercover: string } | null;
   currentCluePlayerIndex: number;
+  currentVoterIndex: number;
   eliminatedThisRound: string | null;
   ghostGuessAllowed: boolean;
   ghostGuess: string | null;
@@ -63,8 +64,8 @@ export interface GameState {
   createdAt: number;
 }
 
-// ─── Ably Event Types ────────────────────────────────────────────────────────
-export type AblyEventType =
+// ─── Game Event Types (Pusher) ───────────────────────────────────────────────
+export type GameEventType =
   | "player-joined"
   | "player-left"
   | "game-state-update"
@@ -75,8 +76,8 @@ export type AblyEventType =
   | "phase-change"
   | "host-action";
 
-export interface AblyEvent {
-  type: AblyEventType;
+export interface GameEvent {
+  type: GameEventType;
   payload: unknown;
   senderId: string;
   timestamp: number;

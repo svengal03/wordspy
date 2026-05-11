@@ -29,6 +29,24 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
     setTimeout(() => setCopied(false), 2000);
   }
 
+  function copyLink() {
+    const link = `${typeof window !== "undefined" ? window.location.origin : ""}/join/${gameState.roomCode}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function shareLink() {
+    const link = `${typeof window !== "undefined" ? window.location.origin : ""}/join/${gameState.roomCode}`;
+    if (navigator.share) {
+      navigator.share({
+        title: "Join my Wordspy game",
+        text: `Use code ${gameState.roomCode}`,
+        url: link,
+      });
+    }
+  }
+
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
 
   return (
@@ -50,15 +68,25 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <Card>
             <SectionLabel>Room Code — Share this</SectionLabel>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
               <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: 6, color: tokens.coral }}>
                 {gameState.roomCode}
               </div>
               <Btn variant="ghost" onClick={copyCode} style={{ padding: "8px 16px", fontSize: 13 }}>
-                {copied ? "✅ Copied" : "Copy 📋"}
+                {copied ? "✅" : "Copy 📋"}
               </Btn>
             </div>
-            <div style={{ fontSize: 13, color: tokens.grey3, marginTop: 6 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Btn variant="ghost" onClick={copyLink} style={{ flex: 1, padding: "8px 12px", fontSize: 12 }}>
+                Copy Link
+              </Btn>
+              {typeof navigator !== "undefined" && navigator.share && (
+                <Btn variant="ghost" onClick={shareLink} style={{ flex: 1, padding: "8px 12px", fontSize: 12 }}>
+                  Share →
+                </Btn>
+              )}
+            </div>
+            <div style={{ fontSize: 13, color: tokens.grey3, marginTop: 8 }}>
               Friends join at wordspy.vercel.app with this code
             </div>
           </Card>
@@ -67,7 +95,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
         {/* Players */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <Card>
-            <SectionLabel>Players ({gameState.players.length})</SectionLabel>
+            <SectionLabel>Players ({gameState.players.length}/{config.playerCount})</SectionLabel>
             {gameState.players.length === 0 ? (
               <div style={{ color: tokens.grey3, fontSize: 14, padding: "8px 0" }}>Waiting for players to join…</div>
             ) : (

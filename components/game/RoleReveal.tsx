@@ -90,15 +90,14 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
             >
               <RoleBadge role={currentPlayer.role} />
               <div style={{ marginTop: 16, fontSize: 13, color: tokens.grey3, fontWeight: 500 }}>
-                {currentPlayer.role === "ghost" ? "You have" : "Your secret word is"}
+                {currentPlayer.role === "ghost" ? "You have no word" : "Your secret word is"}
               </div>
 
               <Card style={{ margin: "10px 0 16px", padding: "28px 24px" }}>
                 {currentPlayer.role === "ghost" ? (
                   <div>
                     <div style={{ fontSize: 52 }}>👻</div>
-                    <div style={{ fontSize: 20, fontWeight: 700, color: tokens.grey2, marginTop: 8 }}>No Word</div>
-                    <div style={{ fontSize: 13, color: tokens.grey3, marginTop: 4 }}>Listen carefully to everyone's clues</div>
+                    <div style={{ fontSize: 13, color: tokens.grey3, marginTop: 12 }}>Listen carefully to everyone's clues</div>
                   </div>
                 ) : (
                   <div>

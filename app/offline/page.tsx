@@ -191,16 +191,26 @@ export default function OfflinePage() {
         isOffline={true}
         onSubmitClue={handleClue}
         onSendChat={() => {}}
+        onStartVoting={() => setGameState({ ...gameState, phase: "vote" })}
       />
     );
   }
 
   // ─── Vote phase ───────────────────────────────────────────────────────────
   if (gameState.phase === "vote") {
+    const activePlayers = gameState.players.filter((p) => !p.isEliminated);
+    const currentVoter = activePlayers[gameState.currentVoterIndex];
     const handleVote = (targetId: string) => {
-      setGameState(castVote(gameState, localPlayer.id, targetId));
+      setGameState(castVote(gameState, currentVoter.id, targetId, true));
     };
-    return <VotePhase gameState={gameState} localPlayer={localPlayer} onVote={handleVote} />;
+    return (
+      <VotePhase
+        gameState={gameState}
+        localPlayer={currentVoter}
+        onVote={handleVote}
+        onContinue={() => setGameState(nextRound(gameState))}
+      />
+    );
   }
 
   // ─── Elimination ──────────────────────────────────────────────────────────
@@ -225,6 +235,7 @@ export default function OfflinePage() {
           ...p, role: "civilian" as const, word: null, isEliminated: false,
           clue: null, votes: 0, hasVoted: false,
         })),
+        currentVoterIndex: 0,
       });
     };
     return <SummaryScreen gameState={gameState} localPlayer={localPlayer} onPlayAgain={handlePlayAgain} />;

@@ -13,9 +13,10 @@ export function generateRoomCode(): string {
 // ─── Assign roles to players ──────────────────────────────────────────────────
 export function assignRoles(
   players: Player[],
-  config: GameConfig
-): Player[] {
-  const pair = getRandomPair(config.packId);
+  config: GameConfig,
+  pair?: { civilian: string; undercover: string }
+): { players: Player[]; pair: { civilian: string; undercover: string } } {
+  const wordPair = pair || getRandomPair(config.packId);
   const { undercovers, ghosts } = getRoleCounts(players.length);
 
   // Build role pool
@@ -33,20 +34,22 @@ export function assignRoles(
     [roles[i], roles[j]] = [roles[j], roles[i]];
   }
 
-  return players.map((player, i) => ({
+  const assignedPlayers = players.map((player, i) => ({
     ...player,
     role: roles[i],
     word:
       roles[i] === "civilian"
-        ? pair.civilian
+        ? wordPair.civilian
         : roles[i] === "undercover"
-        ? pair.undercover
+        ? wordPair.undercover
         : null,
     clue: null,
     votes: 0,
     hasVoted: false,
     isEliminated: false,
   }));
+
+  return { players: assignedPlayers, pair: wordPair };
 }
 
 // ─── Create initial game state ────────────────────────────────────────────────
@@ -62,6 +65,7 @@ export function createInitialGameState(
     config,
     wordPair: null,
     currentCluePlayerIndex: 0,
+    currentVoterIndex: 0,
     eliminatedThisRound: null,
     ghostGuessAllowed: false,
     ghostGuess: null,
@@ -73,8 +77,7 @@ export function createInitialGameState(
 
 // ─── Start game ───────────────────────────────────────────────────────────────
 export function startGame(state: GameState): GameState {
-  const pair = getRandomPair(state.config.packId);
-  const assignedPlayers = assignRoles(state.players, state.config);
+  const { players: assignedPlayers, pair } = assignRoles(state.players, state.config);
   const startIndex = Math.floor(Math.random() * assignedPlayers.length);
 
   return {
@@ -101,10 +104,18 @@ export function submitClue(
     p.id === playerId ? { ...p, clue } : p
   );
 
-  // Find next active player index
+  // Find next active player (skip eliminated)
   const activePlayers = players.filter((p) => !p.isEliminated);
-  const currentIdx = state.currentCluePlayerIndex;
-  const nextIdx = (currentIdx + 1) % players.length;
+  let nextIdx = state.currentCluePlayerIndex;
+  let found = false;
+  for (let i = 0; i < players.length; i++) {
+    nextIdx = (state.currentCluePlayerIndex + 1 + i) % players.length;
+    if (!players[nextIdx].isEliminated) {
+      found = true;
+      break;
+    }
+  }
+  if (!found) nextIdx = state.currentCluePlayerIndex;
 
   // Check if all active players have given clues
   const allClued = activePlayers.every((p) => p.clue !== null);
@@ -121,7 +132,8 @@ export function submitClue(
 export function castVote(
   state: GameState,
   voterId: string,
-  targetId: string
+  targetId: string,
+  isOffline: boolean = false
 ): GameState {
   const players = state.players.map((p) => {
     if (p.id === voterId) return { ...p, hasVoted: true };
@@ -132,10 +144,22 @@ export function castVote(
   const activePlayers = players.filter((p) => !p.isEliminated);
   const allVoted = activePlayers.every((p) => p.hasVoted);
 
-  if (!allVoted) return { ...state, players };
+  // In offline mode, advance to next voter
+  let nextState = { ...state, players };
+  if (isOffline) {
+    const activePlayers = players.filter((p) => !p.isEliminated);
+    let nextVoterIdx = state.currentVoterIndex;
+    for (let i = 0; i < players.length; i++) {
+      nextVoterIdx = (state.currentVoterIndex + 1) % activePlayers.length;
+      if (!activePlayers[nextVoterIdx].hasVoted) break;
+    }
+    nextState = { ...nextState, currentVoterIndex: nextVoterIdx };
+  }
+
+  if (!allVoted) return nextState;
 
   // Tally votes
-  return processVotes({ ...state, players });
+  return processVotes(nextState);
 }
 
 // ─── Process votes & eliminate ────────────────────────────────────────────────
@@ -146,12 +170,12 @@ function processVotes(state: GameState): GameState {
 
   // Tie and tiebreaker enabled → go back to clue phase with tied players only
   if (topVoted.length > 1 && state.config.tieBreaker) {
-    const players = state.players.map((p) => ({
-      ...p,
-      votes: 0,
-      hasVoted: false,
-      clue: topVoted.find((tv) => tv.id === p.id) ? null : p.clue,
-    }));
+    const players = state.players.map((p) => {
+      if (topVoted.find((tv) => tv.id === p.id)) {
+        return { ...p, votes: 0, hasVoted: false, clue: null };
+      }
+      return p;
+    });
     return { ...state, players, phase: "clue" };
   }
 
@@ -169,6 +193,15 @@ function processVotes(state: GameState): GameState {
     phase: "elimination",
     eliminatedThisRound: eliminated.id,
     ghostGuessAllowed,
+  };
+}
+
+// ─── Prepare vote phase ───────────────────────────────────────────────────────
+export function prepareVotePhase(state: GameState): GameState {
+  return {
+    ...state,
+    phase: "vote",
+    currentVoterIndex: 0,
   };
 }
 
@@ -215,6 +248,7 @@ export function nextRound(state: GameState): GameState {
     phase: "clue",
     round: state.round + 1,
     currentCluePlayerIndex: globalIndex,
+    currentVoterIndex: 0,
     eliminatedThisRound: null,
     ghostGuessAllowed: false,
     ghostGuess: null,

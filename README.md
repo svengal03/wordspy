@@ -1,6 +1,6 @@
 # 🕵️ Wordspy — India Edition
 
-> A social deduction word game for 3–10 players, inspired by Undercover. Built with Next.js 15, Ably Realtime, and deployed on Vercel.
+> A social deduction word game for 3–10 players, inspired by Undercover. Built with Next.js 15, Pusher Realtime, and deployed on Vercel.
 
 ---
 
@@ -37,7 +37,7 @@ Wordspy is a party game where players receive secret words and must give clever 
 | Layer | Tech |
 |---|---|
 | Frontend | Next.js 15 (App Router) |
-| Realtime | Ably (room sync, chat, voting) |
+| Realtime | Pusher (room sync, chat, voting) |
 | State | Zustand |
 | Animations | Framer Motion |
 | Fonts | DM Sans (Google Fonts) |
@@ -66,15 +66,18 @@ npm install
 cp .env.example .env.local
 ```
 
-Edit `.env.local`:
+Edit `.env.local` with your Pusher credentials:
 ```
-ABLY_API_KEY=your_ably_api_key_here
+NEXT_PUBLIC_PUSHER_KEY=your_pusher_key_here
+NEXT_PUBLIC_PUSHER_CLUSTER=mt1
+PUSHER_APP_ID=your_pusher_app_id_here
+PUSHER_SECRET=your_pusher_secret_here
 ```
 
-Get your Ably API key:
-1. Go to [ably.com](https://ably.com)
+Get your Pusher credentials:
+1. Go to [pusher.com](https://pusher.com)
 2. Sign up / Log in
-3. Create an App → API Keys → Copy the root key
+3. Create an App → Keys → Copy your Key, Cluster, App ID, and Secret
 
 ### 4. Run locally
 
@@ -101,7 +104,11 @@ Follow prompts. When asked for environment variables, add `ABLY_API_KEY`.
 
 1. Push code to GitHub
 2. Go to [vercel.com](https://vercel.com) → New Project → Import your repo
-3. Add Environment Variable: `ABLY_API_KEY = your_key_here`
+3. Add Environment Variables:
+   - `NEXT_PUBLIC_PUSHER_KEY`
+   - `NEXT_PUBLIC_PUSHER_CLUSTER`
+   - `PUSHER_APP_ID`
+   - `PUSHER_SECRET`
 4. Deploy ✅
 
 ---
@@ -120,7 +127,7 @@ wordspy/
 │   │   └── [id]/
 │   │       └── page.tsx      # Online room (Ably-powered)
 │   └── api/
-│       ├── ably-token/       # Ably auth token endpoint
+│       ├── pusher-event/     # Pusher event broadcast endpoint
 │       └── rooms/            # Room create/get/update
 ├── components/
 │   ├── ui/
@@ -138,7 +145,7 @@ wordspy/
 │   ├── gameEngine.ts         # Core game logic (pure functions)
 │   ├── wordPacks.ts          # All 10 India word packs
 │   ├── store.ts              # Zustand global state
-│   └── useAbly.ts            # Ably realtime hook
+│   └── usePusher.ts          # Pusher realtime hook
 └── docs/
     ├── ARCHITECTURE.md       # System design
     ├── DESIGN.md             # UI/UX design system

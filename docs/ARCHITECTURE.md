@@ -2,7 +2,7 @@
 
 ## Overview
 
-Wordspy is a **serverless, real-time party game** built on Next.js with Ably as the realtime backbone. There is no traditional always-on backend server — all game logic runs in the browser and is coordinated via Ably channels.
+Wordspy is a **serverless, real-time party game** built on Next.js with Pusher as the realtime backbone. There is no traditional always-on backend server — all game logic runs in the browser and is coordinated via Pusher channels.
 
 ---
 
@@ -16,7 +16,7 @@ Wordspy is a **serverless, real-time party game** built on Next.js with Ably as 
 │  │   Next.js Frontend  │    │  Next.js API Routes      │   │
 │  │   (React + Zustand) │    │  (Serverless Functions)  │   │
 │  │                     │    │                          │   │
-│  │  • Home Screen      │    │  /api/ably-token         │   │
+│  │  • Home Screen      │    │  /api/pusher-event       │   │
 │  │  • Lobby            │    │  /api/rooms              │   │
 │  │  • Role Reveal      │    │                          │   │
 │  │  • Clue Phase       │    │  In-memory room store    │   │
@@ -27,12 +27,12 @@ Wordspy is a **serverless, real-time party game** built on Next.js with Ably as 
 │             │                                               │
 └─────────────┼───────────────────────────────────────────────┘
               │
-              │ WebSocket (Ably SDK)
+              │ WebSocket (Pusher SDK)
               │
 ┌─────────────▼───────────────────────────────────────────────┐
-│                         ABLY                                │
+│                        PUSHER                               │
 │                                                             │
-│  Channel: wordspy:{ROOM_CODE}                               │
+│  Channel: wordspy-{ROOM_CODE}                               │
 │                                                             │
 │  Events published:                                          │
 │  • game-state-update  → full GameState snapshot             │
@@ -54,7 +54,7 @@ Host clicks "Create Room"
   → Server generates room code, creates GameState
   → Returns { roomCode, gameState }
   → Host navigates to /room/{code}
-  → Ably channel subscribed: wordspy:{code}
+  → Pusher channel subscribed: wordspy-{code}
 ```
 
 ### 2. Player Joins
@@ -62,7 +62,7 @@ Host clicks "Create Room"
 Player enters code → POST /api/rooms { action: "get", roomCode }
   → Receives current GameState
   → Creates local Player object
-  → Publishes "player-joined" event on Ably channel
+  → Publishes "player-joined" event on Pusher channel
   → All other clients receive event → update their player list
 ```
 
@@ -71,7 +71,7 @@ Player enters code → POST /api/rooms { action: "get", roomCode }
 Any action (clue, vote, etc.)
   → Pure function transforms GameState → new GameState
   → POST /api/rooms { action: "update", gameState }   [persists to server memory]
-  → publish("game-state-update", newGameState)          [broadcasts to all players via Ably]
+  → publish("game-state-update", newGameState)          [broadcasts to all players via Pusher]
   → All clients receive event → setGameState(newState) → UI re-renders
 ```
 
