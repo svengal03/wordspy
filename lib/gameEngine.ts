@@ -176,7 +176,9 @@ function processVotes(state: GameState): GameState {
       }
       return p;
     });
-    return { ...state, players, phase: "clue" };
+    // Set current clue player to first tied player
+    const firstTiedIdx = players.findIndex((p) => topVoted[0].id === p.id);
+    return { ...state, players, phase: "clue", currentCluePlayerIndex: firstTiedIdx };
   }
 
   // Eliminate player with most votes (random if tie & no tiebreaker)
@@ -217,9 +219,11 @@ export function checkWinCondition(
   // All undercovers and ghosts eliminated → civilians win
   if (undercovers.length === 0 && ghosts.length === 0) return "civilians";
 
-  // Only 1 civilian left with infiltrators → undercover/ghost win
-  if (civilians.length <= 1 && (undercovers.length > 0 || ghosts.length > 0))
-    return "undercover";
+  // Only 1 civilian left with undercovers → undercover wins
+  if (civilians.length <= 1 && undercovers.length > 0) return "undercover";
+
+  // Only 1 civilian left with ghosts (no undercovers) → ghost wins
+  if (civilians.length <= 1 && ghosts.length > 0) return "ghost";
 
   return null;
 }

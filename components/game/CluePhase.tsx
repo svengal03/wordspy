@@ -219,8 +219,8 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           </div>
         </Card>
 
-        {/* Clue input — only show after word is revealed */}
-        {!currentPlayer?.clue && isMyTurn && wordRevealed && (
+        {/* Clue input — only show during clue phase, after word is revealed */}
+        {gameState.phase === "clue" && !currentPlayer?.clue && isMyTurn && wordRevealed && (
           <motion.div key={currentPlayer?.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <Card>
               <SectionLabel>Give a Clue</SectionLabel>
