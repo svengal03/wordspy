@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useCallback, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
 import { usePusherRoom } from "@/lib/usePusher";
 import { GameState, ChatMessage, GameEvent } from "@/lib/types";
 import {
-  startGame, submitClue, castVote, processGhostGuess,
+  startGame, submitClue, processGhostGuess,
   nextRound,
 } from "@/lib/gameEngine";
 import { nanoid } from "nanoid";
@@ -20,6 +20,8 @@ import SummaryScreen from "@/components/game/SummaryScreen";
 export default function RoomPage() {
   const params = useParams();
   const roomCode = params.id as string;
+  const router = useRouter();
+  const [roomError, setRoomError] = useState<string | null>(null);
 
   const {
     localPlayer, gameState, setGameState,
@@ -63,12 +65,17 @@ export default function RoomPage() {
     setRoomCode(roomCode);
 
     (async () => {
+      try {
       const res = await fetch("/api/rooms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "get", roomCode }),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        setRoomError("Room not found — the session may have ended. Taking you home…");
+        setTimeout(() => router.push("/"), 3000);
+        return;
+      }
       const data = await res.json();
       const state = data.gameState as GameState;
 
@@ -83,6 +90,10 @@ export default function RoomPage() {
         }
       } else {
         setGameState(state);
+      }
+      } catch {
+        setRoomError("Connection error — taking you home…");
+        setTimeout(() => router.push("/"), 3000);
       }
     })();
   }, [roomCode]);
@@ -103,15 +114,27 @@ export default function RoomPage() {
 
   async function handleClue(clue: string) {
     if (!gameState || !localPlayer) return;
-    const updated = submitClue(gameState, localPlayer.id, clue);
-    await pushState(updated);
-    await publish("game-state-update", updated);
+    const result = submitClue(gameState, localPlayer.id, clue);
+    if (result.error) {
+      alert(result.error);
+      return;
+    }
+    await pushState(result.state);
+    await publish("game-state-update", result.state);
   }
 
   async function handleVote(targetId: string) {
     if (!gameState || !localPlayer) return;
-    const updated = castVote(gameState, localPlayer.id, targetId);
-    await pushState(updated);
+    // Server applies vote atomically to prevent race conditions from simultaneous votes
+    const res = await fetch("/api/rooms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "cast-vote", roomCode, voterId: localPlayer.id, targetId }),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const updated = data.gameState as GameState;
+    setGameState(updated);
     await publish("game-state-update", updated);
   }
 
@@ -171,11 +194,13 @@ export default function RoomPage() {
     return (
       <div style={{
         minHeight: "100dvh", display: "flex", alignItems: "center",
-        justifyContent: "center", fontFamily: "system-ui", color: "#888",
+        justifyContent: "center", fontFamily: "system-ui",
         flexDirection: "column", gap: 12,
       }}>
-        <div style={{ fontSize: 32 }}>🕵️</div>
-        <div>Loading room…</div>
+        <div style={{ fontSize: 32 }}>{roomError ? "😔" : "🕵️"}</div>
+        <div style={{ color: roomError ? "#EF4444" : "#888", textAlign: "center", maxWidth: 280, lineHeight: 1.5 }}>
+          {roomError ?? "Loading room…"}
+        </div>
       </div>
     );
   }

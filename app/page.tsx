@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Logo, Btn, Card, tokens, Badge } from "@/components/ui";
+import RulesModal from "@/components/game/RulesModal";
 import { useGameStore } from "@/lib/store";
 import { createPlayer } from "@/lib/gameEngine";
 
@@ -20,6 +21,7 @@ export default function HomeScreen() {
   const [mode, setMode] = useState<null | "create" | "join" | "offline">(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showRules, setShowRules] = useState(false);
 
   async function handleCreate() {
     if (!name.trim()) return setError("Enter your name first");
@@ -55,6 +57,14 @@ export default function HomeScreen() {
       });
       if (!res.ok) return setError("Room not found. Check the code.");
       const data = await res.json();
+      const trimmedName = name.trim().toLowerCase();
+      const duplicate = data.gameState.players.find(
+        (p: any) => p.name.toLowerCase() === trimmedName
+      );
+      if (duplicate) {
+        setLoading(false);
+        return setError(`${name} is already in this room! Pick another name.`);
+      }
       const player = createPlayer(name.trim(), false);
       setLocalPlayer(player);
       setRoomCode(joinCode.toUpperCase().trim());
@@ -81,6 +91,29 @@ export default function HomeScreen() {
       fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
       display: "flex", flexDirection: "column",
     }}>
+      {/* Help button in top right */}
+      <div style={{ padding: "16px 20px", display: "flex", justifyContent: "flex-end" }}>
+        <button
+          onClick={() => setShowRules(true)}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            border: `1.5px solid ${tokens.border}`,
+            background: tokens.white,
+            cursor: "pointer",
+            fontSize: 18,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.15s",
+          }}
+          title="Rules"
+        >
+          ❓
+        </button>
+      </div>
+
       <div style={{ flex: 1, padding: "48px 24px 24px", maxWidth: 480, margin: "0 auto", width: "100%" }}>
 
         {/* Hero */}
@@ -104,7 +137,7 @@ export default function HomeScreen() {
               value={name}
               onChange={(e) => { setName(e.target.value); setError(""); }}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleCreate();
+                if (e.key === "Enter" && mode !== "join") handleCreate();
               }}
               placeholder="e.g. Rahul, Priya…"
               maxLength={20}
@@ -221,6 +254,8 @@ export default function HomeScreen() {
       <div style={{ textAlign: "center", padding: "16px 24px", color: tokens.grey4, fontSize: 12 }}>
         Wordspy · Made with ❤️
       </div>
+
+      <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
     </div>
   );
 }

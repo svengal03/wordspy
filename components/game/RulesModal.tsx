@@ -11,45 +11,46 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
   const rules = [
     {
       title: "🎯 Objective",
-      desc: "Civilians & Spies work to identify the Ghost. The Ghost tries to guess the secret word.",
+      desc: "Civilians try to expose the Undercover and Ghost. Undercover blends in. Ghost has no word and must bluff — then guess the civilians' word if eliminated.",
     },
     {
       title: "🃏 Roles",
       items: [
-        "Civilian: You know the word and give clues",
-        "Spy: You DON'T know the word; bluff or stay quiet",
-        "Ghost: You know NOTHING; guess the word at the end",
+        "Civilian: You know the secret word — give clues that prove it without being too obvious",
+        "Undercover: You have a similar but different word — blend in without being exposed",
+        "Ghost: You have NO word — listen carefully to others' clues and try to figure out the word",
       ],
     },
     {
       title: "💬 Clue Phase",
       items: [
-        "Each player gives ONE clue per round (except eliminated players)",
-        "Clues must relate to the word but can't be the word itself",
-        "Keep clues vague—spies win by bluffing, civilians by exposing them",
+        "Players take turns giving ONE clue per round (eliminated players skip)",
+        "Clues must relate to your word but cannot be the word itself",
+        "Duplicating another player's clue is not allowed",
       ],
     },
     {
       title: "🗳️ Vote Phase",
       items: [
-        "Vote to eliminate someone you think is a spy or the ghost",
-        "Most votes = eliminated",
-        "If tied, all tied players are eliminated",
+        "Vote to eliminate the player you think is the Undercover or Ghost",
+        "The player with the most votes is eliminated",
+        "Ties: if Tie Breaker is on, tied players re-clue and the group revotes; otherwise a random tied player is eliminated",
       ],
     },
     {
       title: "👻 Ghost Guess",
       items: [
-        "After someone is eliminated, the Ghost gets ONE guess per round",
-        "Guess the secret word to win immediately",
+        "If the Ghost is eliminated, they get one chance to guess the civilians' word",
+        "Correct guess = Ghost wins immediately",
+        "Wrong guess = game continues into the next round",
       ],
     },
     {
       title: "🏆 Winning",
       items: [
-        "Civilians & Spies WIN: Ghost is eliminated",
-        "Ghost WINS: Correctly guesses the word",
-        "Spies WIN if: Spies outnumber Civilians + Ghost combined",
+        "Civilians WIN: All Undercovers and the Ghost are eliminated",
+        "Undercover WINS: Undercovers equal or outnumber Civilians + Ghost (they control the vote)",
+        "Ghost WINS: Correctly guesses the civilians' word after being eliminated",
       ],
     },
   ];

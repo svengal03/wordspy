@@ -110,7 +110,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
     <Screen>
       <TopBar
         title={`Vote — Round ${gameState.round}`}
-        sub="Who do you think is the Wordspy?"
+        sub={gameState.isTiebreaker ? "⚖️ Tiebreaker — tied players re-clued, vote again!" : "Who do you think is the Wordspy?"}
         right={
           <button
             onClick={() => setShowRules(true)}
@@ -125,6 +125,21 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
       />
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
+
+        <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}`, textAlign: "center" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>
+            You are: <span style={{ color: tokens.coral }}>{localPlayer.name}</span>
+          </div>
+        </Card>
+
+        {gameState.isTiebreaker && (
+          <InfoBox
+            icon="⚖️"
+            title="Tiebreaker!"
+            body="Last vote was a tie. The tied players have given new clues — now vote again to break the tie."
+            color={tokens.coral}
+          />
+        )}
 
         <InfoBox
           icon="🗳️"

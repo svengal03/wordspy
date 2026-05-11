@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
 import { Card, Btn, RoleBadge, tokens, InfoBox } from "@/components/ui";
 
+
 interface Props {
   gameState: GameState;
   localPlayer: Player;
@@ -26,6 +27,8 @@ const roleInfo = {
 
 export default function RoleReveal({ gameState, localPlayer, isOffline, revealIndex, onDone }: Props) {
   const [revealed, setRevealed] = useState(false);
+  // Online non-host players: they see their word privately but only the host advances everyone
+  const [acknowledged, setAcknowledged] = useState(false);
 
   // In offline mode, we show each player one at a time
   const players = gameState.players;
@@ -117,22 +120,44 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
                 body={roleInfo[currentPlayer.role].tip}
               />
 
-              <Btn
-                fullWidth
-                onClick={() => {
-                  setRevealed(false);
-                  if (isLastPlayer) {
+              {/* In online mode, non-hosts see their word then wait for host to start */}
+              {!isOffline && !currentPlayer.isHost && !acknowledged && (
+                <Btn
+                  fullWidth
+                  onClick={() => setAcknowledged(true)}
+                  style={{ marginTop: 16, padding: "15px", fontSize: 15 }}
+                >
+                  Got it — I'm ready ✓
+                </Btn>
+              )}
+
+              {!isOffline && !currentPlayer.isHost && acknowledged && (
+                <div style={{
+                  marginTop: 16, padding: "14px", borderRadius: 14,
+                  background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}`,
+                  fontSize: 14, color: tokens.grey2, textAlign: "center",
+                }}>
+                  ⏳ Waiting for the host to start the round…
+                </div>
+              )}
+
+              {/* Host (or offline) advances the phase for everyone */}
+              {(isOffline || currentPlayer.isHost) && (
+                <Btn
+                  fullWidth
+                  onClick={() => {
+                    setRevealed(false);
                     onDone();
-                  } else {
-                    onDone(); // parent handles index increment
-                  }
-                }}
-                style={{ marginTop: 16, padding: "15px", fontSize: 15 }}
-              >
-                {isOffline && !isLastPlayer
-                  ? `Got it — pass to ${players[revealIndex + 1]?.name} →`
-                  : "Got it — Let's Play 🎮"}
-              </Btn>
+                  }}
+                  style={{ marginTop: 16, padding: "15px", fontSize: 15 }}
+                >
+                  {isOffline && !isLastPlayer
+                    ? `Got it — pass to ${players[revealIndex + 1]?.name} →`
+                    : isOffline
+                    ? "Got it — Let's Play 🎮"
+                    : "Start Round →"}
+                </Btn>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

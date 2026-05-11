@@ -8,11 +8,12 @@ import RulesModal from "./RulesModal";
 interface Props {
   gameState: GameState;
   localPlayer: Player;
+  isOffline?: boolean;
   onGhostGuess: (guess: string) => void;
   onContinue: () => void;
 }
 
-export default function EliminationScreen({ gameState, localPlayer, onGhostGuess, onContinue }: Props) {
+export default function EliminationScreen({ gameState, localPlayer, isOffline = false, onGhostGuess, onContinue }: Props) {
   const [guess, setGuess] = useState("");
   const [guessSubmitted, setGuessSubmitted] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -68,8 +69,8 @@ export default function EliminationScreen({ gameState, localPlayer, onGhostGuess
           </div>
 
 
-          {/* Ghost last chance */}
-          {isGhost && gameState.ghostGuessAllowed && !guessSubmitted && (
+          {/* Ghost last chance — only the eliminated ghost player can guess */}
+          {isGhost && gameState.ghostGuessAllowed && !guessSubmitted && (isOffline || isMe) && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -80,34 +81,39 @@ export default function EliminationScreen({ gameState, localPlayer, onGhostGuess
                 borderRadius: 16, padding: "18px 20px",
               }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#854D0E", marginBottom: 6 }}>
-                  ⚡ Last Chance — Ghost Guess!
+                  ⚡ Last Chance — Guess the Civilians' Word!
                 </div>
                 <div style={{ fontSize: 13, color: "#A16207", marginBottom: 14 }}>
-                  {isMe ? "Guess the Civilians' word correctly and you win!" : `${eliminated.name} gets one guess at the Civilians' word!`}
+                  If you guess correctly, you win as the Ghost!
                 </div>
-                {isMe && (
-                  <>
-                    <input
-                      value={guess}
-                      onChange={(e) => setGuess(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleGuess()}
-                      placeholder="Type your guess…"
-                      autoFocus
-                      style={{
-                        width: "100%", padding: "11px 14px", borderRadius: 10,
-                        border: `1.5px solid #FDE047`, fontSize: 15, fontFamily: "inherit",
-                        background: "#fff", outline: "none", boxSizing: "border-box",
-                        marginBottom: 10,
-                      }}
-                    />
-                    <Btn fullWidth variant="warning" onClick={handleGuess} disabled={!guess.trim()}>
-                      Submit Guess ⚡
-                    </Btn>
-                  </>
-                )}
-                {!isMe && (
-                  <div style={{ fontSize: 13, color: "#A16207" }}>Waiting for {eliminated.name} to guess…</div>
-                )}
+                <input
+                  value={guess}
+                  onChange={(e) => setGuess(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleGuess()}
+                  placeholder="Type the civilians' word…"
+                  autoFocus
+                  style={{
+                    width: "100%", padding: "11px 14px", borderRadius: 10,
+                    border: `1.5px solid #FDE047`, fontSize: 15, fontFamily: "inherit",
+                    background: "#fff", outline: "none", boxSizing: "border-box",
+                    marginBottom: 10,
+                  }}
+                />
+                <Btn fullWidth variant="warning" onClick={handleGuess} disabled={!guess.trim()}>
+                  Submit Guess ⚡
+                </Btn>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Waiting message for non-ghost players while ghost decides */}
+          {isGhost && gameState.ghostGuessAllowed && !guessSubmitted && !isOffline && !isMe && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginBottom: 16 }}>
+              <div style={{
+                background: tokens.yellowBg, border: `1.5px solid #FDE047`,
+                borderRadius: 14, padding: "14px", fontSize: 14, color: "#854D0E", fontWeight: 600, textAlign: "center",
+              }}>
+                👻 Waiting for {eliminated.name} to make their guess…
               </div>
             </motion.div>
           )}
@@ -123,9 +129,26 @@ export default function EliminationScreen({ gameState, localPlayer, onGhostGuess
             </motion.div>
           )}
 
-          <Btn fullWidth onClick={onContinue} variant="ghost" style={{ padding: "14px", fontSize: 15 }}>
-            Continue Game →
-          </Btn>
+          {/* Host can skip the ghost guess / continue after a non-ghost elimination */}
+          {(localPlayer.isHost || isOffline) && (!isGhost || guessSubmitted || !gameState.ghostGuessAllowed) && (
+            <Btn fullWidth onClick={onContinue} variant="ghost" style={{ padding: "14px", fontSize: 15 }}>
+              Continue Game →
+            </Btn>
+          )}
+
+          {/* Host can skip ghost guess if needed */}
+          {isGhost && gameState.ghostGuessAllowed && !guessSubmitted && !isMe && (localPlayer.isHost || isOffline) && (
+            <Btn fullWidth onClick={onContinue} variant="ghost" style={{ padding: "14px", fontSize: 15, marginTop: 8, opacity: 0.7 }}>
+              Skip Ghost Guess →
+            </Btn>
+          )}
+
+          {/* Non-host waiting message */}
+          {!localPlayer.isHost && !isOffline && (!isGhost || !gameState.ghostGuessAllowed || guessSubmitted) && (
+            <div style={{ fontSize: 13, color: tokens.grey3, textAlign: "center", padding: "8px 0" }}>
+              Waiting for host to continue…
+            </div>
+          )}
         </motion.div>
       </div>
     </Screen>

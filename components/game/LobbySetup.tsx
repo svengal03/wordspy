@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, Btn, SectionLabel, Toggle, tokens, Logo } from "@/components/ui";
 import RulesModal from "./RulesModal";
@@ -48,8 +48,6 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
       });
     }
   }
-
-  const activePlayers = gameState.players.filter((p) => !p.isEliminated);
 
   return (
     <div style={{
@@ -168,8 +166,77 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
               </Card>
             </motion.div>
 
-            {/* Host Options */}
+            {/* Role Distribution */}
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <Card>
+                <SectionLabel>Role Distribution</SectionLabel>
+                {(() => {
+                  const total = gameState.players.length || 5;
+                  const undercovers = Math.min(config.undercoverCount, Math.max(1, total - 2));
+                  const ghosts = Math.min(config.ghostCount, Math.max(0, total - undercovers - 2));
+                  const civilians = total - undercovers - ghosts;
+                  const canAddUndercover = total - (undercovers + 1) - ghosts >= 2;
+                  const canAddGhost = total - undercovers - (ghosts + 1) >= 2;
+                  const stepperStyle = {
+                    width: 30, height: 30, borderRadius: 8,
+                    border: `1.5px solid ${tokens.border}`,
+                    background: tokens.white, cursor: "pointer",
+                    fontSize: 18, fontWeight: 600, color: tokens.grey1,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  } as React.CSSProperties;
+                  const disabledStyle = { ...stepperStyle, opacity: 0.3, cursor: "not-allowed" };
+                  return (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                      {/* Preview pill row */}
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ padding: "4px 12px", borderRadius: 20, background: "#EDF6FF", color: "#2563EB", fontSize: 13, fontWeight: 600 }}>
+                          👤 {civilians} civilian{civilians !== 1 ? "s" : ""}
+                        </span>
+                        <span style={{ padding: "4px 12px", borderRadius: 20, background: "#FFF3F0", color: tokens.coral, fontSize: 13, fontWeight: 600 }}>
+                          🕵️ {undercovers} undercover{undercovers !== 1 ? "s" : ""}
+                        </span>
+                        {ghosts > 0 && (
+                          <span style={{ padding: "4px 12px", borderRadius: 20, background: "#F3F0FF", color: "#7C3AED", fontSize: 13, fontWeight: 600 }}>
+                            👻 {ghosts} ghost
+                          </span>
+                        )}
+                      </div>
+                      {/* Undercover stepper */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Undercovers 🕵️</div>
+                          <div style={{ fontSize: 12, color: tokens.grey3 }}>Know the other word, stay hidden</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <button style={undercovers <= 1 ? disabledStyle : stepperStyle} disabled={undercovers <= 1}
+                            onClick={() => update({ undercoverCount: Math.max(1, undercovers - 1) })}>−</button>
+                          <span style={{ fontSize: 16, fontWeight: 700, minWidth: 20, textAlign: "center", color: tokens.black }}>{undercovers}</span>
+                          <button style={!canAddUndercover ? disabledStyle : stepperStyle} disabled={!canAddUndercover}
+                            onClick={() => update({ undercoverCount: undercovers + 1 })}>+</button>
+                        </div>
+                      </div>
+                      {/* Ghost stepper */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Mr. White / Ghost 👻</div>
+                          <div style={{ fontSize: 12, color: tokens.grey3 }}>Gets no word — must bluff blindly</div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <button style={ghosts <= 0 ? disabledStyle : stepperStyle} disabled={ghosts <= 0}
+                            onClick={() => update({ ghostCount: 0 })}>−</button>
+                          <span style={{ fontSize: 16, fontWeight: 700, minWidth: 20, textAlign: "center", color: tokens.black }}>{ghosts}</span>
+                          <button style={!canAddGhost ? disabledStyle : stepperStyle} disabled={!canAddGhost}
+                            onClick={() => update({ ghostCount: 1 })}>+</button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </Card>
+            </motion.div>
+
+            {/* Host Options */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <Card>
                 <SectionLabel>Host Options</SectionLabel>
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -177,7 +244,6 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
                     { key: "safeRound", label: "Safe Round", desc: "No elimination in round 1 — just clues" },
                     { key: "tieBreaker", label: "Tie Breaker", desc: "Tied players re-clue and group revotes" },
                     { key: "jurySystem", label: "Jury System", desc: "Eliminated players cast a collective vote in the final round" },
-                    { key: "ghostEnabled", label: "Ghost Role", desc: "One player gets no word and must bluff" },
                   ].map((opt) => (
                     <div key={opt.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                       <div>

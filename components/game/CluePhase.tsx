@@ -10,16 +10,18 @@ interface Props {
   gameState: GameState;
   localPlayer: Player;
   isOffline: boolean;
-  onSubmitClue: (clue: string) => void;
+  onSubmitClue: (clue: string) => string | undefined | void | Promise<string | undefined | void>;
   onSendChat: (text: string) => void;
   onStartVoting?: () => void;
 }
 
 export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitClue, onSendChat, onStartVoting }: Props) {
   const [clue, setClue] = useState("");
+  const [clueError, setClueError] = useState<string | null>(null);
   const [showChat, setShowChat] = useState(false);
   const [lastReadCount, setLastReadCount] = useState(0);
-  const [wordRevealed, setWordRevealed] = useState(false);
+  // In online mode, word is revealed immediately (no pass-phone step needed)
+  const [wordRevealed, setWordRevealed] = useState(!isOffline);
   const [showRules, setShowRules] = useState(false);
 
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
@@ -29,15 +31,20 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
   const isSafeRound = gameState.config.safeRound && gameState.round === 1;
   const allClued = activePlayers.every((p) => p.clue !== null);
 
-  // Reset word reveal when it's a new player's turn
+  // Reset word reveal when it's a new player's turn (offline: hide until tap; online: always visible)
   useEffect(() => {
-    setWordRevealed(false);
-  }, [gameState.currentCluePlayerIndex]);
+    setWordRevealed(!isOffline);
+  }, [gameState.currentCluePlayerIndex, isOffline]);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!clue.trim()) return;
-    onSubmitClue(clue.trim());
-    setClue("");
+    const err = await onSubmitClue(clue.trim());
+    if (err) {
+      setClueError(err);
+    } else {
+      setClue("");
+      setClueError(null);
+    }
   }
 
   return (
@@ -92,8 +99,8 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           ))}
         </div>
 
-        {/* Transition: Reveal word (only on current player's turn, before they give clue) */}
-        {isMyTurn && !currentPlayer?.clue && !wordRevealed && (
+        {/* Transition: Reveal word — offline only (pass-phone handoff before giving clue) */}
+        {isOffline && isMyTurn && !currentPlayer?.clue && !wordRevealed && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -243,11 +250,20 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
                 title="One word or short phrase only"
                 body="Be specific enough to prove you know your word, but vague enough that the Ghost can't guess it."
               />
+              {clueError && (
+                <div style={{
+                  marginTop: 10, padding: "10px 14px", borderRadius: 10,
+                  background: "#FFF0EE", border: `1.5px solid ${tokens.coralBorder}`,
+                  fontSize: 13, fontWeight: 600, color: tokens.coral,
+                }}>
+                  {clueError}
+                </div>
+              )}
               <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
                 <input
                   key={currentPlayer?.id}
                   value={clue}
-                  onChange={(e) => setClue(e.target.value)}
+                  onChange={(e) => { setClue(e.target.value); setClueError(null); }}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                   placeholder="Your clue…"
                   maxLength={40}

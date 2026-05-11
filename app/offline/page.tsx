@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
 import {
@@ -8,6 +8,7 @@ import {
 } from "@/lib/gameEngine";
 import { GameState, GameConfig } from "@/lib/types";
 import { tokens, Btn, Card, SectionLabel, Toggle } from "@/components/ui";
+import RulesModal from "@/components/game/RulesModal";
 import { WORD_PACKS } from "@/lib/wordPacks";
 
 import RoleReveal from "@/components/game/RoleReveal";
@@ -24,6 +25,8 @@ export default function OfflinePage() {
   } = useGameStore();
 
   const [newName, setNewName] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     if (!localPlayer) { router.push("/"); return; }
@@ -46,10 +49,14 @@ export default function OfflinePage() {
   if (gameState.phase === "lobby") {
     const addPlayer = () => {
       if (!newName.trim()) return;
-      if (gameState.players.find((p) => p.name.toLowerCase() === newName.toLowerCase())) return;
+      if (gameState.players.find((p) => p.name.toLowerCase() === newName.trim().toLowerCase())) {
+        setNameError(`"${newName.trim()}" is already in the game. Pick a different name.`);
+        return;
+      }
       const player = createPlayer(newName.trim(), false);
       setGameState({ ...gameState, players: [...gameState.players, player] });
       setNewName("");
+      setNameError(null);
     };
 
     const removePlayer = (id: string) => {
@@ -71,8 +78,30 @@ export default function OfflinePage() {
       <div style={{ minHeight: "100dvh", background: tokens.bg, fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif" }}>
         <div style={{ padding: "16px 20px", borderBottom: `1px solid ${tokens.border}`, background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ fontSize: 20, fontWeight: 700, color: tokens.black }}>📱 Offline Game</div>
-          <div style={{ fontSize: 12, color: tokens.grey3 }}>Pass-phone mode</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              onClick={() => setShowRules(true)}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                border: `1.5px solid ${tokens.border}`,
+                background: tokens.white,
+                cursor: "pointer",
+                fontSize: 18,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.15s",
+              }}
+              title="Rules"
+            >
+              ❓
+            </button>
+            <div style={{ fontSize: 12, color: tokens.grey3 }}>Pass-phone mode</div>
+          </div>
         </div>
+        <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
 
         <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
           {/* Players - moved first for better UX */}
@@ -124,6 +153,70 @@ export default function OfflinePage() {
             </div>
           </Card>
 
+          {/* Role Distribution */}
+          <Card>
+            <SectionLabel>Role Distribution</SectionLabel>
+            {(() => {
+              const total = gameState.players.length || 3;
+              const undercovers = Math.min(config.undercoverCount, Math.max(1, total - 2));
+              const ghosts = Math.min(config.ghostCount, Math.max(0, total - undercovers - 2));
+              const civilians = total - undercovers - ghosts;
+              const canAddUndercover = total - (undercovers + 1) - ghosts >= 2;
+              const canAddGhost = total - undercovers - (ghosts + 1) >= 2;
+              const stepperStyle = {
+                width: 30, height: 30, borderRadius: 8,
+                border: `1.5px solid ${tokens.border}`,
+                background: tokens.white, cursor: "pointer",
+                fontSize: 18, fontWeight: 600, color: tokens.grey1,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              } as React.CSSProperties;
+              const disabledStyle = { ...stepperStyle, opacity: 0.3, cursor: "not-allowed" };
+              return (
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <span style={{ padding: "4px 12px", borderRadius: 20, background: "#EDF6FF", color: "#2563EB", fontSize: 13, fontWeight: 600 }}>
+                      👤 {civilians} civilian{civilians !== 1 ? "s" : ""}
+                    </span>
+                    <span style={{ padding: "4px 12px", borderRadius: 20, background: "#FFF3F0", color: tokens.coral, fontSize: 13, fontWeight: 600 }}>
+                      🕵️ {undercovers} undercover{undercovers !== 1 ? "s" : ""}
+                    </span>
+                    {ghosts > 0 && (
+                      <span style={{ padding: "4px 12px", borderRadius: 20, background: "#F3F0FF", color: "#7C3AED", fontSize: 13, fontWeight: 600 }}>
+                        👻 {ghosts} ghost
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Undercovers 🕵️</div>
+                      <div style={{ fontSize: 12, color: tokens.grey3 }}>Know the other word, stay hidden</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <button style={undercovers <= 1 ? disabledStyle : stepperStyle} disabled={undercovers <= 1}
+                        onClick={() => updateConfig({ undercoverCount: Math.max(1, undercovers - 1) })}>−</button>
+                      <span style={{ fontSize: 16, fontWeight: 700, minWidth: 20, textAlign: "center", color: tokens.black }}>{undercovers}</span>
+                      <button style={!canAddUndercover ? disabledStyle : stepperStyle} disabled={!canAddUndercover}
+                        onClick={() => updateConfig({ undercoverCount: undercovers + 1 })}>+</button>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Mr. White / Ghost 👻</div>
+                      <div style={{ fontSize: 12, color: tokens.grey3 }}>Gets no word — must bluff blindly</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <button style={ghosts <= 0 ? disabledStyle : stepperStyle} disabled={ghosts <= 0}
+                        onClick={() => updateConfig({ ghostCount: 0 })}>−</button>
+                      <span style={{ fontSize: 16, fontWeight: 700, minWidth: 20, textAlign: "center", color: tokens.black }}>{ghosts}</span>
+                      <button style={!canAddGhost ? disabledStyle : stepperStyle} disabled={!canAddGhost}
+                        onClick={() => updateConfig({ ghostCount: 1 })}>+</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </Card>
+
           {/* Options */}
           <Card>
             <SectionLabel>Game Options</SectionLabel>
@@ -131,7 +224,6 @@ export default function OfflinePage() {
               {[
                 { key: "safeRound", label: "Safe Round", desc: "No elimination in round 1" },
                 { key: "tieBreaker", label: "Tie Breaker", desc: "Tied players re-clue and revote" },
-                { key: "ghostEnabled", label: "Ghost Role", desc: "One player gets no word" },
               ].map((opt) => (
                 <div key={opt.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                   <div>
@@ -180,9 +272,13 @@ export default function OfflinePage() {
   if (gameState.phase === "clue" || gameState.phase === "discussion") {
     const currentPlayer = gameState.players[gameState.currentCluePlayerIndex];
     const handleClue = (clue: string) => {
-      const updated = submitClue(gameState, currentPlayer.id, clue);
-      const allClued = updated.players.filter((p) => !p.isEliminated).every((p) => p.clue !== null);
-      setGameState(allClued ? { ...updated, phase: "vote" } : updated);
+      const result = submitClue(gameState, currentPlayer.id, clue);
+      if (result.error) {
+        alert(result.error);
+        return;
+      }
+      const allClued = result.state.players.filter((p) => !p.isEliminated).every((p) => p.clue !== null);
+      setGameState(allClued ? { ...result.state, phase: "vote" } : result.state);
     };
     return (
       <CluePhase
@@ -220,6 +316,7 @@ export default function OfflinePage() {
       <EliminationScreen
         gameState={gameState}
         localPlayer={localPlayer}
+        isOffline={true}
         onGhostGuess={(guess) => setGameState(processGhostGuess(gameState, guess))}
         onContinue={() => setGameState(nextRound(gameState))}
       />
