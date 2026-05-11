@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { GameState, Player, ChatMessage, GameConfig } from "./types";
-import { createInitialGameState, DEFAULT_CONFIG } from "./gameEngine";
+import { DEFAULT_CONFIG } from "./types";
 
 interface GameStore {
   // Local player identity

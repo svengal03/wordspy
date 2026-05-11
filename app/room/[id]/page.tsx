@@ -2,11 +2,11 @@
 import { useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useGameStore } from "@/lib/store";
-import { useAblyRoom } from "@/lib/useAbly";
-import { AblyEvent, GameState, ChatMessage } from "@/lib/types";
+import { usePusherRoom, GameEvent } from "@/lib/usePusher";
+import { GameState, ChatMessage } from "@/lib/types";
 import {
   startGame, submitClue, castVote, processGhostGuess,
-  nextRound, createPlayer,
+  nextRound,
 } from "@/lib/gameEngine";
 import { nanoid } from "nanoid";
 
@@ -22,11 +22,10 @@ export default function RoomPage() {
   const roomCode = params.id as string;
 
   const {
-    localPlayer, gameState, setGameState, setLocalPlayer,
+    localPlayer, gameState, setGameState,
     setRoomCode, config,
   } = useGameStore();
 
-  // Sync game state with server
   async function pushState(state: GameState) {
     setGameState(state);
     await fetch("/api/rooms", {
@@ -36,28 +35,29 @@ export default function RoomPage() {
     });
   }
 
-  // Handle incoming Ably events from other players
-  const handleEvent = useCallback((event: AblyEvent) => {
+  const handleEvent = useCallback((event: GameEvent) => {
     switch (event.type) {
       case "game-state-update":
         setGameState(event.payload as GameState);
         break;
       case "player-joined": {
-        const player = event.payload as typeof localPlayer;
-        setGameState((prev: GameState | null) => {
-          if (!prev) return prev;
-          if (prev.players.find((p) => p.id === player?.id)) return prev;
-          return { ...prev, players: [...prev.players, player!] };
-        } as any);
+        const player = event.payload as NonNullable<typeof localPlayer>;
+        // Use ref to avoid stale closure - re-fetch current state
+        fetch("/api/rooms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get", roomCode }),
+        }).then(r => r.json()).then(data => {
+          if (data.gameState) setGameState(data.gameState);
+        });
         break;
       }
     }
   }, [setGameState]);
 
   const playerId = localPlayer?.id ?? "anon";
-  const { publish } = useAblyRoom(roomCode, handleEvent, playerId);
+  const { publish } = usePusherRoom(roomCode, handleEvent, playerId);
 
-  // Fetch room state on mount & register player
   useEffect(() => {
     if (!roomCode) return;
     setRoomCode(roomCode);
@@ -72,7 +72,6 @@ export default function RoomPage() {
       const data = await res.json();
       const state = data.gameState as GameState;
 
-      // If player doesn't exist yet, create and add
       if (localPlayer) {
         const alreadyIn = state.players.find((p) => p.id === localPlayer.id);
         if (!alreadyIn) {
@@ -88,7 +87,6 @@ export default function RoomPage() {
     })();
   }, [roomCode]);
 
-  // ─── Host actions ──────────────────────────────────────────────────────────
   async function handleStart() {
     if (!gameState) return;
     const started = startGame({ ...gameState, config });
@@ -153,7 +151,7 @@ export default function RoomPage() {
       phase: "lobby",
       round: 0,
       players: gameState.players.map((p) => ({
-        ...p, role: "civilian", word: null, isEliminated: false,
+        ...p, role: "civilian" as const, word: null, isEliminated: false,
         clue: null, votes: 0, hasVoted: false,
       })),
       wordPair: null,
@@ -168,14 +166,15 @@ export default function RoomPage() {
     await publish("game-state-update", reset);
   }
 
-  // ─── Render ────────────────────────────────────────────────────────────────
   if (!gameState || !localPlayer) {
     return (
       <div style={{
-        minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: "system-ui", color: "#888",
+        minHeight: "100dvh", display: "flex", alignItems: "center",
+        justifyContent: "center", fontFamily: "system-ui", color: "#888",
+        flexDirection: "column", gap: 12,
       }}>
-        Loading room…
+        <div style={{ fontSize: 32 }}>🕵️</div>
+        <div>Loading room…</div>
       </div>
     );
   }
@@ -183,13 +182,7 @@ export default function RoomPage() {
   const phase = gameState.phase;
 
   if (phase === "lobby") {
-    return (
-      <LobbySetup
-        gameState={gameState}
-        onStart={handleStart}
-        onUpdateConfig={handleUpdateConfig}
-      />
-    );
+    return <LobbySetup gameState={gameState} onStart={handleStart} onUpdateConfig={handleUpdateConfig} />;
   }
 
   if (phase === "role-reveal") {
@@ -199,56 +192,29 @@ export default function RoomPage() {
         localPlayer={localPlayer}
         isOffline={false}
         revealIndex={0}
-        onDone={() => {
+        onDone={async () => {
           const updated = { ...gameState, phase: "clue" as const };
-          pushState(updated);
-          publish("game-state-update", updated);
+          await pushState(updated);
+          await publish("game-state-update", updated);
         }}
       />
     );
   }
 
   if (phase === "clue" || phase === "discussion") {
-    return (
-      <CluePhase
-        gameState={gameState}
-        localPlayer={localPlayer}
-        isOffline={false}
-        onSubmitClue={handleClue}
-        onSendChat={handleChat}
-      />
-    );
+    return <CluePhase gameState={gameState} localPlayer={localPlayer} isOffline={false} onSubmitClue={handleClue} onSendChat={handleChat} />;
   }
 
   if (phase === "vote") {
-    return (
-      <VotePhase
-        gameState={gameState}
-        localPlayer={localPlayer}
-        onVote={handleVote}
-      />
-    );
+    return <VotePhase gameState={gameState} localPlayer={localPlayer} onVote={handleVote} />;
   }
 
   if (phase === "elimination") {
-    return (
-      <EliminationScreen
-        gameState={gameState}
-        localPlayer={localPlayer}
-        onGhostGuess={handleGhostGuess}
-        onContinue={handleContinue}
-      />
-    );
+    return <EliminationScreen gameState={gameState} localPlayer={localPlayer} onGhostGuess={handleGhostGuess} onContinue={handleContinue} />;
   }
 
   if (phase === "summary") {
-    return (
-      <SummaryScreen
-        gameState={gameState}
-        localPlayer={localPlayer}
-        onPlayAgain={handlePlayAgain}
-      />
-    );
+    return <SummaryScreen gameState={gameState} localPlayer={localPlayer} onPlayAgain={handlePlayAgain} />;
   }
 
   return null;
