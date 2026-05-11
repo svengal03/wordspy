@@ -27,6 +27,10 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
   const isGhost = eliminated.role === "ghost";
   const isMe = eliminated.id === localPlayer.id;
   const isGameOver = !!checkWinCondition(gameState);
+  // When last undercover is eliminated, surviving ghost gets a final guess
+  const survivingGhost = !isGhost && gameState.ghostGuessAllowed
+    ? gameState.players.find((p) => p.role === "ghost" && !p.isEliminated)
+    : null;
 
   function handleGuess() {
     if (!guess.trim()) return;
@@ -79,8 +83,8 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
           </div>
 
 
-          {/* Ghost last chance — only the eliminated ghost player can guess */}
-          {isGhost && gameState.ghostGuessAllowed && !guessSubmitted && (isOffline || isMe) && (
+          {/* Ghost last chance — triggered when ghost is eliminated OR last undercover falls */}
+          {(isGhost || survivingGhost) && gameState.ghostGuessAllowed && !guessSubmitted && (isOffline || isMe || (survivingGhost && survivingGhost.id === localPlayer.id)) && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -121,13 +125,13 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
           )}
 
           {/* Waiting message for non-ghost players while ghost decides */}
-          {isGhost && gameState.ghostGuessAllowed && !guessSubmitted && !isOffline && !isMe && (
+          {(isGhost || survivingGhost) && gameState.ghostGuessAllowed && !guessSubmitted && !isOffline && !isMe && !(survivingGhost && survivingGhost.id === localPlayer.id) && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginBottom: 16 }}>
               <div style={{
                 background: tokens.yellowBg, border: `1.5px solid #FDE047`,
                 borderRadius: 14, padding: "14px", fontSize: 14, color: "#854D0E", fontWeight: 600, textAlign: "center",
               }}>
-                👻 Waiting for {eliminated.name} to guess…
+                👻 Waiting for {survivingGhost ? survivingGhost.name : eliminated.name} to guess…
               </div>
             </motion.div>
           )}
@@ -151,7 +155,7 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
           )}
 
           {/* Host can skip ghost guess if needed */}
-          {isGhost && gameState.ghostGuessAllowed && !guessSubmitted && !isMe && (localPlayer.isHost || isOffline) && (
+          {(isGhost || survivingGhost) && gameState.ghostGuessAllowed && !guessSubmitted && !isMe && !(survivingGhost && survivingGhost.id === localPlayer.id) && (localPlayer.isHost || isOffline) && (
             <Btn fullWidth onClick={onContinue} variant="ghost" style={{ padding: "14px", fontSize: 15, marginTop: 8, opacity: 0.7 }}>
               Skip Mr. Phantom Guess →
             </Btn>

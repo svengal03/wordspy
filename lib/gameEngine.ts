@@ -215,7 +215,12 @@ function processVotes(state: GameState): GameState {
     p.id === eliminated.id ? { ...p, isEliminated: true } : p
   );
 
-  const ghostGuessAllowed = eliminated.role === "ghost";
+  const remaining = players.filter((p) => !p.isEliminated);
+  const remainingUndercovers = remaining.filter((p) => p.role === "undercover");
+  const remainingGhosts = remaining.filter((p) => p.role === "ghost");
+  const ghostGuessAllowed =
+    eliminated.role === "ghost" ||
+    (remainingUndercovers.length === 0 && remainingGhosts.length > 0);
 
   return {
     ...state,
@@ -233,12 +238,18 @@ export function eliminatePlayer(state: GameState, playerId: string): GameState {
   const players = state.players.map((p) =>
     p.id === playerId ? { ...p, isEliminated: true } : p
   );
+  const remaining = players.filter((p) => !p.isEliminated);
+  const remainingUndercovers = remaining.filter((p) => p.role === "undercover");
+  const remainingGhosts = remaining.filter((p) => p.role === "ghost");
+  const ghostGuessAllowed =
+    target.role === "ghost" ||
+    (remainingUndercovers.length === 0 && remainingGhosts.length > 0);
   return {
     ...state,
     players,
     phase: "elimination",
     eliminatedThisRound: playerId,
-    ghostGuessAllowed: target.role === "ghost",
+    ghostGuessAllowed,
   };
 }
 
@@ -251,8 +262,8 @@ export function checkWinCondition(
   const undercovers = active.filter((p) => p.role === "undercover");
   const ghosts = active.filter((p) => p.role === "ghost");
 
-  // All undercovers eliminated → civilians win (ghost surviving is not a threat)
-  if (undercovers.length === 0) return "civilians";
+  // All undercovers AND ghosts eliminated → civilians win
+  if (undercovers.length === 0 && ghosts.length === 0) return "civilians";
 
   // Undercovers equal or outnumber civilians + ghosts → they control the vote and win
   if (undercovers.length >= civilians.length + ghosts.length) return "undercover";
@@ -307,7 +318,13 @@ export function processGhostGuess(
     return { ...state, phase: "summary", winner: "ghost", ghostGuess: guess };
   }
 
-  // Wrong guess — continue game
+  // Wrong guess — if no undercovers remain, civilians win (ghost had their shot)
+  const active = state.players.filter((p) => !p.isEliminated);
+  const undercoversLeft = active.filter((p) => p.role === "undercover");
+  if (undercoversLeft.length === 0) {
+    return { ...state, phase: "summary", winner: "civilians", ghostGuess: guess };
+  }
+
   const winner = checkWinCondition(state);
   if (winner) return { ...state, phase: "summary", winner };
 

@@ -156,13 +156,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
               <InfoBox
                 icon="💡"
                 title="One word or short phrase only"
-                body={
-                  myPlayer?.role === "ghost"
-                    ? "You have NO word — you're Mr. Phantom. Make up a convincing clue that fits what you've heard, to avoid being voted out."
-                    : myPlayer?.role === "undercover"
-                    ? "Your word is similar but different — blend in with the civilians without revealing you're different."
-                    : "Be specific enough to prove you know your word, but vague enough that Mr. Phantom can't guess it."
-                }
+                body="Give a clue that hints at your word without saying it directly. Don't reveal too much!"
               />
               {clueError && (
                 <div style={{
