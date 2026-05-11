@@ -72,18 +72,35 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           ))}
         </div>
 
-        {/* My word reminder */}
-        {myPlayer && (
+        {/* My word reminder — only show actual word, not passing mode */}
+        {myPlayer && myPlayer.word !== null && (
           <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: tokens.coral, letterSpacing: 1, textTransform: "uppercase" }}>Your word</div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, marginTop: 2 }}>
-                  {myPlayer.role === "ghost" ? "👻 None" : myPlayer.word}
+                  {myPlayer.word}
                 </div>
               </div>
               <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3 }}>
                 {myPlayer.role.toUpperCase()}
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Ghost has no word */}
+        {myPlayer && myPlayer.role === "ghost" && (
+          <Card style={{ background: "rgba(139, 69, 19, 0.08)", border: `1.5px solid rgba(139, 69, 19, 0.2)` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey2, letterSpacing: 1, textTransform: "uppercase" }}>Your role</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, marginTop: 2 }}>
+                  👻 Ghost
+                </div>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3 }}>
+                LISTEN & GUESS
               </div>
             </div>
           </Card>
@@ -149,11 +166,11 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           </div>
         </Card>
 
-        {/* My turn to clue */}
-        {isMyTurn && !myPlayer?.clue && (
+        {/* Clue input — offline mode or it's your turn online */}
+        {!currentPlayer?.clue && (isOffline ? currentPlayer?.id : isMyTurn) && (
           <motion.div key={currentPlayer?.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <Card>
-              <SectionLabel>Your Turn — Give a Clue</SectionLabel>
+              <SectionLabel>{isOffline ? `${currentPlayer?.name}'s Turn` : "Your Turn"} — Give a Clue</SectionLabel>
               <InfoBox
                 icon="💡"
                 title="One word or short phrase only"
@@ -180,6 +197,18 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
               </div>
             </Card>
           </motion.div>
+        )}
+
+        {/* Offline mode: waiting for current player */}
+        {isOffline && !currentPlayer?.clue && (
+          <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}`, textAlign: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>
+              📱 Pass phone to {currentPlayer?.name}
+            </div>
+            <div style={{ fontSize: 12, color: tokens.grey2, marginTop: 4 }}>
+              They will enter their clue
+            </div>
+          </Card>
         )}
 
         {/* All clued — move to voting */}

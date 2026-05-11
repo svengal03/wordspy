@@ -96,12 +96,20 @@ export const DEFAULT_CONFIG: GameConfig = {
 };
 
 // ─── Role counts by player count ─────────────────────────────────────────────
-export function getRoleCounts(playerCount: number): {
+export function getRoleCounts(playerCount: number, ghostEnabled: boolean = true): {
   civilians: number;
   undercovers: number;
   ghosts: number;
 } {
-  if (playerCount <= 4) return { civilians: playerCount - 1, undercovers: 1, ghosts: 0 };
+  if (!ghostEnabled) {
+    // No ghost mode
+    if (playerCount <= 4) return { civilians: playerCount - 1, undercovers: 1, ghosts: 0 };
+    if (playerCount <= 6) return { civilians: playerCount - 2, undercovers: 1, ghosts: 0 };
+    return { civilians: playerCount - 2, undercovers: 2, ghosts: 0 };
+  }
+  // Ghost mode enabled
+  if (playerCount <= 3) return { civilians: playerCount - 2, undercovers: 1, ghosts: 1 };
+  if (playerCount <= 4) return { civilians: playerCount - 2, undercovers: 1, ghosts: 1 };
   if (playerCount <= 6) return { civilians: playerCount - 2, undercovers: 1, ghosts: 1 };
   if (playerCount <= 8) return { civilians: playerCount - 3, undercovers: 2, ghosts: 1 };
   return { civilians: playerCount - 3, undercovers: 2, ghosts: 1 };

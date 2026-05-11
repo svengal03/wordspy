@@ -17,7 +17,7 @@ export function assignRoles(
   pair?: { civilian: string; undercover: string }
 ): { players: Player[]; pair: { civilian: string; undercover: string } } {
   const wordPair = pair || getRandomPair(config.packId);
-  const { undercovers, ghosts } = getRoleCounts(players.length);
+  const { undercovers, ghosts } = getRoleCounts(players.length, config.ghostEnabled);
 
   // Build role pool
   const roles: Role[] = [
