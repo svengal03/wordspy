@@ -80,7 +80,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig }: Props
               <Btn variant="ghost" onClick={copyLink} style={{ flex: 1, padding: "8px 12px", fontSize: 12 }}>
                 Copy Link
               </Btn>
-              {typeof navigator !== "undefined" && navigator.share && (
+              {'share' in navigator && (
                 <Btn variant="ghost" onClick={shareLink} style={{ flex: 1, padding: "8px 12px", fontSize: 12 }}>
                   Share →
                 </Btn>
