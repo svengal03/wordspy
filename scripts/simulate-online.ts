@@ -117,7 +117,7 @@ console.log("\n═══ Scenario A: Civilians Win (multi-round) ═══");
   state = { ...state, phase: "vote" };
   state = allVoteFor(state, ghost.id);
   check("Phase is elimination", state.phase === "elimination");
-  check("Ghost eliminated in R1", state.players.find(p => p.id === ghost.id)?.isEliminated);
+  check("Ghost eliminated in R1", !!state.players.find(p => p.id === ghost.id)?.isEliminated);
   check("ghostGuessAllowed is true", state.ghostGuessAllowed);
 
   // Ghost guesses WRONG → game continues
@@ -200,7 +200,7 @@ console.log("\n═══ Scenario C: Ghost Wins ═══");
   state = allVoteFor(state, ghost.id);
   check("Phase is elimination", state.phase === "elimination");
   check("ghostGuessAllowed is true", state.ghostGuessAllowed);
-  check("Ghost correctly marked eliminated", state.players.find(p => p.id === ghost.id)?.isEliminated);
+  check("Ghost correctly marked eliminated", !!state.players.find(p => p.id === ghost.id)?.isEliminated);
 
   // Ghost guesses CORRECTLY
   state = processGhostGuess(state, civilianWord);
