@@ -77,9 +77,9 @@ In a world where identities have been scrambled, players receive secret words to
 - The player with the **most votes is eliminated**
 - Their role and word are revealed publicly
 
-**Tie Breaker (if enabled):**
-- Tied players each give **one more clue**
-- The group votes again among only the tied players
+**When votes are tied:**
+- **Tie Breaker ON:** Tied players each give one more clue, then the whole group votes again (only between the tied players)
+- **Tie Breaker OFF:** The game enters **Host Pick** — the host manually selects which tied player to eliminate
 
 ### Phase 6 — Elimination
 - The eliminated player's role is revealed
@@ -113,6 +113,7 @@ In a world where identities have been scrambled, players receive secret words to
 ### ⚖️ Tie Breaker
 - When votes are tied, tied players give one more clue
 - Then the group votes again (only between tied players)
+- If **disabled**, ties go to Host Pick instead (host decides)
 - **Recommended for:** Competitive games
 
 ### 👨‍⚖️ Jury System

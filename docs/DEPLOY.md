@@ -4,17 +4,17 @@
 
 - GitHub account
 - Vercel account (sign up free at vercel.com with GitHub)
-- Ably account (sign up free at ably.com)
+- Pusher account (sign up free at pusher.com)
 
 ---
 
-## Step 1 — Get Your Ably API Key
+## Step 1 — Get Your Pusher Credentials
 
-1. Go to [ably.com](https://ably.com) and sign in
-2. Click **Create New App**
-3. Name it "Wordspy"
-4. Go to **API Keys** tab
-5. Copy the **root key** (format: `xxxxx.yyyyy:zzzzzzzzz`)
+1. Go to [pusher.com](https://pusher.com) and sign in
+2. Click **Create App**
+3. Name it "Wordspy", choose your cluster (e.g. `mt1`), select **Channels**
+4. Go to the **App Keys** tab
+5. Copy: **app_id**, **key**, **secret**, **cluster**
 
 ---
 
@@ -40,12 +40,15 @@ git push -u origin main
 1. Go to [vercel.com/new](https://vercel.com/new)
 2. Click **Import Git Repository** → select your `wordspy` repo
 3. Framework: **Next.js** (auto-detected)
-4. Environment Variables — add:
+4. Environment Variables — add all four:
    ```
-   ABLY_API_KEY = paste_your_ably_key_here
+   NEXT_PUBLIC_PUSHER_KEY     = your_pusher_key
+   NEXT_PUBLIC_PUSHER_CLUSTER = mt1
+   PUSHER_APP_ID              = your_pusher_app_id
+   PUSHER_SECRET              = your_pusher_secret
    ```
 5. Click **Deploy**
-6. Wait ~2 minutes → your app is live! 🎉
+6. Wait ~2 minutes → your app is live!
 
 ### Option B — Vercel CLI
 
@@ -54,8 +57,7 @@ npm i -g vercel
 vercel login
 vercel
 
-# When prompted, add env var:
-# ABLY_API_KEY = your_key
+# When prompted, add all four env vars above
 ```
 
 ---
@@ -75,9 +77,12 @@ vercel
 
 | Variable | Required | Description |
 |---|---|---|
-| `ABLY_API_KEY` | ✅ Yes | Your Ably root API key |
+| `NEXT_PUBLIC_PUSHER_KEY` | ✅ Yes | Pusher app key (public, safe to expose) |
+| `NEXT_PUBLIC_PUSHER_CLUSTER` | ✅ Yes | Pusher cluster region (e.g. `mt1`) |
+| `PUSHER_APP_ID` | ✅ Yes | Pusher app ID (server-side only) |
+| `PUSHER_SECRET` | ✅ Yes | Pusher secret (server-side only, never expose) |
 | `NEXT_PUBLIC_APP_URL` | Optional | Your deployed URL (for sharing links) |
-| `ANTHROPIC_API_KEY` | 🚧 Future | Claude AI word generator (parked) |
+| `ANTHROPIC_API_KEY` | 🚧 Future | Claude AI word generator (not yet implemented) |
 
 ---
 
@@ -90,22 +95,22 @@ vercel
 
 ---
 
-## Ably Free Tier Limits
+## Pusher Free Tier Limits
 
 | Metric | Free Limit | Wordspy Usage |
 |---|---|---|
-| Concurrent connections | 200 | ~10 players per room × N rooms |
-| Messages per month | 6,000,000 | ~1000 messages per game |
+| Concurrent connections | 100 | ~10 players per room × N rooms |
+| Messages per day | 800,000 | ~1000 messages per game |
 | Channels | Unlimited | 1 per room |
 
-**Estimate:** Free tier supports roughly 500–600 complete game sessions per month. More than enough to start!
+**Estimate:** Free tier supports roughly 200–300 complete game sessions per day. More than enough to start!
 
 ---
 
 ## Monitoring
 
 - **Vercel Dashboard** → Functions tab → see API route invocations and errors
-- **Ably Dashboard** → Stats tab → see message counts, connections
+- **Pusher Dashboard** → Stats tab → see message counts, connections
 - **Vercel Analytics** → enable free analytics in project settings
 
 ---
@@ -113,14 +118,14 @@ vercel
 ## Troubleshooting
 
 ### "Room not found" error
-- Check `ABLY_API_KEY` is set correctly in Vercel environment variables
+- Check all four `PUSHER_*` env vars are set correctly in Vercel environment variables
 - Vercel serverless functions are stateless — the in-memory room store resets on cold starts
 - **Fix:** For production reliability, add Redis (see upgrade guide)
 
 ### Players not seeing real-time updates
-- Check browser console for Ably connection errors
-- Verify the `ABLY_API_KEY` has publish + subscribe permissions
-- Try the Ably dashboard → Developer Console → check for connection
+- Check browser console for Pusher connection errors
+- Verify `NEXT_PUBLIC_PUSHER_KEY` and `NEXT_PUBLIC_PUSHER_CLUSTER` match your app's values
+- Try the Pusher dashboard → Debug Console → check for events being received
 
 ### Cold start delay
 - First request after inactivity may be slow (Vercel wakes up the function)

@@ -36,7 +36,14 @@ export function assignRoles(
     [roles[i], roles[j]] = [roles[j], roles[i]];
   }
 
-  const assignedPlayers = players.map((player, i) => ({
+  // Shuffle players so role assignment isn't biased by join order
+  const shuffledPlayers = [...players];
+  for (let i = shuffledPlayers.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledPlayers[i], shuffledPlayers[j]] = [shuffledPlayers[j], shuffledPlayers[i]];
+  }
+
+  const assignedPlayers = shuffledPlayers.map((player, i) => ({
     ...player,
     role: roles[i],
     word:
@@ -215,19 +222,12 @@ function processVotes(state: GameState): GameState {
     p.id === eliminated.id ? { ...p, isEliminated: true } : p
   );
 
-  const remaining = players.filter((p) => !p.isEliminated);
-  const remainingUndercovers = remaining.filter((p) => p.role === "undercover");
-  const remainingGhosts = remaining.filter((p) => p.role === "ghost");
-  const ghostGuessAllowed =
-    eliminated.role === "ghost" ||
-    (remainingUndercovers.length === 0 && remainingGhosts.length > 0);
-
   return {
     ...state,
     players,
     phase: "elimination",
     eliminatedThisRound: eliminated.id,
-    ghostGuessAllowed,
+    ghostGuessAllowed: eliminated.role === "ghost",
   };
 }
 
@@ -238,18 +238,12 @@ export function eliminatePlayer(state: GameState, playerId: string): GameState {
   const players = state.players.map((p) =>
     p.id === playerId ? { ...p, isEliminated: true } : p
   );
-  const remaining = players.filter((p) => !p.isEliminated);
-  const remainingUndercovers = remaining.filter((p) => p.role === "undercover");
-  const remainingGhosts = remaining.filter((p) => p.role === "ghost");
-  const ghostGuessAllowed =
-    target.role === "ghost" ||
-    (remainingUndercovers.length === 0 && remainingGhosts.length > 0);
   return {
     ...state,
     players,
     phase: "elimination",
     eliminatedThisRound: playerId,
-    ghostGuessAllowed,
+    ghostGuessAllowed: target.role === "ghost",
   };
 }
 
@@ -318,13 +312,7 @@ export function processGhostGuess(
     return { ...state, phase: "summary", winner: "ghost", ghostGuess: guess };
   }
 
-  // Wrong guess — if no undercovers remain, civilians win (ghost had their shot)
-  const active = state.players.filter((p) => !p.isEliminated);
-  const undercoversLeft = active.filter((p) => p.role === "undercover");
-  if (undercoversLeft.length === 0) {
-    return { ...state, phase: "summary", winner: "civilians", ghostGuess: guess };
-  }
-
+  // Wrong guess — ghost already eliminated, game continues without them
   const winner = checkWinCondition(state);
   if (winner) return { ...state, phase: "summary", winner };
 

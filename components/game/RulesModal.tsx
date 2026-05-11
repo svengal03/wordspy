@@ -55,7 +55,7 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
               How to Play
             </div>
             <div style={{ fontSize: 13, color: tokens.grey3, marginBottom: 20 }}>
-              Find the Undercover before they outnumber you
+              Find the Undercover and Mr. Phantom before it's too late
             </div>
 
             {/* Roles */}
@@ -118,7 +118,7 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
-                  { label: "Civilians", win: "Eliminate all Undercovers" },
+                  { label: "Civilians", win: "Eliminate all Undercovers and Mr. Phantom" },
                   { label: "Undercover", win: "Outnumber the Civilians + Mr. Phantom combined" },
                   { label: "Mr. Phantom", win: "Correctly guess the civilians' word after being eliminated" },
                 ].map((w) => (

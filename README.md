@@ -98,7 +98,8 @@ npm i -g vercel
 vercel
 ```
 
-Follow prompts. When asked for environment variables, add `ABLY_API_KEY`.
+Follow prompts. When asked for environment variables, add all four Pusher vars:
+`NEXT_PUBLIC_PUSHER_KEY`, `NEXT_PUBLIC_PUSHER_CLUSTER`, `PUSHER_APP_ID`, `PUSHER_SECRET`.
 
 ### Option B — Vercel Dashboard
 
@@ -125,7 +126,7 @@ wordspy/
 │   │   └── page.tsx          # Offline pass-phone game
 │   ├── room/
 │   │   └── [id]/
-│   │       └── page.tsx      # Online room (Ably-powered)
+│   │       └── page.tsx      # Online room (Pusher-powered)
 │   └── api/
 │       ├── pusher-event/     # Pusher event broadcast endpoint
 │       └── rooms/            # Room create/get/update
@@ -160,7 +161,7 @@ wordspy/
 ### Online Mode
 - Host creates a room → gets a 6-character code
 - Friends join with the code from any device
-- Real-time sync via Ably (chat, votes, game state)
+- Real-time sync via Pusher (chat, votes, game state)
 - Works across different networks
 
 ### Offline Mode
@@ -175,8 +176,9 @@ wordspy/
 The codebase is ready for Claude API integration. When you're ready:
 
 1. Add `ANTHROPIC_API_KEY` to `.env.local`
-2. Uncomment the word generator in `app/api/generate-words/route.ts`
-3. The host can type any theme (e.g. "Hyderabad street food") and Claude generates fresh word pairs
+2. Create `app/api/generate-words/route.ts` (see `docs/DEPLOY.md` for the implementation)
+3. Add a "Generate with AI" button in `components/game/LobbySetup.tsx`
+4. The host can type any theme (e.g. "Hyderabad street food") and Claude generates fresh word pairs
 
 ---
 

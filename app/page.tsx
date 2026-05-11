@@ -163,7 +163,7 @@ export default function HomeScreen() {
                 {[
                   { icon: "🃏", title: "Get your word", desc: "Everyone gets a secret word — except Mr. Phantom who gets none." },
                   { icon: "💬", title: "Give clues", desc: "Take turns describing your word without revealing it." },
-                  { icon: "🗳️", title: "Vote & expose", desc: "Find the infiltrators before they outlast the Civilians." },
+                  { icon: "🗳️", title: "Vote & expose", desc: "Eliminate Undercovers and Mr. Phantom before they outnumber the Civilians." },
                 ].map((s, i) => (
                   <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
                     <div style={{

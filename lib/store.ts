@@ -12,7 +12,7 @@ interface GameStore {
   roomCode: string | null;
   setRoomCode: (code: string) => void;
 
-  // Full game state (synced via Ably)
+  // Full game state (synced via Pusher)
   gameState: GameState | null;
   setGameState: (state: GameState) => void;
   updateGameState: (partial: Partial<GameState>) => void;
