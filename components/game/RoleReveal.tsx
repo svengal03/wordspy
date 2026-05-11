@@ -17,13 +17,13 @@ interface Props {
 
 const roleInfo = {
   civilian: {
-    tip: "Give clues that prove you know this word — but stay vague enough that the WordSpy can't guess it. Find your allies!",
+    tip: "Give clues that prove you know this word — but stay vague enough that Mr. Phantom can't guess it. Find your allies!",
   },
   undercover: {
     tip: "Your word is similar but different. Blend in with the Civilians — don't expose yourself too early!",
   },
   ghost: {
-    tip: "You have NO word. Listen to everyone's clues carefully to figure out what the word might be. Survive and guess!",
+    tip: "You have NO word — you're Mr. Phantom. Listen to everyone's clues carefully to figure out what the word might be. Survive and guess!",
   },
 };
 
@@ -100,7 +100,7 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     style={{ fontSize: 20, fontWeight: 800, color: tokens.coral, marginBottom: 8, letterSpacing: -0.3 }}
                   >
-                    Your role is ready
+                    Your word is ready
                   </motion.div>
                   <div style={{ fontSize: 13, color: tokens.grey3, marginBottom: 20 }}>Tap to reveal</div>
                 </>
@@ -116,9 +116,7 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
               animate={{ opacity: 1, y: 0 }}
               style={{ textAlign: "center", width: "100%", maxWidth: 360 }}
             >
-              <RoleBadge role={currentPlayer.role} />
-
-              {/* Word box — blank for WordSpy */}
+              {/* Word box */}
               <div style={{
                 margin: "12px 0 14px",
                 background: "#F5F5F0",
@@ -129,11 +127,9 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
                 minHeight: 80,
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                {currentPlayer.role !== "ghost" && (
-                  <div style={{ fontSize: 32, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>
-                    {currentPlayer.word}
-                  </div>
-                )}
+                <div style={{ fontSize: 32, fontWeight: 800, color: currentPlayer.role === "ghost" ? tokens.grey3 : tokens.black, letterSpacing: -0.5 }}>
+                  {currentPlayer.role === "ghost" ? "  " : currentPlayer.word}
+                </div>
               </div>
 
               <div style={{ fontSize: 12, color: tokens.grey3, lineHeight: 1.4 }}>

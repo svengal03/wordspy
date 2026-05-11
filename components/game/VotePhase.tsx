@@ -97,7 +97,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
         <InfoBox
           icon="🗳️"
           title="Time to vote"
-          body="Select the player you think is the Undercover or WordSpy. The player with the most votes will be eliminated."
+          body="Select the player you think is the Undercover or Mr. Phantom. The player with the most votes will be eliminated."
         />
 
         {gameState.isTiebreaker && (

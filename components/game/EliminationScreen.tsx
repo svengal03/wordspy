@@ -98,7 +98,7 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
                   Guess the civilians' word
                 </div>
                 <div style={{ fontSize: 13, color: tokens.grey2, marginBottom: 14 }}>
-                  Guess correctly and you win as the WordSpy!
+                  Guess correctly and you win as Mr. Phantom!
                 </div>
                 <input
                   value={guess}
@@ -127,7 +127,7 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
                 background: tokens.yellowBg, border: `1.5px solid #FDE047`,
                 borderRadius: 14, padding: "14px", fontSize: 14, color: "#854D0E", fontWeight: 600, textAlign: "center",
               }}>
-                👻 Waiting for {eliminated.name} to make their guess…
+                👻 Waiting for {eliminated.name} to guess…
               </div>
             </motion.div>
           )}
@@ -153,7 +153,7 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
           {/* Host can skip ghost guess if needed */}
           {isGhost && gameState.ghostGuessAllowed && !guessSubmitted && !isMe && (localPlayer.isHost || isOffline) && (
             <Btn fullWidth onClick={onContinue} variant="ghost" style={{ padding: "14px", fontSize: 15, marginTop: 8, opacity: 0.7 }}>
-              Skip WordSpy Guess →
+              Skip Mr. Phantom Guess →
             </Btn>
           )}
 

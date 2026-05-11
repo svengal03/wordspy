@@ -258,7 +258,7 @@ export function RoleBadge({ role }: { role: "civilian" | "undercover" | "ghost" 
   const map = {
     civilian: { emoji: "🎭", label: "Civilian", color: tokens.green },
     undercover: { emoji: "🕵️", label: "Undercover", color: tokens.coral },
-    ghost: { emoji: "", label: "WordSpy", color: tokens.yellow },
+    ghost: { emoji: "👻", label: "Mr. Phantom", color: tokens.yellow },
   };
   const { emoji, label, color } = map[role];
   return <Badge color={color}>{emoji} {label}</Badge>;

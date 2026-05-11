@@ -124,20 +124,17 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: tokens.coral, letterSpacing: 1, textTransform: "uppercase" }}>Your word</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: tokens.coral, letterSpacing: 1, textTransform: "uppercase" }}>{localPlayer.name}'s word</div>
                 <div style={{
                   fontSize: 22, fontWeight: 800,
                   color: wordVisible ? (myPlayer.role === "ghost" ? tokens.grey3 : tokens.black) : tokens.grey3,
                   marginTop: 2,
                   letterSpacing: wordVisible ? "normal" : 3,
                 }}>
-                  {wordVisible ? (myPlayer.role === "ghost" ? "???" : myPlayer.word) : "••••••"}
+                  {wordVisible ? (myPlayer.role === "ghost" ? "  " : myPlayer.word) : "••••••"}
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3 }}>
-                  {myPlayer.role === "ghost" ? "WORDSPY" : myPlayer.role.toUpperCase()}
-                </div>
                 <button
                   onClick={() => setWordVisible(!wordVisible)}
                   style={{
@@ -161,10 +158,10 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
                 title="One word or short phrase only"
                 body={
                   myPlayer?.role === "ghost"
-                    ? "You have NO word — make up a convincing clue that fits what you've heard, to avoid being voted out."
+                    ? "You have NO word — you're Mr. Phantom. Make up a convincing clue that fits what you've heard, to avoid being voted out."
                     : myPlayer?.role === "undercover"
                     ? "Your word is similar but different — blend in with the civilians without revealing you're different."
-                    : "Be specific enough to prove you know your word, but vague enough that the WordSpy can't guess it."
+                    : "Be specific enough to prove you know your word, but vague enough that Mr. Phantom can't guess it."
                 }
               />
               {clueError && (

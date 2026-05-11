@@ -215,7 +215,7 @@ export default function OfflinePage() {
                     </span>
                     {ghosts > 0 && (
                       <span style={{ padding: "4px 12px", borderRadius: 20, background: "#F3F0FF", color: "#7C3AED", fontSize: 13, fontWeight: 600 }}>
-                        👻 {ghosts} ghost
+                        👻 {ghosts} Phantom
                       </span>
                     )}
                   </div>
@@ -234,15 +234,15 @@ export default function OfflinePage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>WordSpy 👻</div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Mr. Phantom 👻</div>
                       <div style={{ fontSize: 12, color: tokens.grey3 }}>Gets no word — must bluff blindly</div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <button style={ghosts <= 0 ? disabledStyle : stepperStyle} disabled={ghosts <= 0}
-                        onClick={() => updateConfig({ ghostCount: 0 })}>−</button>
+                      <button style={ghosts <= 1 ? disabledStyle : stepperStyle} disabled={ghosts <= 1}
+                        onClick={() => updateConfig({ ghostCount: Math.max(1, ghosts - 1) })}>−</button>
                       <span style={{ fontSize: 16, fontWeight: 700, minWidth: 20, textAlign: "center", color: tokens.black }}>{ghosts}</span>
                       <button style={!canAddGhost ? disabledStyle : stepperStyle} disabled={!canAddGhost}
-                        onClick={() => updateConfig({ ghostCount: 1 })}>+</button>
+                        onClick={() => updateConfig({ ghostCount: ghosts + 1 })}>+</button>
                     </div>
                   </div>
                 </div>

@@ -67,7 +67,7 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
                 {[
                   { color: "#2563EB", bg: "#EDF6FF", label: "Civilian", desc: "Knows the secret word — give clues to prove it without saying it" },
                   { color: tokens.coral, bg: tokens.coralBg, label: "Undercover", desc: "Has a similar but different word — blend in and avoid getting caught" },
-                  { color: "#7C3AED", bg: "#F3F0FF", label: "WordSpy", desc: "Gets no word — bluff using others' clues, then guess if eliminated" },
+                  { color: "#7C3AED", bg: "#F3F0FF", label: "Mr. Phantom", desc: "Gets no word — bluff using others' clues, then guess if eliminated" },
                 ].map((r) => (
                   <div key={r.label} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                     <span style={{
@@ -92,8 +92,8 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
                 {[
                   "Everyone gives one clue word about their secret word",
                   "Discuss — who seems suspicious? Who knows too much or too little?",
-                  "Vote to eliminate the player you think is the Undercover or WordSpy",
-                  "If the WordSpy is eliminated, they get one chance to guess the word",
+                  "Vote to eliminate the player you think is the Undercover or Mr. Phantom",
+                  "If Mr. Phantom is eliminated, they get one chance to guess the word",
                 ].map((step, i) => (
                   <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                     <span style={{
@@ -119,8 +119,8 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
                   { label: "Civilians", win: "Eliminate all Undercovers" },
-                  { label: "Undercover", win: "Outnumber the Civilians + WordSpy combined" },
-                  { label: "WordSpy", win: "Correctly guess the civilians' word after being eliminated" },
+                  { label: "Undercover", win: "Outnumber the Civilians + Mr. Phantom combined" },
+                  { label: "Mr. Phantom", win: "Correctly guess the civilians' word after being eliminated" },
                 ].map((w) => (
                   <div key={w.label} style={{ fontSize: 13, color: tokens.grey2, lineHeight: 1.5 }}>
                     <span style={{ fontWeight: 700, color: tokens.black }}>{w.label}:</span> {w.win}

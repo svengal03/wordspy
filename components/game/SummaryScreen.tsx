@@ -16,7 +16,7 @@ interface Props {
 const winnerConfig = {
   civilians: { emoji: "🥳", label: "Civilians Win!", color: tokens.green, bg: tokens.greenBg },
   undercover: { emoji: "🕵️", label: "Undercover Wins!", color: tokens.coral, bg: tokens.coralBg },
-  ghost: { emoji: "👻", label: "WordSpy Wins!", color: tokens.yellow, bg: tokens.yellowBg },
+  ghost: { emoji: "👻", label: "Mr. Phantom Wins!", color: tokens.yellow, bg: tokens.yellowBg },
 };
 
 export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: Props) {
@@ -118,7 +118,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
                       <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>
                         {p.name}{isMe ? " (you)" : ""}
                       </div>
-                      <div style={{ fontSize: 12, color: tokens.grey3 }}>{p.role}</div>
+                      <div style={{ fontSize: 12, color: tokens.grey3 }}>{p.role === "ghost" ? "Mr. Phantom" : p.role}</div>
                     </div>
                     <div style={{
                       fontSize: 12, fontWeight: 600,

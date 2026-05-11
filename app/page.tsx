@@ -136,7 +136,7 @@ export default function HomeScreen() {
             <motion.div {...fadeUp(0.05)}>
               <div style={{ fontSize: 40, fontWeight: 800, color: tokens.black, letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 10 }}>
                 Find the<br />
-                <span style={{ color: tokens.coral }}>Wordspy.</span>
+                <span style={{ color: tokens.coral }}>Mr. Phantom.</span>
               </div>
               <div style={{ fontSize: 15, color: tokens.grey2, lineHeight: 1.6, marginBottom: 32, maxWidth: 300 }}>
                 Social deduction word game for 3–10 players. Bluff, deduce, expose the infiltrators.
@@ -161,7 +161,7 @@ export default function HomeScreen() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {[
-                  { icon: "🃏", title: "Get your word", desc: "Everyone gets a secret word — except the WordSpy who gets none." },
+                  { icon: "🃏", title: "Get your word", desc: "Everyone gets a secret word — except Mr. Phantom who gets none." },
                   { icon: "💬", title: "Give clues", desc: "Take turns describing your word without revealing it." },
                   { icon: "🗳️", title: "Vote & expose", desc: "Find the infiltrators before they outlast the Civilians." },
                 ].map((s, i) => (

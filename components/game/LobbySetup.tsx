@@ -189,7 +189,6 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
                   const ghosts = Math.min(config.ghostCount, Math.max(0, total - undercovers - 2));
                   const civilians = total - undercovers - ghosts;
                   const canAddUndercover = total - (undercovers + 1) - ghosts >= 2;
-                  const canAddGhost = total - undercovers - (ghosts + 1) >= 2;
                   const stepperStyle = {
                     width: 40, height: 40, borderRadius: 10,
                     border: `1.5px solid ${tokens.border}`,
@@ -210,7 +209,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
                         </span>
                         {ghosts > 0 && (
                           <span style={{ padding: "4px 12px", borderRadius: 20, background: "#F3F0FF", color: "#7C3AED", fontSize: 13, fontWeight: 600 }}>
-                            👻 {ghosts} ghost
+                            👻 {ghosts} Phantom
                           </span>
                         )}
                       </div>
@@ -228,16 +227,15 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
                             onClick={() => update({ undercoverCount: undercovers + 1 })}>+</button>
                         </div>
                       </div>
-                      {/* WordSpy toggle — binary on/off, not a counter */}
+                      {/* Mr. Phantom — always required */}
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>WordSpy 👻</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Mr. Phantom 👻</div>
                           <div style={{ fontSize: 12, color: tokens.grey3 }}>Gets no word — must bluff blindly</div>
                         </div>
-                        <Toggle
-                          value={ghosts > 0}
-                          onChange={(v) => update({ ghostCount: v && canAddGhost ? 1 : 0 })}
-                        />
+                        <span style={{ fontSize: 11, fontWeight: 700, color: "#7C3AED", background: "#F3F0FF", padding: "4px 10px", borderRadius: 8 }}>
+                          Required
+                        </span>
                       </div>
                     </div>
                   );
