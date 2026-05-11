@@ -149,8 +149,8 @@ export function castVote(
   if (isOffline) {
     const activePlayers = players.filter((p) => !p.isEliminated);
     let nextVoterIdx = state.currentVoterIndex;
-    for (let i = 0; i < players.length; i++) {
-      nextVoterIdx = (state.currentVoterIndex + 1) % activePlayers.length;
+    for (let i = 0; i < activePlayers.length; i++) {
+      nextVoterIdx = (nextVoterIdx + 1) % activePlayers.length;
       if (!activePlayers[nextVoterIdx].hasVoted) break;
     }
     nextState = { ...nextState, currentVoterIndex: nextVoterIdx };

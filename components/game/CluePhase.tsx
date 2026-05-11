@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
 import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen } from "@/components/ui";
@@ -18,6 +18,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
   const [clue, setClue] = useState("");
   const [showChat, setShowChat] = useState(false);
   const [lastReadCount, setLastReadCount] = useState(0);
+  const [wordRevealed, setWordRevealed] = useState(false);
 
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
   const currentPlayer = gameState.players[gameState.currentCluePlayerIndex];
@@ -25,6 +26,11 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
   const myPlayer = gameState.players.find((p) => p.id === localPlayer.id);
   const isSafeRound = gameState.config.safeRound && gameState.round === 1;
   const allClued = activePlayers.every((p) => p.clue !== null);
+
+  // Reset word reveal when it's a new player's turn
+  useEffect(() => {
+    setWordRevealed(false);
+  }, [gameState.currentCluePlayerIndex]);
 
   function handleSubmit() {
     if (!clue.trim()) return;
@@ -72,8 +78,55 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           ))}
         </div>
 
-        {/* My word reminder — only show actual word, not passing mode */}
-        {myPlayer && myPlayer.word !== null && (
+        {/* Transition: Reveal word (only on current player's turn, before they give clue) */}
+        {isMyTurn && !currentPlayer?.clue && !wordRevealed && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: tokens.bg,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 24,
+              zIndex: 1000,
+            }}
+          >
+            <div style={{ textAlign: "center", maxWidth: 360 }}>
+              <div style={{
+                width: 100,
+                height: 100,
+                borderRadius: 28,
+                background: "#F5F0ED",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 44,
+                margin: "0 auto 20px",
+                border: `3px dashed ${tokens.coral}40`,
+              }}>📱</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, marginBottom: 6, letterSpacing: -0.5 }}>
+                Pass phone to {currentPlayer?.name}
+              </div>
+              <div style={{ fontSize: 15, color: tokens.grey2, marginBottom: 28, lineHeight: 1.6 }}>
+                {isOffline ? "Make sure nobody else can see the screen, then tap to reveal your word and give a clue." : "Tap to reveal your word and give your clue."}
+              </div>
+              <Btn
+                fullWidth
+                onClick={() => setWordRevealed(true)}
+                style={{ padding: "16px", fontSize: 16 }}
+              >
+                Give Clue →
+              </Btn>
+            </div>
+          </motion.div>
+        )}
+
+        {/* My word — shown after reveal during current turn */}
+        {isMyTurn && wordRevealed && myPlayer && myPlayer.word !== null && !currentPlayer?.clue && (
           <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
@@ -90,7 +143,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
         )}
 
         {/* Ghost has no word */}
-        {myPlayer && myPlayer.role === "ghost" && (
+        {isMyTurn && wordRevealed && myPlayer && myPlayer.role === "ghost" && !currentPlayer?.clue && (
           <Card style={{ background: "rgba(139, 69, 19, 0.08)", border: `1.5px solid rgba(139, 69, 19, 0.2)` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
@@ -166,11 +219,11 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           </div>
         </Card>
 
-        {/* Clue input — offline mode or it's your turn online */}
-        {!currentPlayer?.clue && (isOffline ? currentPlayer?.id : isMyTurn) && (
+        {/* Clue input — only show after word is revealed */}
+        {!currentPlayer?.clue && isMyTurn && wordRevealed && (
           <motion.div key={currentPlayer?.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <Card>
-              <SectionLabel>{isOffline ? `${currentPlayer?.name}'s Turn` : "Your Turn"} — Give a Clue</SectionLabel>
+              <SectionLabel>Give a Clue</SectionLabel>
               <InfoBox
                 icon="💡"
                 title="One word or short phrase only"
@@ -199,14 +252,14 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
           </motion.div>
         )}
 
-        {/* Offline mode: waiting for current player */}
-        {isOffline && !currentPlayer?.clue && (
+        {/* Offline mode: show who's giving clue if not your turn */}
+        {isOffline && !currentPlayer?.clue && !isMyTurn && (
           <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}`, textAlign: "center" }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>
               📱 Pass phone to {currentPlayer?.name}
             </div>
             <div style={{ fontSize: 12, color: tokens.grey2, marginTop: 4 }}>
-              They will enter their clue
+              They will reveal their word and give a clue
             </div>
           </Card>
         )}

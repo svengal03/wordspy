@@ -75,7 +75,7 @@ export default function OfflinePage() {
         </div>
 
         <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
-          {/* Players */}
+          {/* Players - moved first for better UX */}
           <Card>
             <SectionLabel>Players ({gameState.players.length})</SectionLabel>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
@@ -207,6 +207,7 @@ export default function OfflinePage() {
       <VotePhase
         gameState={gameState}
         localPlayer={currentVoter}
+        isOffline={true}
         onVote={handleVote}
         onContinue={() => setGameState(nextRound(gameState))}
       />

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
 import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen } from "@/components/ui";
@@ -7,19 +7,28 @@ import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen } from
 interface Props {
   gameState: GameState;
   localPlayer: Player;
+  isOffline?: boolean;
   onVote: (targetId: string) => void;
   onContinue?: () => void;
 }
 
-export default function VotePhase({ gameState, localPlayer, onVote, onContinue }: Props) {
+export default function VotePhase({ gameState, localPlayer, isOffline = false, onVote, onContinue }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [voteRevealed, setVoteRevealed] = useState(false);
 
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
   const myPlayer = gameState.players.find((p) => p.id === localPlayer.id);
   const hasVoted = myPlayer?.hasVoted;
   const totalVotes = activePlayers.reduce((a, p) => a + p.votes, 0);
   const isSafeRound = gameState.config.safeRound && gameState.round === 1;
+
+  // Reset vote UI when it's a new player's turn (offline mode)
+  useEffect(() => {
+    setVoteRevealed(false);
+    setSelected(null);
+    setConfirmed(false);
+  }, [localPlayer.id]);
 
   function handleConfirm() {
     if (!selected) return;
@@ -45,6 +54,53 @@ export default function VotePhase({ gameState, localPlayer, onVote, onContinue }
           )}
         </div>
       </Screen>
+    );
+  }
+
+  // Transition: Pass phone before voting (offline mode only)
+  if (isOffline && !hasVoted && !voteRevealed) {
+    return (
+      <div style={{
+        minHeight: "100dvh",
+        background: tokens.bg,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+      }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ textAlign: "center", maxWidth: 360 }}
+        >
+          <div style={{
+            width: 100,
+            height: 100,
+            borderRadius: 28,
+            background: "#F5F0ED",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 44,
+            margin: "0 auto 20px",
+            border: `3px dashed ${tokens.coral}40`,
+          }}>📱</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, marginBottom: 6, letterSpacing: -0.5 }}>
+            Pass phone to {localPlayer.name}
+          </div>
+          <div style={{ fontSize: 15, color: tokens.grey2, marginBottom: 28, lineHeight: 1.6 }}>
+            It's time to vote. Make sure nobody else can see the screen, then select who to eliminate.
+          </div>
+          <Btn
+            fullWidth
+            onClick={() => setVoteRevealed(true)}
+            style={{ padding: "16px", fontSize: 16 }}
+          >
+            Vote →
+          </Btn>
+        </motion.div>
+      </div>
     );
   }
 
