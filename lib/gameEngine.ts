@@ -219,11 +219,11 @@ export function checkWinCondition(
   // All undercovers and ghosts eliminated → civilians win
   if (undercovers.length === 0 && ghosts.length === 0) return "civilians";
 
-  // Only 1 civilian left with undercovers → undercover wins
-  if (civilians.length <= 1 && undercovers.length > 0) return "undercover";
+  // All civilians eliminated → undercover wins (if any undercovers left)
+  if (civilians.length === 0 && undercovers.length > 0) return "undercover";
 
-  // Only 1 civilian left with ghosts (no undercovers) → ghost wins
-  if (civilians.length <= 1 && ghosts.length > 0) return "ghost";
+  // All civilians eliminated → ghost wins (if only ghosts left)
+  if (civilians.length === 0 && ghosts.length > 0) return "ghost";
 
   return null;
 }
@@ -264,8 +264,11 @@ export function processGhostGuess(
   state: GameState,
   guess: string
 ): GameState {
-  const civilianWord = state.wordPair?.civilian?.toLowerCase().trim() ?? "";
-  const correct = guess.toLowerCase().trim() === civilianWord;
+  const normalizeText = (text: string) =>
+    text.toLowerCase().trim().replace(/\s+/g, " ");
+
+  const civilianWord = normalizeText(state.wordPair?.civilian ?? "");
+  const correct = normalizeText(guess) === civilianWord;
 
   if (correct) {
     return { ...state, phase: "summary", winner: "ghost", ghostGuess: guess };
