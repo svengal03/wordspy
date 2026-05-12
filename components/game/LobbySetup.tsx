@@ -44,7 +44,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
     const link = `${typeof window !== "undefined" ? window.location.origin : ""}/join/${gameState.roomCode}`;
     if (navigator.share) {
       navigator.share({
-        title: "Join my Wordspy game",
+        title: "Join my WordSpy game",
         text: `Use code ${gameState.roomCode}`,
         url: link,
       });
@@ -209,7 +209,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
                         </span>
                         {ghosts > 0 && (
                           <span style={{ padding: "4px 12px", borderRadius: 20, background: "#F3F0FF", color: "#7C3AED", fontSize: 13, fontWeight: 600 }}>
-                            👻 {ghosts} Phantom
+                            👻 {ghosts} Mr. Phantom
                           </span>
                         )}
                       </div>

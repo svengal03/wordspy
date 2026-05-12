@@ -118,7 +118,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
                       <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>
                         {p.name}{isMe ? " (you)" : ""}
                       </div>
-                      <div style={{ fontSize: 12, color: tokens.grey3 }}>{p.role === "ghost" ? "Mr. Phantom" : p.role}</div>
+                      <div style={{ fontSize: 12, color: tokens.grey3 }}>{{ civilian: "Civilian", undercover: "Undercover", ghost: "Mr. Phantom" }[p.role]}</div>
                     </div>
                     <div style={{
                       fontSize: 12, fontWeight: 600,

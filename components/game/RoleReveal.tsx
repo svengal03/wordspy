@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
-import { Btn, RoleBadge, tokens, OptionsMenu, Screen, TopBar } from "@/components/ui";
+import { Btn, tokens, OptionsMenu, Screen, TopBar } from "@/components/ui";
 
 
 interface Props {
@@ -23,7 +23,7 @@ const roleInfo = {
     tip: "Your word is similar but different. Blend in with the Civilians — don't expose yourself too early!",
   },
   ghost: {
-    tip: "You have NO word — you're Mr. Phantom. Listen to everyone's clues carefully to figure out what the word might be. Survive and guess!",
+    tip: "You have NO word. Listen to everyone's clues to figure out the secret word. If eliminated, guess it correctly to win!",
   },
 };
 

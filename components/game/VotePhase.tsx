@@ -87,7 +87,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
     <Screen>
       <TopBar
         title={`Vote Phase — Round ${gameState.round}`}
-        sub={gameState.isTiebreaker ? "⚖️ Tiebreaker — tied players re-clued, vote again!" : "Who do you think is the Undercover?"}
+        sub={gameState.isTiebreaker ? "⚖️ Tiebreaker — tied players re-clued, vote again!" : "Who do you think is Undercover or Mr. Phantom?"}
         right={topBarRight}
       />
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
