@@ -49,6 +49,12 @@ export function SetupScreen({ onStart }: Props) {
   return (
     <div style={{ padding: "32px 20px", fontFamily: "'DM Sans', sans-serif" }}>
       <div style={{ marginBottom: 32 }}>
+        <a
+          href="http://localhost:3000"
+          style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "#AAA", textDecoration: "none", marginBottom: 20 }}
+        >
+          ← PlayHub
+        </a>
         <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em" }}>
           🎨 Pictionary
         </h1>

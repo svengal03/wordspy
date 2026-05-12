@@ -94,8 +94,11 @@ function SetupScreen() {
         padding: "18px 20px 16px", borderBottom: `1px solid ${tokens.border}`,
         background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>
-          Mafia<span style={{ color: tokens.red }}>.</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <a href="http://localhost:3000" style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none" }}>← PlayHub</a>
+          <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>
+            Mafia<span style={{ color: tokens.red }}>.</span>
+          </div>
         </div>
         <button
           onClick={() => setShowRules(true)}

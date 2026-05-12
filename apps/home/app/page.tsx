@@ -10,7 +10,7 @@ const games = [
     name: "Mafia",
     description: "Lies, alliances, and betrayal. Vote out the Mafia before it's too late.",
     href: "http://localhost:3002",
-    tag: "Coming soon",
+    tag: "Play now",
     tagBg: "#B0A99A",
   },
   {
