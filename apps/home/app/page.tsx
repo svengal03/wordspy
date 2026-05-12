@@ -13,6 +13,20 @@ const games = [
     tag: "Coming soon",
     tagBg: "#B0A99A",
   },
+  {
+    name: "Dumb Charades",
+    description: "Act it out, no talking. Pass the phone, guess the word before time runs out.",
+    href: "http://localhost:3003",
+    tag: "Play now",
+    tagBg: "#E85D2F",
+  },
+  {
+    name: "Pictionary",
+    description: "Draw it, guess it. No letters or numbers — just your artistic skills.",
+    href: "http://localhost:3004",
+    tag: "Play now",
+    tagBg: "#4A6CF7",
+  },
 ];
 
 export default function HomePage() {
