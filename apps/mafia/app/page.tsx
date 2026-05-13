@@ -41,6 +41,7 @@ function SetupScreen() {
   function addPlayer() {
     const name = input.trim();
     if (!name) return;
+    if (!/^[a-zA-Z\s]+$/.test(name)) return setError("Name must contain only letters");
     if (names.length >= 15) return setError("Maximum 15 players");
     if (names.some((n) => n.toLowerCase() === name.toLowerCase())) return setError("Name already taken");
     setNames([...names, name]);
@@ -157,7 +158,7 @@ function SetupScreen() {
               <div style={{ display: "flex", gap: 8 }}>
                 <input
                   value={input}
-                  onChange={(e) => { setInput(e.target.value); setError(""); }}
+                  onChange={(e) => { setInput(e.target.value.replace(/[^a-zA-Z\s]/g, "")); setError(""); }}
                   onKeyDown={handleKey}
                   placeholder="Add player…"
                   maxLength={20}

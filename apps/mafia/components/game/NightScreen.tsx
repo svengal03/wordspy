@@ -84,12 +84,12 @@ export default function NightScreen() {
     });
   }
 
-  const phaseInfo: Record<NightSubPhase, { icon: string; label: string; color: string; instruction: string }> = {
-    "sleeping":    { icon: "🌙", label: "Night has fallen",  color: tokens.grey2,   instruction: "" },
-    "mafia-wake":  { icon: "🔪", label: "Mafia awake",       color: tokens.red,     instruction: "Pick your target" },
-    "doctor-wake": { icon: "💊", label: "Doctor awake",      color: tokens.blue,    instruction: "Protect a player" },
-    "police-wake": { icon: "🚔", label: "Police awake",      color: tokens.purple,  instruction: "Investigate a player" },
-    "resolving":   { icon: "⚡", label: "Resolving…",        color: tokens.grey3,   instruction: "" },
+  const phaseInfo: Record<NightSubPhase, { label: string; color: string; instruction: string }> = {
+    "sleeping":    { label: "Night has fallen",  color: tokens.grey2,   instruction: "" },
+    "mafia-wake":  { label: "Mafia awake",       color: tokens.red,     instruction: "Pick your target" },
+    "doctor-wake": { label: "Doctor awake",      color: tokens.blue,    instruction: "Protect a player" },
+    "police-wake": { label: "Police awake",      color: tokens.purple,  instruction: "Investigate a player" },
+    "resolving":   { label: "Resolving…",        color: tokens.grey3,   instruction: "" },
   };
 
   const info = phaseInfo[nightSubPhase];
@@ -134,7 +134,6 @@ export default function NightScreen() {
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 28, paddingTop: 8 }}>
         <motion.div key={nightSubPhase} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-          <div style={{ fontSize: 48, marginBottom: 10 }}>{info.icon}</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>
             {info.label}
           </div>
@@ -153,7 +152,7 @@ export default function NightScreen() {
                   Everyone closes their eyes.
                 </div>
                 <Btn fullWidth onClick={() => goToSubPhase("mafia-wake")} style={{ padding: "14px" }}>
-                  Wake Mafia 🔪
+                  Wake the Mafia
                 </Btn>
               </Card>
               <div style={{ fontSize: 12, color: tokens.grey3, textAlign: "center" }}>
@@ -229,7 +228,6 @@ export default function NightScreen() {
           {nightSubPhase === "resolving" && (
             <motion.div key="resolving" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <Card style={{ textAlign: "center", padding: "32px 24px" }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>⚡</div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: tokens.grey2 }}>Resolving…</div>
               </Card>
             </motion.div>

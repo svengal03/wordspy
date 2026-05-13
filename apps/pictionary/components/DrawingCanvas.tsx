@@ -131,42 +131,31 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "12px 16px",
-          background: "#fff",
-          borderBottom: "1.5px solid #E8E5E1",
+          padding: "14px 20px",
+          background: "#FFFFFF",
+          borderBottom: "1px solid #F0F0F0",
           flexShrink: 0,
         }}
       >
         <div>
-          <span style={{ fontSize: 12, color: "#888", fontWeight: 500 }}>{drawerName} is drawing</span>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#1A1A1A" }}>{drawerName}</div>
+          <div style={{ fontSize: 11, color: "#AAA" }}>Drawing now</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
             onClick={() => setWordVisible((v) => !v)}
             style={{
-              padding: "4px 10px",
-              borderRadius: 8,
-              border: `1.5px solid ${teamColor}`,
-              background: "transparent",
-              color: teamColor,
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: "pointer",
+              padding: "5px 12px", borderRadius: 8,
+              border: `1.5px solid ${teamColor}`, background: "transparent",
+              color: teamColor, fontSize: 12, fontWeight: 600, cursor: "pointer",
+              fontFamily: "inherit",
             }}
-          >
-            {wordVisible ? "Hide word" : "Peek word"}
-          </button>
-          <div
-            style={{
-              fontSize: 22,
-              fontWeight: 800,
-              color: timerColor,
-              minWidth: 36,
-              textAlign: "right",
-            }}
-          >
-            {timeLeft}
-          </div>
+          >{wordVisible ? "Hide" : "Peek"}</button>
+          <div style={{
+            fontSize: 20, fontWeight: 800, color: timerColor,
+            background: timerColor + "15", padding: "5px 10px", borderRadius: 8,
+            fontVariantNumeric: "tabular-nums",
+          }}>{timeLeft}</div>
         </div>
       </div>
 
@@ -187,7 +176,7 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
       )}
 
       {/* Timer bar */}
-      <div style={{ height: 3, background: "#E8E5E1", flexShrink: 0 }}>
+      <div style={{ height: 3, background: "#F0F0F0", flexShrink: 0 }}>
         <div
           style={{
             height: "100%",
@@ -223,7 +212,7 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
       <div
         style={{
           background: "#fff",
-          borderTop: "1.5px solid #E8E5E1",
+          borderTop: "1px solid #F0F0F0",
           padding: "10px 12px",
           display: "flex",
           flexDirection: "column",
@@ -271,30 +260,23 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
             <button
               onClick={() => setEraser((e) => !e)}
               style={{
-                padding: "4px 8px",
-                borderRadius: 8,
-                border: `1.5px solid ${eraser ? "#E84040" : "#E8E5E1"}`,
+                padding: "4px 10px", borderRadius: 8, fontFamily: "inherit",
+                border: `1.5px solid ${eraser ? "#E84040" : "#F0F0F0"}`,
                 background: eraser ? "#FFF0F0" : "transparent",
-                fontSize: 14,
+                fontSize: 12, fontWeight: 600, color: eraser ? "#E84040" : "#888",
                 cursor: "pointer",
               }}
               title="Eraser"
-            >
-              ✏️
-            </button>
+            >Erase</button>
             <button
               onClick={handleUndo}
-              style={{ padding: "4px 8px", borderRadius: 8, border: "1.5px solid #E8E5E1", background: "transparent", fontSize: 14, cursor: "pointer" }}
+              style={{ padding: "4px 10px", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
               title="Undo"
-            >
-              ↩
-            </button>
+            >Undo</button>
             <button
               onClick={handleClear}
-              style={{ padding: "4px 8px", borderRadius: 8, border: "1.5px solid #E8E5E1", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer" }}
-            >
-              Clear
-            </button>
+              style={{ padding: "4px 10px", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
+            >Clear</button>
           </div>
         </div>
 

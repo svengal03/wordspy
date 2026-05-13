@@ -117,7 +117,7 @@ export default function DayScreen() {
               {lastNightResult.killedId ? (
                 <>
                   <div style={{ fontSize: 14, fontWeight: 700, color: tokens.red, marginBottom: 2 }}>
-                    ☠️ {lastNightResult.killedName} was eliminated during the night
+                    {lastNightResult.killedName} was eliminated during the night
                   </div>
                   <div style={{ fontSize: 13, color: tokens.grey2 }}>
                     They were a <strong>{roleLabel(lastNightResult.killedRole)}</strong>
@@ -126,8 +126,8 @@ export default function DayScreen() {
               ) : (
                 <div style={{ fontSize: 14, fontWeight: 700, color: tokens.green }}>
                   {lastNightResult.savedByDoctor
-                    ? "💊 Doctor saved someone — nobody was killed last night"
-                    : "😴 Nobody was eliminated last night"}
+                    ? "Doctor saved someone — nobody was killed last night"
+                    : "Nobody was eliminated last night"}
                 </div>
               )}
             </div>
@@ -175,7 +175,7 @@ export default function DayScreen() {
         </Btn>
 
         <Btn fullWidth variant="secondary" onClick={startNight} style={{ padding: "14px", fontSize: 15 }}>
-          Start Next Night 🌙
+          Start Night
         </Btn>
       </div>
 

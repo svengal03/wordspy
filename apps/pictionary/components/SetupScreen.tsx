@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { CategoryPicker } from "./CategoryPicker";
+import { Btn, Card, Screen, TopBar, SectionLabel, tokens } from "./ui";
 import type { Team } from "@/lib/types";
 
 interface Props {
@@ -8,7 +10,7 @@ interface Props {
 }
 
 const TIMER_OPTIONS = [60, 90, 120];
-const ACCENT = "#4A6CF7";
+const TEAM_ACCENTS = ["#4A6CF7", "#E85D2F"];
 
 export function SetupScreen({ onStart }: Props) {
   const [team1Name, setTeam1Name] = useState("Team 1");
@@ -19,13 +21,14 @@ export function SetupScreen({ onStart }: Props) {
   const [selectedPackIds, setSelectedPackIds] = useState<string[]>(["bollywood", "tollywood", "south-food", "north-food"]);
 
   const addPlayer = (team: 1 | 2) => {
-    if (team === 1) setTeam1Players((p) => [...p, `Player ${p.length + 1}`]);
-    else setTeam2Players((p) => [...p, `Player ${p.length + 1}`]);
+    if (team === 1) setTeam1Players((p) => [...p, ""]);
+    else setTeam2Players((p) => [...p, ""]);
   };
 
   const updatePlayer = (team: 1 | 2, idx: number, val: string) => {
-    if (team === 1) setTeam1Players((p) => p.map((n, i) => (i === idx ? val : n)));
-    else setTeam2Players((p) => p.map((n, i) => (i === idx ? val : n)));
+    const cleaned = val.replace(/[^a-zA-Z\s]/g, "");
+    if (team === 1) setTeam1Players((p) => p.map((n, i) => (i === idx ? cleaned : n)));
+    else setTeam2Players((p) => p.map((n, i) => (i === idx ? cleaned : n)));
   };
 
   const removePlayer = (team: 1 | 2, idx: number) => {
@@ -47,174 +50,111 @@ export function SetupScreen({ onStart }: Props) {
   };
 
   return (
-    <div style={{ padding: "32px 20px", fontFamily: "'DM Sans', sans-serif" }}>
-      <div style={{ marginBottom: 32 }}>
-        <a
-          href="http://localhost:3000"
-          style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: "#AAA", textDecoration: "none", marginBottom: 20 }}
-        >
-          ← PlayHub
-        </a>
-        <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em" }}>
-          🎨 Pictionary
-        </h1>
-        <p style={{ margin: "6px 0 0", fontSize: 14, color: "#888" }}>
-          Draw it. Guess it. No words allowed.
-        </p>
-      </div>
+    <Screen>
+      <TopBar title="Pictionary" />
 
-      {/* Teams */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 28 }}>
-        <TeamSection
-          teamNum={1}
-          name={team1Name}
-          players={team1Players}
-          accent={ACCENT}
-          onNameChange={setTeam1Name}
-          onPlayerChange={(i, v) => updatePlayer(1, i, v)}
-          onAddPlayer={() => addPlayer(1)}
-          onRemovePlayer={(i) => removePlayer(1, i)}
-        />
-        <TeamSection
-          teamNum={2}
-          name={team2Name}
-          players={team2Players}
-          accent="#E85D2F"
-          onNameChange={setTeam2Name}
-          onPlayerChange={(i, v) => updatePlayer(2, i, v)}
-          onAddPlayer={() => addPlayer(2)}
-          onRemovePlayer={(i) => removePlayer(2, i)}
-        />
-      </div>
+      <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
 
-      {/* Timer */}
-      <div style={{ marginBottom: 28 }}>
-        <p style={{ margin: "0 0 10px", fontSize: 14, fontWeight: 600, color: "#1A1A1A" }}>Timer</p>
-        <div style={{ display: "flex", gap: 8 }}>
-          {TIMER_OPTIONS.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTimerDuration(t)}
-              style={{
-                flex: 1,
-                padding: "10px 0",
-                borderRadius: 10,
-                border: timerDuration === t ? `1.5px solid ${ACCENT}` : "1.5px solid #E8E5E1",
-                background: timerDuration === t ? "#EEF2FF" : "#fff",
-                color: timerDuration === t ? ACCENT : "#666",
-                fontWeight: timerDuration === t ? 700 : 400,
-                fontSize: 14,
-                cursor: "pointer",
-              }}
-            >
-              {t}s
-            </button>
-          ))}
-        </div>
-      </div>
+        {/* Teams */}
+        {[
+          { num: 1 as const, name: team1Name, players: team1Players, accent: TEAM_ACCENTS[0]! },
+          { num: 2 as const, name: team2Name, players: team2Players, accent: TEAM_ACCENTS[1]! },
+        ].map(({ num, name, players, accent }) => (
+          <motion.div key={num} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (num - 1) * 0.05 }}>
+            <Card>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: accent, flexShrink: 0 }} />
+                <input
+                  value={name}
+                  onChange={(e) => num === 1 ? setTeam1Name(e.target.value.replace(/[^a-zA-Z\s\d]/g, "")) : setTeam2Name(e.target.value.replace(/[^a-zA-Z\s\d]/g, ""))}
+                  style={{
+                    flex: 1, border: "none", outline: "none",
+                    fontSize: 15, fontWeight: 700, color: tokens.black, background: "transparent",
+                    fontFamily: "inherit",
+                  }}
+                  placeholder={`Team ${num}`}
+                />
+              </div>
 
-      {/* Categories */}
-      <div style={{ marginBottom: 32 }}>
-        <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} />
-      </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                <AnimatePresence>
+                  {players.map((p, i) => (
+                    <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }}
+                      style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <input
+                        value={p}
+                        onChange={(e) => updatePlayer(num, i, e.target.value)}
+                        style={{
+                          flex: 1, padding: "9px 12px", borderRadius: 10,
+                          border: `1.5px solid ${tokens.border}`, fontSize: 13,
+                          color: tokens.black, outline: "none", background: "#FAFAFA",
+                          fontFamily: "inherit",
+                        }}
+                        placeholder={`Player ${i + 1}`}
+                      />
+                      {players.length > 1 && (
+                        <button
+                          onClick={() => removePlayer(num, i)}
+                          style={{
+                            width: 28, height: 28, borderRadius: 7,
+                            border: `1px solid ${tokens.border}`, background: "transparent",
+                            cursor: "pointer", fontSize: 14, color: tokens.grey3,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                          }}
+                        >×</button>
+                      )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
 
-      <button
-        onClick={handleStart}
-        style={{
-          width: "100%",
-          padding: "16px 0",
-          borderRadius: 14,
-          border: "none",
-          background: ACCENT,
-          color: "#fff",
-          fontSize: 16,
-          fontWeight: 700,
-          cursor: "pointer",
-          letterSpacing: "-0.01em",
-        }}
-      >
-        Start Game
-      </button>
-    </div>
-  );
-}
-
-interface TeamSectionProps {
-  teamNum: number;
-  name: string;
-  players: string[];
-  accent: string;
-  onNameChange: (v: string) => void;
-  onPlayerChange: (i: number, v: string) => void;
-  onAddPlayer: () => void;
-  onRemovePlayer: (i: number) => void;
-}
-
-function TeamSection({ teamNum, name, players, accent, onNameChange, onPlayerChange, onAddPlayer, onRemovePlayer }: TeamSectionProps) {
-  return (
-    <div style={{ background: "#fff", border: "1.5px solid #E8E5E1", borderRadius: 14, padding: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <div style={{ width: 10, height: 10, borderRadius: "50%", background: accent }} />
-        <input
-          value={name}
-          onChange={(e) => onNameChange(e.target.value)}
-          style={{
-            flex: 1,
-            border: "none",
-            outline: "none",
-            fontSize: 15,
-            fontWeight: 700,
-            color: "#1A1A1A",
-            background: "transparent",
-          }}
-          placeholder={`Team ${teamNum}`}
-        />
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {players.map((p, i) => (
-          <div key={i} style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <input
-              value={p}
-              onChange={(e) => onPlayerChange(i, e.target.value)}
-              style={{
-                flex: 1,
-                padding: "8px 10px",
-                borderRadius: 8,
-                border: "1.5px solid #E8E5E1",
-                fontSize: 13,
-                color: "#1A1A1A",
-                outline: "none",
-                background: "#FAFAF8",
-              }}
-              placeholder={`Player ${i + 1}`}
-            />
-            {players.length > 1 && (
               <button
-                onClick={() => onRemovePlayer(i)}
-                style={{ border: "none", background: "none", color: "#CCC", fontSize: 16, cursor: "pointer", padding: "0 4px" }}
-              >
-                ×
-              </button>
-            )}
-          </div>
+                onClick={() => addPlayer(num)}
+                style={{
+                  padding: "7px 10px", borderRadius: 8,
+                  border: `1.5px dashed ${accent}50`,
+                  background: "transparent", color: accent,
+                  fontSize: 12, fontWeight: 600, cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >+ Add player</button>
+            </Card>
+          </motion.div>
         ))}
-        <button
-          onClick={onAddPlayer}
-          style={{
-            padding: "7px 10px",
-            borderRadius: 8,
-            border: `1.5px dashed ${accent}40`,
-            background: "transparent",
-            color: accent,
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: "pointer",
-            textAlign: "left",
-          }}
-        >
-          + Add player
-        </button>
+
+        {/* Timer */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <Card>
+            <SectionLabel>Timer</SectionLabel>
+            <div style={{ display: "flex", gap: 8 }}>
+              {TIMER_OPTIONS.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTimerDuration(t)}
+                  style={{
+                    flex: 1, padding: "10px 0", borderRadius: 10, fontSize: 14, fontWeight: 600,
+                    border: `1.5px solid ${timerDuration === t ? TEAM_ACCENTS[0] : tokens.border}`,
+                    background: timerDuration === t ? "#EEF2FF" : "transparent",
+                    color: timerDuration === t ? TEAM_ACCENTS[0] : tokens.grey1,
+                    cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >{t}s</button>
+              ))}
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Categories */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <Card>
+            <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} />
+          </Card>
+        </motion.div>
+
+        <Btn fullWidth onClick={handleStart} style={{ padding: "16px", fontSize: 16 }}>
+          Start Game →
+        </Btn>
       </div>
-    </div>
+    </Screen>
   );
 }

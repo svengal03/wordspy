@@ -1,4 +1,6 @@
 "use client";
+import { motion } from "framer-motion";
+import { Card, Screen, TopBar, tokens } from "./ui";
 
 interface Team {
   name: string;
@@ -15,76 +17,66 @@ interface Props {
 
 export function GameOver({ teams, teamColors, onPlayAgain }: Props) {
   const sorted = [...teams].sort((a, b) => b.score - a.score);
-  const winner = sorted[0];
-  const tied = sorted[0].score === sorted[1]?.score;
+  const tied = sorted[0]!.score === sorted[1]?.score;
+  const winner = sorted[0]!;
 
   return (
-    <div
-      style={{
-        minHeight: "100dvh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "40px 24px",
-        fontFamily: "'DM Sans', sans-serif",
-        background: "#FAFAF8",
-      }}
-    >
-      <div style={{ fontSize: 64, marginBottom: 16 }}>🏆</div>
+    <Screen style={{ display: "flex", flexDirection: "column" }}>
+      <TopBar title="Pictionary" />
 
-      <h1 style={{ margin: "0 0 8px", fontSize: 28, fontWeight: 800, color: "#1A1A1A", textAlign: "center" }}>
-        {tied ? "It's a tie!" : `${winner.name} wins!`}
-      </h1>
-      <p style={{ margin: "0 0 40px", fontSize: 14, color: "#888", textAlign: "center" }}>
-        {tied ? "Nobody loses today." : "Well played."}
-      </p>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
+        <div style={{ width: "100%", maxWidth: 380 }}>
 
-      <div style={{ width: "100%", maxWidth: 320, display: "flex", flexDirection: "column", gap: 12, marginBottom: 48 }}>
-        {sorted.map((team, i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              background: "#fff",
-              border: `1.5px solid ${teamColors[teams.indexOf(team)]}30`,
-              borderRadius: 14,
-              padding: "16px 20px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontSize: 20 }}>{i === 0 && !tied ? "🥇" : i === 1 ? "🥈" : "🥉"}</span>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A" }}>{team.name}</div>
-                <div style={{ fontSize: 12, color: "#888" }}>{team.players.join(", ")}</div>
-              </div>
+          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: "center", marginBottom: 28 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: tokens.black, letterSpacing: -0.5, marginBottom: 6 }}>
+              {tied ? "It's a tie!" : `${winner.name} wins!`}
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: teamColors[teams.indexOf(team)] }}>
-              {team.score}
+            <div style={{ fontSize: 14, color: tokens.grey2 }}>
+              {tied ? "Nobody loses today." : "Well played."}
             </div>
+          </motion.div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+            {sorted.map((team, i) => {
+              const originalIdx = teams.indexOf(team);
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.07 }}
+                >
+                  <Card style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    border: `1.5px solid ${teamColors[originalIdx]}30`,
+                    padding: "16px 20px",
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: tokens.grey3, marginBottom: 2 }}>
+                        {i === 0 && !tied ? "1st place" : i === 1 ? "2nd place" : "3rd place"}
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: tokens.black }}>{team.name}</div>
+                      <div style={{ fontSize: 12, color: tokens.grey3 }}>{team.players.join(", ")}</div>
+                    </div>
+                    <div style={{ fontSize: 32, fontWeight: 800, color: teamColors[originalIdx] }}>
+                      {team.score}
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
-        ))}
-      </div>
 
-      <button
-        onClick={onPlayAgain}
-        style={{
-          width: "100%",
-          maxWidth: 320,
-          padding: "16px 0",
-          borderRadius: 14,
-          border: "none",
-          background: "#4A6CF7",
-          color: "#fff",
-          fontSize: 16,
-          fontWeight: 700,
-          cursor: "pointer",
-        }}
-      >
-        Play Again
-      </button>
-    </div>
+          <button
+            onClick={onPlayAgain}
+            style={{
+              width: "100%", padding: "16px 0", borderRadius: 14, border: "none",
+              background: "#4A6CF7", color: "#fff", fontSize: 16, fontWeight: 700,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
+          >Play Again</button>
+        </div>
+      </div>
+    </Screen>
   );
 }
