@@ -48,3 +48,4 @@ Thumbs.db
 # generated
 next-env.d.ts
 *.env
+*.turbo

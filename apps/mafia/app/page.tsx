@@ -111,7 +111,7 @@ function SetupScreen() {
         <div style={{ flex: 1, maxWidth: 480, margin: "0 auto", width: "100%", padding: "0 24px 40px", boxSizing: "border-box" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0 36px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <a href="http://localhost:3000" style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none" }}>← PlayHub</a>
+              <a href="{process.env.NEXT_PUBLIC_HOME_URL}" style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none" }}>← PlayHub</a>
               <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>
                 Mafia<span style={{ color: tokens.red }}>.</span>
               </div>

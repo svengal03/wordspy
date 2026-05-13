@@ -115,7 +115,7 @@ export default function HomeScreen() {
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0 36px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <a href="http://localhost:3000" style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none", letterSpacing: 0 }}>← PlayHub</a>
+            <a href="{process.env.NEXT_PUBLIC_HOME_URL}" style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none", letterSpacing: 0 }}>← PlayHub</a>
             <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>
               Word<span style={{ color: tokens.coral }}>spy</span>
             </div>
@@ -262,7 +262,7 @@ export default function HomeScreen() {
 
       <div style={{ textAlign: "center", padding: "16px 24px", color: tokens.grey4, fontSize: 12 }}>
         Part of{" "}
-        <a href="http://localhost:3000" style={{ color: tokens.grey3, fontWeight: 600, textDecoration: "none" }}>
+        <a href="{process.env.NEXT_PUBLIC_HOME_URL}" style={{ color: tokens.grey3, fontWeight: 600, textDecoration: "none" }}>
           PlayHub
         </a>{" "}
         · All games, one place

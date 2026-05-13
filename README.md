@@ -85,7 +85,7 @@ Get your Pusher credentials:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Open [{process.env.NEXT_PUBLIC_HOME_URL}]({process.env.NEXT_PUBLIC_HOME_URL})
 
 ---
 
