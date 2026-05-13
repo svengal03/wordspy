@@ -111,8 +111,7 @@ export function getRoleCounts(playerCount: number, ghostEnabled: boolean = true)
     if (playerCount <= 6) return { civilians: playerCount - 2, undercovers: 1, ghosts: 0 };
     return { civilians: playerCount - 2, undercovers: 2, ghosts: 0 };
   }
-  // Ghost mode enabled
-  if (playerCount <= 3) return { civilians: playerCount - 2, undercovers: 1, ghosts: 1 };
+  // Ghost mode enabled (min 4 players)
   if (playerCount <= 4) return { civilians: playerCount - 2, undercovers: 1, ghosts: 1 };
   if (playerCount <= 6) return { civilians: playerCount - 2, undercovers: 1, ghosts: 1 };
   if (playerCount <= 8) return { civilians: playerCount - 3, undercovers: 2, ghosts: 1 };

@@ -6,9 +6,27 @@ import { ActingScreen } from "@/components/ActingScreen";
 import { RoundResult } from "@/components/RoundResult";
 import { GameOver } from "@/components/GameOver";
 import { WORD_PACKS } from "@/lib/wordPacks";
-import type { GameState, Team } from "@/lib/types";
+import type { GameState, Team, Difficulty } from "@/lib/types";
 
-const TEAM_COLORS = ["#E85D2F", "#4A6CF7"];
+const TEAM_PALETTE = ["#E85D2F", "#4A6CF7", "#2BB34A", "#9333EA", "#F59E0B", "#06B6D4"];
+
+function teamColor(idx: number) {
+  return TEAM_PALETTE[idx % TEAM_PALETTE.length]!;
+}
+
+function calcScore(timeLeft: number, timerDuration: number, difficulty: Difficulty): number {
+  if (difficulty === "easy") return 1;
+  const frac = timeLeft / timerDuration;
+  if (difficulty === "medium") {
+    if (frac >= 0.66) return 3;
+    if (frac >= 0.33) return 2;
+    return 1;
+  }
+  // hard: bigger range, higher floor
+  if (frac >= 0.66) return 5;
+  if (frac >= 0.33) return 3;
+  return 2;
+}
 
 function buildWordPool(packIds: string[]): string[] {
   const words: string[] = [];
@@ -27,6 +45,12 @@ function buildWordPool(packIds: string[]): string[] {
   return words;
 }
 
+function pickThree(pool: string[], fallback: string[]): { options: [string, string, string]; remaining: string[] } {
+  let p = pool.length >= 3 ? pool : [...pool, ...buildWordPool(fallback)];
+  const options: [string, string, string] = [p[0]!, p[1]!, p[2]!];
+  return { options, remaining: p.slice(3) };
+}
+
 const defaultState: GameState = {
   phase: "setup",
   teams: [],
@@ -34,9 +58,12 @@ const defaultState: GameState = {
   timerDuration: 60,
   selectedPackIds: [],
   currentWord: "",
+  wordOptions: ["", "", ""],
   wordPool: [],
   lastRoundCorrect: null,
   roundNumber: 0,
+  currentDifficulty: "medium",
+  lastDifficulty: null,
 };
 
 export default function DumbCharadesPage() {
@@ -44,32 +71,34 @@ export default function DumbCharadesPage() {
 
   const handleStart = useCallback((teams: Team[], timerDuration: number, selectedPackIds: string[]) => {
     const pool = buildWordPool(selectedPackIds);
+    const { options, remaining } = pickThree(pool, selectedPackIds);
     setState({
       phase: "word-reveal",
       teams,
       currentTeamIdx: 0,
       timerDuration,
       selectedPackIds,
-      currentWord: pool[0] ?? "Lagaan",
-      wordPool: pool.slice(1),
+      currentWord: "",
+      wordOptions: options,
+      wordPool: remaining,
       lastRoundCorrect: null,
       roundNumber: 1,
+      currentDifficulty: "medium",
+      lastDifficulty: null,
     });
   }, []);
 
-  const handleActingStart = useCallback(() => {
-    setState((s) => ({ ...s, phase: "acting" }));
+  const handleActingStart = useCallback((word: string, difficulty: Difficulty) => {
+    setState((s) => ({ ...s, phase: "acting", currentWord: word, currentDifficulty: difficulty }));
   }, []);
 
-  const handleRoundEnd = useCallback((correct: boolean) => {
+  const handleRoundEnd = useCallback((correct: boolean, timeLeft = 0) => {
     setState((s) => {
-      const newTeams = s.teams.map((team, i) => {
-        if (i === s.currentTeamIdx && correct) {
-          return { ...team, score: team.score + 1 };
-        }
-        return team;
-      });
-      return { ...s, phase: "round-result", lastRoundCorrect: correct, teams: newTeams };
+      const points = correct ? calcScore(timeLeft, s.timerDuration, s.currentDifficulty) : 0;
+      const newTeams = s.teams.map((team, i) =>
+        i === s.currentTeamIdx && correct ? { ...team, score: team.score + points } : team
+      );
+      return { ...s, phase: "round-result", lastRoundCorrect: correct, teams: newTeams, lastDifficulty: s.currentDifficulty };
     });
   }, []);
 
@@ -77,31 +106,22 @@ export default function DumbCharadesPage() {
     setState((s) => {
       const nextTeamIdx = (s.currentTeamIdx + 1) % s.teams.length;
       const nextTeam = s.teams[nextTeamIdx]!;
-      const nextActorIdx = (nextTeam.actorIdx + (nextTeamIdx === 0 ? 1 : 0)) % nextTeam.players.length;
-
-      const updatedTeams = s.teams.map((team, i) => {
-        if (i === nextTeamIdx) {
-          return { ...team, actorIdx: nextActorIdx };
-        }
-        return team;
-      });
-
-      let pool = s.wordPool;
-      let word = pool[0];
-      if (!word) {
-        pool = buildWordPool(s.selectedPackIds);
-        word = pool[0] ?? "Dosa";
-      }
-
+      const nextActorIdx = (nextTeam.actorIdx + (nextTeamIdx === 0 ? 1 : 0)) % Math.max(nextTeam.players.length, 1);
+      const updatedTeams = s.teams.map((team, i) =>
+        i === nextTeamIdx ? { ...team, actorIdx: nextActorIdx } : team
+      );
+      const { options, remaining } = pickThree(s.wordPool, s.selectedPackIds);
       return {
         ...s,
         phase: "word-reveal",
         teams: updatedTeams,
         currentTeamIdx: nextTeamIdx,
-        currentWord: word,
-        wordPool: pool.slice(1),
+        currentWord: "",
+        wordOptions: options,
+        wordPool: remaining,
         lastRoundCorrect: null,
         roundNumber: s.roundNumber + 1,
+        lastDifficulty: null,
       };
     });
   }, []);
@@ -110,26 +130,26 @@ export default function DumbCharadesPage() {
     setState((s) => ({ ...s, phase: "game-over" }));
   }, []);
 
-  const handlePlayAgain = useCallback(() => {
+  const handleNewGame = useCallback(() => {
     setState(defaultState);
   }, []);
 
-  const { phase, teams, currentTeamIdx, timerDuration, currentWord, lastRoundCorrect } = state;
+  const { phase, teams, currentTeamIdx, timerDuration, currentWord, wordOptions, lastRoundCorrect, lastDifficulty } = state;
   const currentTeam = teams[currentTeamIdx];
   const currentActor = currentTeam?.players[currentTeam.actorIdx] ?? "Actor";
+  const color = teamColor(currentTeamIdx);
 
-  if (phase === "setup") {
-    return <SetupScreen onStart={handleStart} />;
-  }
+  if (phase === "setup") return <SetupScreen onStart={handleStart} />;
 
   if (phase === "word-reveal" && currentTeam) {
     return (
       <WordReveal
         actorName={currentActor}
         teamName={currentTeam.name}
-        teamColor={TEAM_COLORS[currentTeamIdx] ?? "#E85D2F"}
-        word={currentWord}
+        teamColor={color}
+        wordOptions={wordOptions}
         onReady={handleActingStart}
+        onNewGame={handleNewGame}
       />
     );
   }
@@ -141,9 +161,10 @@ export default function DumbCharadesPage() {
         word={currentWord}
         actorName={currentActor}
         teamName={currentTeam.name}
-        teamColor={TEAM_COLORS[currentTeamIdx] ?? "#E85D2F"}
-        onCorrect={() => handleRoundEnd(true)}
+        teamColor={color}
+        onCorrect={(tl) => handleRoundEnd(true, tl)}
         onSkip={() => handleRoundEnd(false)}
+        onNewGame={handleNewGame}
       />
     );
   }
@@ -153,10 +174,12 @@ export default function DumbCharadesPage() {
       <RoundResult
         correct={lastRoundCorrect ?? false}
         word={currentWord}
+        difficulty={lastDifficulty}
         teams={teams}
-        teamColors={TEAM_COLORS}
+        teamColors={teams.map((_, i) => teamColor(i))}
         onNext={handleNextRound}
         onEndGame={handleEndGame}
+        onNewGame={handleNewGame}
       />
     );
   }
@@ -165,8 +188,8 @@ export default function DumbCharadesPage() {
     return (
       <GameOver
         teams={teams}
-        teamColors={TEAM_COLORS}
-        onPlayAgain={handlePlayAgain}
+        teamColors={teams.map((_, i) => teamColor(i))}
+        onPlayAgain={handleNewGame}
       />
     );
   }

@@ -90,7 +90,7 @@ export function TopBar({ title, sub, right, accent }: { title: string; sub?: str
         </div>
         {right}
       </div>
-      {sub && <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 4 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 20, fontWeight: 800, color: tokens.black, letterSpacing: -0.4, marginTop: 10 }}>{sub}</div>}
     </div>
   );
 }

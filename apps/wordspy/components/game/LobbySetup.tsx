@@ -272,11 +272,11 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
             <Btn
               fullWidth
               onClick={onStart}
-              disabled={gameState.players.length < 3}
+              disabled={gameState.players.length < 4}
               style={{ padding: "16px", fontSize: 16 }}
             >
-              {gameState.players.length < 3
-                ? `Need ${3 - gameState.players.length} more player(s)`
+              {gameState.players.length < 4
+                ? `Need ${4 - gameState.players.length} more player(s)`
                 : "Start Game →"}
             </Btn>
           </>

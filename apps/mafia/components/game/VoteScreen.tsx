@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, Btn, tokens, Avatar } from "@/components/ui";
 import { useGame } from "@/lib/store";
@@ -8,10 +8,20 @@ import RulesModal from "@/components/game/RulesModal";
 
 export default function VoteScreen() {
   const { game, set, reset } = useGame();
-  const { players, round } = game;
+  const { players, round, config } = game;
   const living = getLiving(players).filter((p) => p.role !== "god");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showRules, setShowRules] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(config.votingTimerSeconds);
+
+  useEffect(() => {
+    if (!config.votingTimerEnabled) return;
+    setTimeLeft(config.votingTimerSeconds);
+    const tick = setInterval(() => {
+      setTimeLeft((t) => (t <= 1 ? (clearInterval(tick), 0) : t - 1));
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [config.votingTimerEnabled, config.votingTimerSeconds]);
 
   function confirm() {
     if (!selectedId) return;
@@ -35,7 +45,7 @@ export default function VoteScreen() {
       {/* Top bar */}
       <div style={{
         padding: "14px 20px", borderBottom: `1px solid ${tokens.border}`,
-        background: tokens.white,
+        background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black }}>
@@ -43,27 +53,18 @@ export default function VoteScreen() {
           </div>
           <div style={{ fontSize: 12, color: tokens.grey3 }}>Day {round} · Vote</div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            onClick={() => setShowRules(true)}
-            style={{
-              padding: "7px 12px", borderRadius: 10,
-              border: `1.5px solid ${tokens.border}`,
-              background: tokens.white, cursor: "pointer",
-              fontSize: 13, fontWeight: 600, color: tokens.grey1,
-              fontFamily: "inherit",
-            }}
-          >?</button>
-          <button
-            onClick={reset}
-            style={{
-              padding: "7px 12px", borderRadius: 10,
-              border: `1.5px solid ${tokens.border}`,
-              background: tokens.white, cursor: "pointer",
-              fontSize: 13, fontWeight: 600, color: tokens.red,
-              fontFamily: "inherit",
-            }}
-          >✕</button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {config.votingTimerEnabled && (
+            <div style={{
+              fontSize: 18, fontWeight: 800,
+              color: timeLeft <= 10 ? tokens.red : tokens.grey1,
+              background: timeLeft <= 10 ? tokens.redBg : tokens.bg,
+              padding: "4px 10px", borderRadius: 8, fontVariantNumeric: "tabular-nums",
+              transition: "all 0.3s",
+            }}>{timeLeft}s</div>
+          )}
+          <button onClick={() => setShowRules(true)} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.grey1, fontFamily: "inherit" }}>Rules</button>
+          <button onClick={() => { if (window.confirm("Exit to new game?")) reset(); }} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.red, fontFamily: "inherit" }}>Exit</button>
         </div>
       </div>
 

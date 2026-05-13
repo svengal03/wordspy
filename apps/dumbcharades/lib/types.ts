@@ -12,6 +12,8 @@ export interface Team {
   actorIdx: number;
 }
 
+export type Difficulty = "easy" | "medium" | "hard";
+
 export interface GameState {
   phase: Phase;
   teams: Team[];
@@ -19,7 +21,10 @@ export interface GameState {
   timerDuration: number;
   selectedPackIds: string[];
   currentWord: string;
+  wordOptions: [string, string, string];
   wordPool: string[];
   lastRoundCorrect: boolean | null;
   roundNumber: number;
+  currentDifficulty: Difficulty;
+  lastDifficulty: Difficulty | null;
 }

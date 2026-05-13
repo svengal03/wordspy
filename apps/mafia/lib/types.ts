@@ -13,6 +13,9 @@ export interface Player {
 export interface GameConfig {
   doctorEnabled: boolean;
   policeEnabled: boolean;
+  doctorCanSelfSave: boolean;
+  votingTimerEnabled: boolean;
+  votingTimerSeconds: number;
   discussionTimerSeconds: number;
 }
 
@@ -58,5 +61,8 @@ export interface GameState {
 export const DEFAULT_CONFIG: GameConfig = {
   doctorEnabled: true,
   policeEnabled: true,
+  doctorCanSelfSave: true,
+  votingTimerEnabled: false,
+  votingTimerSeconds: 60,
   discussionTimerSeconds: 180,
 };

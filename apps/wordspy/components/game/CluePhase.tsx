@@ -155,8 +155,8 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
               <SectionLabel>Give a Clue</SectionLabel>
               <InfoBox
                 icon="💡"
-                title="One word or short phrase only"
-                body="Give a clue that hints at your word without saying it directly. Don't reveal too much!"
+                title="One word only — no spaces"
+                body="Give a single-word clue that hints at your word without saying it directly."
               />
               {clueError && (
                 <div style={{
@@ -171,7 +171,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
                 <input
                   key={currentPlayer?.id}
                   value={clue}
-                  onChange={(e) => { setClue(e.target.value); setClueError(null); }}
+                  onChange={(e) => { setClue(e.target.value.replace(/\s/g, "")); setClueError(null); }}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                   placeholder="Your clue…"
                   maxLength={40}

@@ -261,7 +261,11 @@ export default function HomeScreen() {
       </div>
 
       <div style={{ textAlign: "center", padding: "16px 24px", color: tokens.grey4, fontSize: 12 }}>
-        Wordspy · Made with haste..;
+        Part of{" "}
+        <a href="http://localhost:3000" style={{ color: tokens.grey3, fontWeight: 600, textDecoration: "none" }}>
+          PlayHub
+        </a>{" "}
+        · All games, one place
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />

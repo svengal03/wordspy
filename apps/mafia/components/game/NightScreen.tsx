@@ -94,9 +94,16 @@ export default function NightScreen() {
 
   const info = phaseInfo[nightSubPhase];
 
+  const doctor = players.find((p) => p.role === "doctor");
   const targets: Player[] = (() => {
     if (nightSubPhase === "mafia-wake") return playingLiving.filter((p) => p.role !== "mafia");
-    if (nightSubPhase === "doctor-wake") return playingLiving.filter((p) => p.id !== nightActions.doctorLastTarget);
+    if (nightSubPhase === "doctor-wake") {
+      return playingLiving.filter((p) => {
+        if (p.id === nightActions.doctorLastTarget) return false;
+        if (!config.doctorCanSelfSave && doctor && p.id === doctor.id) return false;
+        return true;
+      });
+    }
     if (nightSubPhase === "police-wake") return playingLiving;
     return [];
   })();
@@ -108,27 +115,14 @@ export default function NightScreen() {
       display: "flex", flexDirection: "column", padding: "24px 20px", boxSizing: "border-box",
     }}>
       {/* Top bar */}
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 8 }}>
-        <button
-          onClick={() => setShowRules(true)}
-          style={{
-            padding: "7px 12px", borderRadius: 10,
-            border: `1.5px solid ${tokens.border}`,
-            background: tokens.white, cursor: "pointer",
-            fontSize: 13, fontWeight: 600, color: tokens.grey1,
-            fontFamily: "inherit",
-          }}
-        >?</button>
-        <button
-          onClick={reset}
-          style={{
-            padding: "7px 12px", borderRadius: 10,
-            border: `1.5px solid ${tokens.border}`,
-            background: tokens.white, cursor: "pointer",
-            fontSize: 13, fontWeight: 600, color: tokens.red,
-            fontFamily: "inherit",
-          }}
-        >✕</button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black }}>
+          Mafia<span style={{ color: tokens.red }}>.</span>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => setShowRules(true)} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.grey1, fontFamily: "inherit" }}>Rules</button>
+          <button onClick={() => { if (window.confirm("Exit to new game?")) reset(); }} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.red, fontFamily: "inherit" }}>Exit</button>
+        </div>
       </div>
 
       {/* Header */}

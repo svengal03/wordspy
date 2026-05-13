@@ -22,7 +22,7 @@ export function GameOver({ teams, teamColors, onPlayAgain }: Props) {
 
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
-      <TopBar title="Pictionary" />
+      <TopBar title="Pictionary" sub="Game Over" />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
         <div style={{ width: "100%", maxWidth: 380 }}>

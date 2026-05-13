@@ -25,7 +25,7 @@ export default function RoomPage() {
 
   const {
     localPlayer, gameState, setGameState,
-    setRoomCode, config, reset,
+    setRoomCode, setLocalPlayer, config, reset,
   } = useGameStore();
 
   async function pushState(state: GameState) {
@@ -82,9 +82,18 @@ export default function RoomPage() {
       if (localPlayer) {
         const alreadyIn = state.players.find((p) => p.id === localPlayer.id);
         if (!alreadyIn) {
-          const updated = { ...state, players: [...state.players, localPlayer] };
-          await pushState(updated);
-          await publish("player-joined", localPlayer);
+          // Rejoin: if same name exists, reuse that player entry
+          const sameNamePlayer = state.players.find(
+            (p) => p.name.toLowerCase() === localPlayer.name.toLowerCase()
+          );
+          if (sameNamePlayer) {
+            setLocalPlayer(sameNamePlayer);
+            setGameState(state);
+          } else {
+            const updated = { ...state, players: [...state.players, localPlayer] };
+            await pushState(updated);
+            await publish("player-joined", localPlayer);
+          }
         } else {
           setGameState(state);
         }

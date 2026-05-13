@@ -1,31 +1,39 @@
 const games = [
   {
     name: "Wordspy",
-    description: "Social deduction word game. Find the spy before they escape.",
+    emoji: "🕵️",
+    description: "Find the undercover before they escape.",
     href: "http://localhost:3001",
-    tag: "Play now",
-    tagBg: "#CC785C",
+    accent: "#CC785C",
+    bg: "#FFF8F5",
+    players: "4–10",
   },
   {
     name: "Mafia",
-    description: "Lies, alliances, and betrayal. Vote out the Mafia before it's too late.",
+    emoji: "🔪",
+    description: "Lies, alliances, betrayal. Vote wisely.",
     href: "http://localhost:3002",
-    tag: "Play now",
-    tagBg: "#B0A99A",
+    accent: "#374151",
+    bg: "#F9FAFB",
+    players: "5–15",
   },
   {
     name: "Dumb Charades",
-    description: "Act it out, no talking. Pass the phone, guess the word before time runs out.",
+    emoji: "🎬",
+    description: "Act it out, no talking. Guess before time runs out.",
     href: "http://localhost:3003",
-    tag: "Play now",
-    tagBg: "#E85D2F",
+    accent: "#E85D2F",
+    bg: "#FFF3EF",
+    players: "4+",
   },
   {
     name: "Pictionary",
-    description: "Draw it, guess it. No letters or numbers — just your artistic skills.",
+    emoji: "🎨",
+    description: "Draw it, guess it. No letters, just art.",
     href: "http://localhost:3004",
-    tag: "Play now",
-    tagBg: "#4A6CF7",
+    accent: "#4A6CF7",
+    bg: "#EEF2FF",
+    players: "4+",
   },
 ];
 
@@ -36,72 +44,60 @@ export default function HomePage() {
         minHeight: "100dvh",
         background: "#FAFAF8",
         fontFamily: "'DM Sans', sans-serif",
-        padding: "48px 24px",
-        maxWidth: 480,
+        padding: "48px 20px 40px",
+        maxWidth: 520,
         margin: "0 auto",
+        boxSizing: "border-box",
       }}
     >
-      <header style={{ marginBottom: 48 }}>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: 32,
-            fontWeight: 800,
-            color: "#1A1A1A",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Playhub
-        </h1>
-        <p style={{ margin: "8px 0 0", fontSize: 15, color: "#888", fontWeight: 400 }}>
-          Games for groups
+      <header style={{ marginBottom: 32 }}>
+        <div style={{ fontSize: 28, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", lineHeight: 1 }}>
+          PlayHub
+        </div>
+        <p style={{ margin: "6px 0 0", fontSize: 14, color: "#999", fontWeight: 400 }}>
+          Party games for groups
         </p>
       </header>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
         {games.map((game) => (
           <a
             key={game.name}
             href={game.href}
             style={{
-              display: "block",
+              display: "flex",
+              flexDirection: "column",
               background: "#fff",
               border: "1.5px solid #E8E5E1",
-              borderRadius: 16,
-              padding: "24px 20px",
+              borderRadius: 20,
+              padding: "20px 16px",
               textDecoration: "none",
               transition: "box-shadow 0.15s ease",
+              boxSizing: "border-box",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <span
-                style={{
-                  fontSize: 20,
-                  fontWeight: 700,
-                  color: "#1A1A1A",
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                {game.name}
-              </span>
-              <span
-                style={{
-                  background: game.tagBg,
-                  color: "#fff",
-                  borderRadius: 8,
-                  padding: "4px 10px",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {game.tag}
-              </span>
+            <div style={{
+              width: 52, height: 52, borderRadius: 14,
+              background: game.bg, border: `1.5px solid ${game.accent}20`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 26, marginBottom: 14,
+            }}>
+              {game.emoji}
             </div>
-            <p style={{ margin: 0, fontSize: 14, color: "#666", lineHeight: 1.5, fontWeight: 400 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", letterSpacing: "-0.01em", marginBottom: 4 }}>
+              {game.name}
+            </div>
+            <p style={{ margin: "0 0 14px", fontSize: 12, color: "#777", lineHeight: 1.45, fontWeight: 400, flex: 1 }}>
               {game.description}
             </p>
+            <span style={{
+              fontSize: 11, fontWeight: 700, color: game.accent,
+              background: game.bg, border: `1px solid ${game.accent}30`,
+              borderRadius: 6, padding: "3px 8px", letterSpacing: "0.04em",
+              textTransform: "uppercase", alignSelf: "flex-start",
+            }}>
+              {game.players} players
+            </span>
           </a>
         ))}
       </div>

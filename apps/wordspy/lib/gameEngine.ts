@@ -16,7 +16,11 @@ export function assignRoles(
   config: GameConfig,
   pair?: { civilian: string; undercover: string }
 ): { players: Player[]; pair: { civilian: string; undercover: string } } {
-  const wordPair = pair || getRandomPair(config.packId);
+  const rawPair = pair || getRandomPair(config.packId);
+  // Randomly swap which word goes to civilians vs undercovers for variety
+  const wordPair = Math.random() < 0.5
+    ? rawPair
+    : { civilian: rawPair.undercover, undercover: rawPair.civilian };
 
   // Clamp config values to valid range for actual player count
   const undercovers = Math.min(config.undercoverCount, Math.max(1, players.length - 2));
@@ -123,6 +127,9 @@ export function submitClue(
   playerId: string,
   clue: string
 ): { state: GameState; error?: string } {
+  if (clue.trim().includes(" ")) {
+    return { state, error: "Clue must be a single word — no spaces allowed." };
+  }
   // Check for duplicate clue in current round
   if (isDuplicateClue(state, playerId, clue)) {
     return { state, error: "That clue was already used! Try another one." };

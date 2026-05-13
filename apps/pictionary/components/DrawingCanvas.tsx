@@ -6,14 +6,15 @@ interface Props {
   word: string;
   drawerName: string;
   teamColor: string;
-  onCorrect: () => void;
+  onCorrect: (timeLeft: number) => void;
   onSkip: () => void;
+  onNewGame: () => void;
 }
 
 const COLORS = ["#1A1A1A", "#E84040", "#4A6CF7", "#2BB34A", "#F59E0B", "#9333EA"];
 const SIZES = [3, 6, 12];
 
-export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCorrect, onSkip }: Props) {
+export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCorrect, onSkip, onNewGame }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const snapshots = useRef<ImageData[]>([]);
@@ -138,10 +139,14 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
         }}
       >
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#1A1A1A" }}>{drawerName}</div>
-          <div style={{ fontSize: 11, color: "#AAA" }}>Drawing now</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: teamColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>🎨 Drawing</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "#1A1A1A", letterSpacing: -0.3 }}>{drawerName}</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            onClick={onNewGame}
+            style={{ padding: "5px 10px", borderRadius: 8, border: "1.5px solid #E8E5E1", background: "transparent", color: "#AAA", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+          >New Game</button>
           <button
             onClick={() => setWordVisible((v) => !v)}
             style={{
@@ -299,7 +304,7 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
             Skip →
           </button>
           <button
-            onClick={onCorrect}
+            onClick={() => onCorrect(timeLeft)}
             style={{
               flex: 2,
               padding: "12px 0",

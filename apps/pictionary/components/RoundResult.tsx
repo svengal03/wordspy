@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { Card, Screen, TopBar, tokens } from "./ui";
+import type { Difficulty } from "@/lib/types";
 
 interface Team {
   name: string;
@@ -9,19 +10,32 @@ interface Team {
   drawerIdx: number;
 }
 
+const DIFFICULTY_LABEL: Record<Difficulty, string> = {
+  easy: "Easy",
+  medium: "Medium",
+  hard: "Hard",
+};
+const DIFFICULTY_COLOR: Record<Difficulty, string> = {
+  easy: "#2BB34A",
+  medium: "#F59E0B",
+  hard: "#E84040",
+};
+
 interface Props {
   correct: boolean;
   word: string;
+  difficulty: Difficulty | null;
   teams: Team[];
   teamColors: string[];
   onNext: () => void;
   onEndGame: () => void;
+  onNewGame: () => void;
 }
 
-export function RoundResult({ correct, word, teams, teamColors, onNext, onEndGame }: Props) {
+export function RoundResult({ correct, word, difficulty, teams, teamColors, onNext, onEndGame, onNewGame }: Props) {
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
-      <TopBar title="Pictionary" />
+      <TopBar title="Pictionary" sub="Round Result" />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>
         <div style={{ width: "100%", maxWidth: 380 }}>
@@ -38,13 +52,23 @@ export function RoundResult({ correct, word, teams, teamColors, onNext, onEndGam
               }}>
                 {correct ? "Correct!" : "Skipped"}
               </div>
-              <div style={{ fontSize: 14, color: tokens.grey2 }}>
+              <div style={{ fontSize: 14, color: tokens.grey2, marginBottom: difficulty ? 6 : 0 }}>
                 The word was <strong style={{ color: tokens.black }}>{word}</strong>
               </div>
+              {difficulty && (
+                <div style={{
+                  display: "inline-block",
+                  fontSize: 11, fontWeight: 700, color: DIFFICULTY_COLOR[difficulty],
+                  background: DIFFICULTY_COLOR[difficulty] + "15",
+                  borderRadius: 6, padding: "3px 8px", letterSpacing: 0.4,
+                  textTransform: "uppercase",
+                }}>
+                  {DIFFICULTY_LABEL[difficulty]}
+                </div>
+              )}
             </Card>
           </motion.div>
 
-          {/* Scores */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
             <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
               {teams.map((team, i) => (
@@ -72,15 +96,26 @@ export function RoundResult({ correct, word, teams, teamColors, onNext, onEndGam
                 cursor: "pointer", fontFamily: "inherit",
               }}
             >Next Round →</button>
-            <button
-              onClick={onEndGame}
-              style={{
-                width: "100%", padding: "13px 0", borderRadius: 12,
-                border: `1.5px solid ${tokens.border}`, background: "transparent",
-                color: tokens.grey2, fontSize: 14, fontWeight: 600,
-                cursor: "pointer", fontFamily: "inherit",
-              }}
-            >End Game</button>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={onNewGame}
+                style={{
+                  flex: 1, padding: "13px 0", borderRadius: 12,
+                  border: `1.5px solid ${tokens.border}`, background: "transparent",
+                  color: tokens.grey2, fontSize: 14, fontWeight: 600,
+                  cursor: "pointer", fontFamily: "inherit",
+                }}
+              >New Game</button>
+              <button
+                onClick={onEndGame}
+                style={{
+                  flex: 1, padding: "13px 0", borderRadius: 12,
+                  border: `1.5px solid ${tokens.border}`, background: "transparent",
+                  color: tokens.grey2, fontSize: 14, fontWeight: 600,
+                  cursor: "pointer", fontFamily: "inherit",
+                }}
+              >End Game</button>
+            </div>
           </div>
         </div>
       </div>

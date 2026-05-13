@@ -8,11 +8,12 @@ interface Props {
   actorName: string;
   teamName: string;
   teamColor: string;
-  onCorrect: () => void;
+  onCorrect: (timeLeft: number) => void;
   onSkip: () => void;
+  onNewGame: () => void;
 }
 
-export function ActingScreen({ timerDuration, word, actorName, teamName, teamColor, onCorrect, onSkip }: Props) {
+export function ActingScreen({ timerDuration, word, actorName, teamName, teamColor, onCorrect, onSkip, onNewGame }: Props) {
   const [timeLeft, setTimeLeft] = useState(timerDuration);
   const [wordVisible, setWordVisible] = useState(false);
 
@@ -42,10 +43,14 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
         position: "sticky", top: 0, zIndex: 10,
       }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: tokens.black }}>{actorName}</div>
-          <div style={{ fontSize: 11, color: tokens.grey3 }}>{teamName} · Acting</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: teamColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>🎬 Acting</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>{actorName}</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            onClick={onNewGame}
+            style={{ padding: "5px 10px", borderRadius: 8, border: "1.5px solid #E8E5E1", background: "transparent", color: "#AAA", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+          >New Game</button>
           <button
             onClick={() => setWordVisible((v) => !v)}
             style={{
@@ -106,13 +111,13 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
       {/* Actions */}
       <div style={{ padding: "0 20px 32px", display: "flex", flexDirection: "column", gap: 10 }}>
         <button
-          onClick={onCorrect}
+          onClick={() => onCorrect(timeLeft)}
           style={{
             width: "100%", padding: "18px 0", borderRadius: 14, border: "none",
             background: tokens.green, color: "#fff", fontSize: 16, fontWeight: 700,
             cursor: "pointer", fontFamily: "inherit",
           }}
-        >Correct</button>
+        >Correct ✓</button>
         <button
           onClick={onSkip}
           style={{

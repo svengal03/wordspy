@@ -81,26 +81,8 @@ export default function DayScreen() {
               Start timer
             </Btn>
           )}
-          <button
-            onClick={() => setShowRules(true)}
-            style={{
-              padding: "7px 12px", borderRadius: 10,
-              border: `1.5px solid ${tokens.border}`,
-              background: tokens.white, cursor: "pointer",
-              fontSize: 13, fontWeight: 600, color: tokens.grey1,
-              fontFamily: "inherit",
-            }}
-          >?</button>
-          <button
-            onClick={reset}
-            style={{
-              padding: "7px 12px", borderRadius: 10,
-              border: `1.5px solid ${tokens.border}`,
-              background: tokens.white, cursor: "pointer",
-              fontSize: 13, fontWeight: 600, color: tokens.red,
-              fontFamily: "inherit",
-            }}
-          >✕</button>
+          <button onClick={() => setShowRules(true)} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.grey1, fontFamily: "inherit" }}>Rules</button>
+          <button onClick={() => { if (window.confirm("Exit to new game?")) reset(); }} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.red, fontFamily: "inherit" }}>Exit</button>
         </div>
       </div>
 
