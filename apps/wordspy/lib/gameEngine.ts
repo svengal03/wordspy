@@ -202,6 +202,7 @@ export function castVote(
 // ─── Process votes & eliminate ────────────────────────────────────────────────
 function processVotes(state: GameState): GameState {
   const activePlayers = state.players.filter((p) => !p.isEliminated);
+  if (activePlayers.length === 0) return { ...state, phase: "summary", winner: "civilians" };
   const maxVotes = Math.max(...activePlayers.map((p) => p.votes));
   const topVoted = activePlayers.filter((p) => p.votes === maxVotes);
 
@@ -285,6 +286,7 @@ export function nextRound(state: GameState): GameState {
   }));
 
   const activePlayers = players.filter((p) => !p.isEliminated);
+  if (activePlayers.length === 0) return { ...state, phase: "summary", winner: "civilians" };
   const startIndex = Math.floor(Math.random() * activePlayers.length);
   const globalIndex = players.findIndex(
     (p) => p.id === activePlayers[startIndex].id

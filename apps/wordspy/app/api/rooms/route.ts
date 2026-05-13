@@ -6,11 +6,16 @@ import type { GameState } from "@/lib/types";
 // In-memory room store (sufficient for party game sessions)
 const rooms: Record<string, GameState> = {};
 
-// Clean up rooms older than 4 hours
+// Clean up idle rooms older than 4 hours, or any room older than 24 hours
 setInterval(() => {
   const fourHoursAgo = Date.now() - 4 * 60 * 60 * 1000;
+  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
   Object.keys(rooms).forEach((code) => {
-    if (rooms[code].createdAt < fourHoursAgo) delete rooms[code];
+    const room = rooms[code];
+    const isIdle = room.phase === "summary" || room.phase === "lobby";
+    if ((isIdle && room.createdAt < fourHoursAgo) || room.createdAt < oneDayAgo) {
+      delete rooms[code];
+    }
   });
 }, 30 * 60 * 1000);
 
@@ -45,7 +50,12 @@ export async function POST(req: NextRequest) {
     const state = rooms[roomCode];
     if (!state) return NextResponse.json({ error: "Room not found" }, { status: 404 });
     const { playerId } = body;
-    const updated = { ...state, players: state.players.filter((p) => p.id !== playerId) };
+    const removedPlayer = state.players.find((p) => p.id === playerId);
+    let remaining = state.players.filter((p) => p.id !== playerId);
+    if (removedPlayer?.isHost && remaining.length > 0) {
+      remaining = remaining.map((p, i) => i === 0 ? { ...p, isHost: true } : p);
+    }
+    const updated = { ...state, players: remaining };
     rooms[roomCode] = updated;
     return NextResponse.json({ gameState: updated });
   }

@@ -169,23 +169,7 @@ export default function OfflinePage() {
             )}
           </Card>
 
-          {/* Word Pack */}
-          <Card>
-            <SectionLabel>Word Pack</SectionLabel>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {WORD_PACKS.map((pack) => (
-                <button key={pack.id} onClick={() => updateConfig({ packId: pack.id })} style={{
-                  padding: "7px 12px", borderRadius: 10, fontSize: 13, fontWeight: 500,
-                  border: `1.5px solid ${config.packId === pack.id ? tokens.coral : tokens.border}`,
-                  background: config.packId === pack.id ? tokens.coralBg : "transparent",
-                  color: config.packId === pack.id ? tokens.coral : tokens.grey1, cursor: "pointer",
-                }}>
-                  {pack.emoji} {pack.name}
-                </button>
-              ))}
-            </div>
-          </Card>
-
+          
           {/* Role Distribution */}
           <Card>
             <SectionLabel>Role Distribution</SectionLabel>
@@ -248,6 +232,22 @@ export default function OfflinePage() {
                 </div>
               );
             })()}
+          </Card>
+          {/* Word Pack */}
+          <Card>
+            <SectionLabel>Word Pack</SectionLabel>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {WORD_PACKS.map((pack) => (
+                <button key={pack.id} onClick={() => updateConfig({ packId: pack.id })} style={{
+                  padding: "7px 12px", borderRadius: 10, fontSize: 13, fontWeight: 500,
+                  border: `1.5px solid ${config.packId === pack.id ? tokens.coral : tokens.border}`,
+                  background: config.packId === pack.id ? tokens.coralBg : "transparent",
+                  color: config.packId === pack.id ? tokens.coral : tokens.grey1, cursor: "pointer",
+                }}>
+                  {pack.emoji} {pack.name}
+                </button>
+              ))}
+            </div>
           </Card>
 
           {/* Options */}

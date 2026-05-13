@@ -7,9 +7,12 @@ let pusherClient: PusherClient | null = null;
 
 function getPusherClient(): PusherClient {
   if (pusherClient) return pusherClient;
-  pusherClient = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-  });
+  const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
+  const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+  if (!key || !cluster) {
+    throw new Error("Missing required env vars: NEXT_PUBLIC_PUSHER_KEY and NEXT_PUBLIC_PUSHER_CLUSTER");
+  }
+  pusherClient = new PusherClient(key, { cluster });
   return pusherClient;
 }
 

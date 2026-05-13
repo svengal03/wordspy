@@ -101,6 +101,17 @@ export default function HomePage() {
           </a>
         ))}
       </div>
+
+      <footer style={{
+        marginTop: 40,
+        paddingTop: 20,
+        borderTop: "1px solid #E8E5E1",
+        textAlign: "center",
+      }}>
+        <div style={{ fontSize: 13, color: "#888", fontWeight: 500 }}>
+          Made in haste, play with a straight face. © R3GUn
+        </div>
+      </footer>
     </div>
   );
 }

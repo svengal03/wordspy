@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Btn, tokens, ROLE_META, Card, Screen, TopBar } from "@/components/ui";
+import { RevealCover, PhaseTrail, RevealProgressDots } from "@playhub/ui";
 import { useGame } from "@/lib/store";
 import { MafiaRole } from "@/lib/types";
 import { getMafiaTeammates } from "@/lib/gameEngine";
@@ -46,45 +47,21 @@ export default function RoleReveal() {
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
         right={
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ display: "flex", gap: 5 }}>
-              {players.map((_, i) => (
-                <div key={i} style={{
-                  width: 18, height: 4, borderRadius: 2,
-                  background: i < revealIndex ? tokens.green : i === revealIndex ? tokens.coral : tokens.border,
-                  transition: "background .3s",
-                }} />
-              ))}
-            </div>
-          </div>
+          <RevealProgressDots
+            total={players.length}
+            current={revealIndex}
+            accentColor={tokens.coral}
+            doneColor={tokens.green}
+          />
         }
       />
 
-      {/* Phase trail */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "center",
-        gap: 6, padding: "12px 20px 0", flexWrap: "wrap",
-      }}>
-        {PHASES.map((phase, i) => (
-          <div key={phase} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{
-              fontSize: 11, fontWeight: 700,
-              color: phase === "Role Reveal" ? tokens.coral : tokens.grey4,
-              letterSpacing: 0.5,
-            }}>
-              {phase}
-            </span>
-            {i < PHASES.length - 1 && (
-              <span style={{ fontSize: 10, color: tokens.grey4 }}>›</span>
-            )}
-          </div>
-        ))}
-      </div>
+      <PhaseTrail phases={PHASES} current="Role Reveal" accentColor={tokens.coral} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 20px" }}>
-        <div style={{ width: "100%", maxWidth: 400 }}>
+        <div style={{ width: "100%", maxWidth: 440 }}>
 
-          <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.5, textTransform: "uppercase" }}>
               {revealIndex + 1} of {players.length}
             </div>
@@ -92,22 +69,15 @@ export default function RoleReveal() {
 
           <AnimatePresence mode="wait">
             {!revealed ? (
-              <motion.div
+              <RevealCover
                 key="cover"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                onClick={() => setRevealed(true)}
-                style={{ cursor: "pointer" }}
-              >
-                <Card style={{ textAlign: "center", padding: "48px 32px", borderStyle: "dashed" }}>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, marginBottom: 8 }}>
-                    {currentPlayer.name}
-                  </div>
-                  <div style={{ fontSize: 14, color: tokens.grey2 }}>Tap to reveal your role</div>
-                  <div style={{ fontSize: 12, color: tokens.grey3, marginTop: 8 }}>Everyone else: look away</div>
-                </Card>
-              </motion.div>
+                playerName={currentPlayer.name}
+                label="Pass phone to"
+                lookAwayText="Everyone else look away"
+                buttonLabel="Tap to reveal role →"
+                accentColor={tokens.coral}
+                onReveal={() => setRevealed(true)}
+              />
             ) : (
               <motion.div
                 key="role"
@@ -118,16 +88,20 @@ export default function RoleReveal() {
                 <Card style={{
                   border: `1.5px solid ${meta ? meta.color + "40" : tokens.border}`,
                   background: meta ? meta.color + "08" : tokens.card,
+                  padding: "32px 28px",
                 }}>
-                  {/* Role */}
-                  <div style={{ textAlign: "center", marginBottom: 20 }}>
-                    <div style={{ fontSize: 28, fontWeight: 800, color: meta?.color ?? tokens.black, marginBottom: 4, letterSpacing: -0.5 }}>
+                  {/* Role emoji + name */}
+                  <div style={{ textAlign: "center", marginBottom: 24 }}>
+                    <div style={{ fontSize: 56, lineHeight: 1, marginBottom: 12 }}>
+                      {meta?.emoji ?? "❓"}
+                    </div>
+                    <div style={{ fontSize: 34, fontWeight: 800, color: meta?.color ?? tokens.black, marginBottom: 8, letterSpacing: -0.5 }}>
                       {meta?.label ?? "Unknown"}
                     </div>
                     <div style={{
-                      display: "inline-block", padding: "4px 14px", borderRadius: 20,
+                      display: "inline-block", padding: "5px 16px", borderRadius: 20,
                       background: meta ? meta.color + "15" : tokens.border,
-                      color: meta?.color ?? tokens.grey2, fontSize: 12, fontWeight: 600,
+                      color: meta?.color ?? tokens.grey2, fontSize: 13, fontWeight: 600,
                     }}>
                       Team: {meta?.team ?? "?"}
                     </div>
@@ -135,8 +109,8 @@ export default function RoleReveal() {
 
                   {/* Description */}
                   <div style={{
-                    background: tokens.bg, borderRadius: 14, padding: "14px 16px", marginBottom: 16,
-                    fontSize: 14, color: tokens.grey1, lineHeight: 1.6,
+                    background: tokens.bg, borderRadius: 14, padding: "16px 18px", marginBottom: 16,
+                    fontSize: 15, color: tokens.grey1, lineHeight: 1.6,
                     border: `1px solid ${tokens.border}`,
                   }}>
                     {role ? ROLE_DESC[role] : ""}
@@ -146,13 +120,13 @@ export default function RoleReveal() {
                   {teammates.length > 0 && (
                     <div style={{
                       background: tokens.redBg, border: `1px solid #FECACA`,
-                      borderRadius: 14, padding: "12px 16px", marginBottom: 16,
+                      borderRadius: 14, padding: "14px 18px", marginBottom: 16,
                     }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: tokens.red, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>
                         Your Mafia team
                       </div>
                       {teammates.map((name) => (
-                        <div key={name} style={{ fontSize: 14, fontWeight: 600, color: tokens.black, marginBottom: 4 }}>
+                        <div key={name} style={{ fontSize: 15, fontWeight: 600, color: tokens.black, marginBottom: 4 }}>
                           {name}
                         </div>
                       ))}

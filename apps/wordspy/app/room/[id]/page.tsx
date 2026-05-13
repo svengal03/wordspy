@@ -29,12 +29,18 @@ export default function RoomPage() {
   } = useGameStore();
 
   async function pushState(state: GameState) {
+    const prev = gameState;
     setGameState(state);
-    await fetch("/api/rooms", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "update", roomCode, gameState: state }),
-    });
+    try {
+      const res = await fetch("/api/rooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", roomCode, gameState: state }),
+      });
+      if (!res.ok && prev) setGameState(prev);
+    } catch {
+      if (prev) setGameState(prev);
+    }
   }
 
   const handleEvent = useCallback((event: GameEvent) => {
@@ -239,12 +245,17 @@ export default function RoomPage() {
           {msg}
         </div>
         {isKicked && (
-          <button
-            onClick={() => router.push("/")}
-            style={{ marginTop: 8, padding: "10px 20px", borderRadius: 10, border: "1.5px solid #E5E0DC", background: "white", cursor: "pointer", fontSize: 14 }}
-          >
-            Back to Home
-          </button>
+          <>
+            <div style={{ fontSize: 13, color: "#AAA", marginTop: 4 }}>
+              Room <strong style={{ color: "#555" }}>{roomCode}</strong> — ask the host to re-invite you.
+            </div>
+            <button
+              onClick={() => router.push("/")}
+              style={{ marginTop: 8, padding: "10px 20px", borderRadius: 10, border: "1.5px solid #E5E0DC", background: "white", cursor: "pointer", fontSize: 14 }}
+            >
+              Back to Home
+            </button>
+          </>
         )}
       </div>
     );

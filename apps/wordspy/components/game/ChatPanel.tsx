@@ -13,10 +13,17 @@ interface Props {
 
 export default function ChatPanel({ messages, localPlayer, onSend }: Props) {
   const [text, setText] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = containerRef.current;
+    if (!container) return;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 80;
+    if (isNearBottom) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   function handleSend() {
@@ -36,7 +43,7 @@ export default function ChatPanel({ messages, localPlayer, onSend }: Props) {
       </div>
 
       {/* Messages */}
-      <div style={{
+      <div ref={containerRef} style={{
         maxHeight: 200, overflowY: "auto", display: "flex",
         flexDirection: "column", gap: 8, marginBottom: 12,
       }}>

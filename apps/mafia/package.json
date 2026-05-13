@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@playhub/core": "*",
+    "@playhub/ui": "*",
     "framer-motion": "^11.3.0",
     "nanoid": "^5.0.7",
     "next": "^15.5.18",

@@ -24,6 +24,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
   const myPlayer = gameState.players.find((p) => p.id === localPlayer.id);
   const hasVoted = myPlayer?.hasVoted;
+  const isEliminated = myPlayer?.isEliminated ?? false;
   const totalVotes = activePlayers.reduce((a, p) => a + p.votes, 0);
   const isSafeRound = gameState.config.safeRound && gameState.round === 1;
 
@@ -59,7 +60,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
 
   if (isSafeRound) {
     return (
-      <Screen>
+      <Screen style={{ background: tokens.greenBg }}>
         <TopBar
           title={`Vote Phase — Round ${gameState.round}`}
           sub="Safe round — no elimination this round"
@@ -93,12 +94,20 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 
-        {/* Time to vote — always shown at top */}
-        <InfoBox
-          icon="🗳️"
-          title="Time to vote"
-          body="Select the player you think is the Undercover or Mr. Phantom. The player with the most votes will be eliminated."
-        />
+        {isEliminated ? (
+          <InfoBox
+            icon="👁️"
+            title="You're eliminated — spectating"
+            body="Sit back and watch how the remaining players vote."
+            color={tokens.grey2}
+          />
+        ) : (
+          <InfoBox
+            icon="🗳️"
+            title="Time to vote"
+            body="Select the player you think is the Undercover or Mr. Phantom. The player with the most votes will be eliminated."
+          />
+        )}
 
         {gameState.isTiebreaker && (
           <InfoBox
@@ -109,8 +118,23 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
           />
         )}
 
-        {/* Inline pass card — offline mode only */}
-        {isOffline && !hasVoted && !voteRevealed ? (
+        {/* Eliminated players only see the progress bar, no voting controls */}
+        {isEliminated ? (
+          totalVotes >= 1 && (
+            <Card style={{ textAlign: "center", padding: "14px" }}>
+              <div style={{ fontSize: 13, color: tokens.grey2 }}>
+                {totalVotes} of {activePlayers.length} player{activePlayers.length > 1 ? "s" : ""} {totalVotes === 1 ? "has" : "have"} voted
+              </div>
+              <div style={{ height: 6, background: "#E0E0E0", borderRadius: 3, marginTop: 8 }}>
+                <div style={{
+                  height: "100%", borderRadius: 3, background: tokens.coral,
+                  width: `${(totalVotes / activePlayers.length) * 100}%`,
+                  transition: "width .3s",
+                }} />
+              </div>
+            </Card>
+          )
+        ) : isOffline && !hasVoted && !voteRevealed ? (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <Card style={{ textAlign: "center", padding: "28px 20px" }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: tokens.black, marginBottom: 14, letterSpacing: -0.3 }}>
@@ -153,11 +177,11 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
                         }}
                       >
                         <Avatar name={p.name} size={44} active={isSelected} />
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 15, fontWeight: 600, color: tokens.black }}>{p.name}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: tokens.black, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
                           {p.clue && (
-                            <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2 }}>
-                              Clue: "{p.clue}"
+                            <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              Clue: &quot;{p.clue}&quot;
                             </div>
                           )}
                         </div>
