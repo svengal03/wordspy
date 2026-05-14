@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Btn, Card, tokens } from "@/components/ui";
+import { Btn, Card, tokens, Screen, TopBar, NavBtn, OptionsMenu } from "@/components/ui";
 import { PhaseTrail } from "@playhub/ui";
 import { useGame } from "@/lib/store";
 
@@ -9,6 +9,8 @@ const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote"];
 import { Player, NightSubPhase } from "@/lib/types";
 import { getLiving, resolveNight, eliminatePlayer, checkWin } from "@/lib/gameEngine";
 import RulesModal from "@/components/game/RulesModal";
+
+const HOME_URL = () => process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
 
 export default function NightScreen() {
   const { game, set, reset } = useGame();
@@ -112,23 +114,17 @@ export default function NightScreen() {
   })();
 
   return (
-    <div style={{
-      minHeight: "100dvh", background: tokens.bg,
-      fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
-      display: "flex", flexDirection: "column", padding: "24px 20px", boxSizing: "border-box",
-    }}>
+    <Screen style={{ display: "flex", flexDirection: "column" }}>
+      <TopBar
+        right={
+          <div style={{ display: "flex", gap: 8 }}>
+            <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+            <OptionsMenu onNewGame={reset} onExit={() => { window.location.href = HOME_URL(); }} />
+          </div>
+        }
+      />
       <PhaseTrail phases={MAFIA_PHASES} current="Night" accentColor={tokens.coral} />
-      {/* Top bar */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none", display: "block", marginBottom: 2 }}>← PlayHub</a>
-        <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black }}>
-          Mafia<span style={{ color: tokens.red }}>.</span>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => setShowRules(true)} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.grey1, fontFamily: "inherit" }}>Rules</button>
-          <button onClick={() => { if (window.confirm("Exit to new game?")) reset(); }} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.red, fontFamily: "inherit" }}>Exit</button>
-        </div>
-      </div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "24px 20px", boxSizing: "border-box" }}>
 
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 28, paddingTop: 8 }}>
@@ -210,7 +206,7 @@ export default function NightScreen() {
                   borderRadius: 14, padding: "16px", marginBottom: 16,
                 }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: policeResult.isMafia ? tokens.red : tokens.green }}>
-                    {policeResult.name} is {policeResult.isMafia ? "🔪 MAFIA" : "✓ NOT Mafia"}
+                    {policeResult.name} is {policeResult.isMafia ? "MAFIA" : "NOT Mafia"}
                   </div>
                   <div style={{ fontSize: 12, color: tokens.grey2, marginTop: 4 }}>
                     Remember this. Don't tell anyone.
@@ -234,7 +230,8 @@ export default function NightScreen() {
         </AnimatePresence>
       </div>
 
+      </div>
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
-    </div>
+    </Screen>
   );
 }

@@ -1,13 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, Btn, tokens, Avatar } from "@/components/ui";
+import { Card, Btn, tokens, Avatar, Screen, TopBar, NavBtn, OptionsMenu } from "@/components/ui";
 import { PhaseTrail } from "@playhub/ui";
 import { useGame } from "@/lib/store";
 
 const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote"];
 import { getLiving, eliminatePlayer, checkWin } from "@/lib/gameEngine";
 import RulesModal from "@/components/game/RulesModal";
+
+const HOME_URL = () => process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
 
 export default function VoteScreen() {
   const { game, set, reset } = useGame();
@@ -41,36 +43,25 @@ export default function VoteScreen() {
   }
 
   return (
-    <div style={{
-      minHeight: "100dvh", background: tokens.bg,
-      fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
-    }}>
-      {/* Top bar */}
-      <div style={{
-        padding: "14px 20px", borderBottom: `1px solid ${tokens.border}`,
-        background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between",
-      }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none" }}>← PlayHub</a>
-          <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black }}>
-            Mafia<span style={{ color: tokens.red }}>.</span>
+    <Screen>
+      <TopBar
+        title={`Day ${round} · Vote`}
+        right={
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {config.votingTimerEnabled && (
+              <div style={{
+                fontSize: 18, fontWeight: 800,
+                color: timeLeft <= 10 ? tokens.red : tokens.grey1,
+                background: timeLeft <= 10 ? tokens.redBg : tokens.bg,
+                padding: "4px 10px", borderRadius: 8, fontVariantNumeric: "tabular-nums",
+                transition: "all 0.3s",
+              }}>{timeLeft}s</div>
+            )}
+            <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+            <OptionsMenu onNewGame={reset} onExit={() => { window.location.href = HOME_URL(); }} />
           </div>
-          <div style={{ fontSize: 12, color: tokens.grey3 }}>Day {round} · Vote</div>
-        </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {config.votingTimerEnabled && (
-            <div style={{
-              fontSize: 18, fontWeight: 800,
-              color: timeLeft <= 10 ? tokens.red : tokens.grey1,
-              background: timeLeft <= 10 ? tokens.redBg : tokens.bg,
-              padding: "4px 10px", borderRadius: 8, fontVariantNumeric: "tabular-nums",
-              transition: "all 0.3s",
-            }}>{timeLeft}s</div>
-          )}
-          <button onClick={() => setShowRules(true)} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.grey1, fontFamily: "inherit" }}>Rules</button>
-          <button onClick={() => { if (window.confirm("Exit to new game?")) reset(); }} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.red, fontFamily: "inherit" }}>Exit</button>
-        </div>
-      </div>
+        }
+      />
 
       <PhaseTrail phases={MAFIA_PHASES} current="Vote" accentColor={tokens.coral} />
 
@@ -90,7 +81,7 @@ export default function VoteScreen() {
           borderRadius: 14, padding: "12px 16px",
           display: "flex", flexDirection: "column", gap: 6,
         }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: tokens.yellow }}>⚠️ Village must eliminate someone today</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: tokens.yellow }}>Village must eliminate someone today</div>
           <div style={{ fontSize: 12, color: tokens.grey1, lineHeight: 1.5 }}>
             Vote verbally. Once decided, God taps the eliminated player below. Do not reveal their role.
           </div>
@@ -138,6 +129,6 @@ export default function VoteScreen() {
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
-    </div>
+    </Screen>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Card, Btn, tokens, RoleBadge, ROLE_META } from "@/components/ui";
+import { Card, Btn, tokens, RoleBadge, ROLE_META, Screen, TopBar, NavBtn } from "@/components/ui";
 import { useGame } from "@/lib/store";
 
 interface Props {
@@ -12,11 +12,10 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
   const { winner, players, eliminationHistory } = game;
 
   return (
-    <div style={{
-      minHeight: "100dvh", background: tokens.bg,
-      fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
-      paddingBottom: 48,
-    }}>
+    <Screen>
+      <TopBar
+        right={<NavBtn onClick={onPlayAgain}>New Game</NavBtn>}
+      />
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto" }}>
 
         {/* Winner banner */}
@@ -26,9 +25,6 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
           style={{ textAlign: "center", paddingTop: 32, paddingBottom: 28 }}
         >
-          <div style={{ fontSize: 72, marginBottom: 16 }}>
-            {winner === "villager" ? "🏆" : "🔪"}
-          </div>
           <div style={{ fontSize: 32, fontWeight: 800, color: tokens.black, letterSpacing: -1, marginBottom: 10 }}>
             {winner === "villager" ? "Village wins!" : "Mafia wins!"}
           </div>
@@ -63,16 +59,18 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
                     <div style={{
                       width: 36, height: 36, borderRadius: 9,
                       background: p.isEliminated ? "#EBEBEB" : meta ? meta.color + "20" : "#F0F0F0",
-                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 12, fontWeight: 700,
+                      color: p.isEliminated ? "#CCC" : meta?.color ?? "#AAA",
                     }}>
-                      {p.isEliminated ? "💀" : (meta?.emoji ?? "?")}
+                      {(meta?.label ?? "?").slice(0, 2).toUpperCase()}
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: p.isEliminated ? tokens.grey2 : tokens.black }}>
                         {p.name}
                       </div>
                       <div style={{ fontSize: 12, color: meta?.color ?? tokens.grey3, fontWeight: 600 }}>
-                        {meta?.label ?? "?"} · {meta?.team ?? "?"}
+                        {meta?.label ?? "?"}
                       </div>
                     </div>
                     {p.isEliminated && (
@@ -95,8 +93,13 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {eliminationHistory.map((e, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ fontSize: 14, width: 20, color: e.phase === "night" ? "#6060A0" : tokens.grey2, flexShrink: 0 }}>
-                      {e.phase === "night" ? "🌙" : "☀️"}
+                    <div style={{
+                      fontSize: 10, fontWeight: 700, flexShrink: 0, width: 36,
+                      padding: "2px 6px", borderRadius: 6, textAlign: "center",
+                      background: e.phase === "night" ? "#EDEDF8" : "#FFFDE7",
+                      color: e.phase === "night" ? "#6060A0" : tokens.yellow,
+                    }}>
+                      {e.phase === "night" ? "Night" : "Day"}
                     </div>
                     <div style={{ flex: 1, fontSize: 13, color: tokens.grey1 }}>
                       <strong>{e.playerName}</strong>
@@ -111,15 +114,15 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
         )}
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}
-          style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          style={{ display: "flex", gap: 10 }}>
+          <Btn variant="ghost" fullWidth onClick={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} style={{ padding: "16px", fontSize: 16 }}>
+            ← PlayHub
+          </Btn>
           <Btn fullWidth onClick={onPlayAgain} style={{ padding: "16px", fontSize: 16 }}>
             Play Again →
           </Btn>
-          <div style={{ textAlign: "center" }}>
-            <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 13, color: tokens.grey3, textDecoration: "none" }}>← PlayHub</a>
-          </div>
         </motion.div>
       </div>
-    </div>
+    </Screen>
   );
 }

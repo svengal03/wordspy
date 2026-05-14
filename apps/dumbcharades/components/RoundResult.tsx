@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Card, Screen, TopBar, tokens } from "./ui";
+import { Btn, Card, OptionsMenu, Screen, TopBar, tokens } from "./ui";
 import type { Difficulty } from "@/lib/types";
 import { DIFFICULTY_LABEL, DIFFICULTY_COLOR } from "@playhub/core";
 import { PhaseTrail } from "@playhub/ui";
@@ -29,7 +29,7 @@ interface Props {
 export function RoundResult({ correct, word, difficulty, teams, teamColors, actingTeamName, onNext, onEndGame, onNewGame }: Props) {
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
-      <TopBar title="Dumb Charades" sub="Round Result" />
+      <TopBar right={<OptionsMenu onNewGame={onNewGame} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />} />
       <PhaseTrail phases={DC_PHASES} current="Results" accentColor={teamColors[0]} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>
@@ -88,33 +88,12 @@ export function RoundResult({ correct, word, difficulty, teams, teamColors, acti
           </motion.div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <button
-              onClick={onNext}
-              style={{
-                width: "100%", padding: "15px 0", borderRadius: 12, border: "none",
-                background: teamColors[0], color: "#fff", fontSize: 15, fontWeight: 700,
-                cursor: "pointer", fontFamily: "inherit",
-              }}
-            >Next Round →</button>
+            <Btn fullWidth color={teamColors[0]} onClick={onNext} style={{ padding: "15px", borderRadius: 12 }}>
+              Next Round →
+            </Btn>
             <div style={{ display: "flex", gap: 10 }}>
-              <button
-                onClick={onNewGame}
-                style={{
-                  flex: 1, padding: "13px 0", borderRadius: 12,
-                  border: `1.5px solid ${tokens.border}`, background: "transparent",
-                  color: tokens.grey2, fontSize: 14, fontWeight: 600,
-                  cursor: "pointer", fontFamily: "inherit",
-                }}
-              >New Game</button>
-              <button
-                onClick={onEndGame}
-                style={{
-                  flex: 1, padding: "13px 0", borderRadius: 12,
-                  border: `1.5px solid ${tokens.border}`, background: "transparent",
-                  color: tokens.grey2, fontSize: 14, fontWeight: 600,
-                  cursor: "pointer", fontFamily: "inherit",
-                }}
-              >End Game</button>
+              <Btn variant="ghost" fullWidth onClick={onNewGame} style={{ padding: "13px", borderRadius: 12 }}>New Game</Btn>
+              <Btn variant="ghost" fullWidth onClick={onEndGame} style={{ padding: "13px", borderRadius: 12 }}>End Game</Btn>
             </div>
           </div>
         </div>

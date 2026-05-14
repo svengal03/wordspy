@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Btn, Card, Screen, TopBar, tokens } from "./ui";
+import { Btn, Card, NavBtn, OptionsMenu, Screen, TopBar, tokens } from "./ui";
 import { RulesModal } from "./RulesModal";
 import { RevealCover, PhaseTrail } from "@playhub/ui";
 import type { Difficulty } from "@/lib/types";
@@ -38,12 +38,10 @@ export function WordReveal({ actorName, teamName, teamColor, wordOptions, onRead
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
-        title="Dumb Charades"
-        accent={teamColor}
         right={
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => setShowRules(true)} style={{ padding: "6px 12px", borderRadius: 8, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 12, fontWeight: 600, color: tokens.grey1, fontFamily: "inherit" }}>Rules</button>
-            <button onClick={onNewGame} style={{ padding: "6px 12px", borderRadius: 8, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 12, fontWeight: 600, color: tokens.grey2, fontFamily: "inherit" }}>New Game</button>
+            <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+            <OptionsMenu onNewGame={onNewGame} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
           </div>
         }
       />

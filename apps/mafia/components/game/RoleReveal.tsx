@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Btn, tokens, ROLE_META, Card, Screen, TopBar } from "@/components/ui";
+import { Btn, tokens, ROLE_META, Card, Screen, TopBar, OptionsMenu } from "@/components/ui";
 import { RevealCover, PhaseTrail, RevealProgressDots } from "@playhub/ui";
 import { useGame } from "@/lib/store";
 import { MafiaRole } from "@/lib/types";
@@ -18,7 +18,7 @@ const ROLE_DESC: Record<MafiaRole, string> = {
 const PHASES = ["Role Reveal", "Night", "Day", "Vote"];
 
 export default function RoleReveal() {
-  const { game, set } = useGame();
+  const { game, set, reset } = useGame();
   const { players, revealIndex } = game;
   const [revealed, setRevealed] = useState(false);
 
@@ -43,16 +43,21 @@ export default function RoleReveal() {
 
   if (!currentPlayer) return null;
 
+  const homeUrl = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
+
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
         right={
-          <RevealProgressDots
-            total={players.length}
-            current={revealIndex}
-            accentColor={tokens.coral}
-            doneColor={tokens.green}
-          />
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <RevealProgressDots
+              total={players.length}
+              current={revealIndex}
+              accentColor={tokens.coral}
+              doneColor={tokens.green}
+            />
+            <OptionsMenu onNewGame={reset} onExit={() => { window.location.href = homeUrl; }} />
+          </div>
         }
       />
 
@@ -85,25 +90,11 @@ export default function RoleReveal() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <Card style={{
-                  border: `1.5px solid ${meta ? meta.color + "40" : tokens.border}`,
-                  background: meta ? meta.color + "08" : tokens.card,
-                  padding: "32px 28px",
-                }}>
-                  {/* Role emoji + name */}
+                <Card style={{ padding: "32px 28px" }}>
+                  {/* Role name */}
                   <div style={{ textAlign: "center", marginBottom: 24 }}>
-                    <div style={{ fontSize: 56, lineHeight: 1, marginBottom: 12 }}>
-                      {meta?.emoji ?? "❓"}
-                    </div>
-                    <div style={{ fontSize: 34, fontWeight: 800, color: meta?.color ?? tokens.black, marginBottom: 8, letterSpacing: -0.5 }}>
+                    <div style={{ fontSize: 34, fontWeight: 800, color: meta?.color ?? tokens.black, letterSpacing: -0.5 }}>
                       {meta?.label ?? "Unknown"}
-                    </div>
-                    <div style={{
-                      display: "inline-block", padding: "5px 16px", borderRadius: 20,
-                      background: meta ? meta.color + "15" : tokens.border,
-                      color: meta?.color ?? tokens.grey2, fontSize: 13, fontWeight: 600,
-                    }}>
-                      Team: {meta?.team ?? "?"}
                     </div>
                   </div>
 

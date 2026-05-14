@@ -3,13 +3,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CategoryPicker } from "./CategoryPicker";
 import { PlayerNameInput } from "@playhub/ui";
-import { Btn, Card, Screen, TopBar, SectionLabel, tokens } from "./ui";
+import { Btn, Card, NavBtn, OptionsMenu, Screen, TopBar, SectionLabel, tokens } from "./ui";
 import { RulesModal } from "./RulesModal";
 import type { Team } from "@/lib/types";
 import { TIMER_OPTIONS, TEAM_PALETTE_DUMBCHARADES as TEAM_PALETTE } from "@playhub/core";
 
 interface Props {
   onStart: (teams: Team[], timerDuration: number, selectedPackIds: string[]) => void;
+  onNewGame?: () => void;
 }
 
 interface TeamDraft {
@@ -21,12 +22,20 @@ function makeTeam(idx: number): TeamDraft {
   return { name: `Team ${idx + 1}`, players: [""] };
 }
 
-export function SetupScreen({ onStart }: Props) {
+export function SetupScreen({ onStart, onNewGame }: Props) {
   const [teams, setTeams] = useState<TeamDraft[]>([makeTeam(0), makeTeam(1)]);
   const [timerDuration, setTimerDuration] = useState(60);
   const [selectedPackIds, setSelectedPackIds] = useState<string[]>(["bollywood", "tollywood", "south-food", "north-food"]);
   const [showRules, setShowRules] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+
+  function resetForm() {
+    setTeams([makeTeam(0), makeTeam(1)]);
+    setTimerDuration(60);
+    setSelectedPackIds(["bollywood", "tollywood", "south-food", "north-food"]);
+    setStartError(null);
+    onNewGame?.();
+  }
 
   const accent = (idx: number) => TEAM_PALETTE[idx % TEAM_PALETTE.length]!;
 
@@ -77,17 +86,21 @@ export function SetupScreen({ onStart }: Props) {
 
   return (
     <Screen>
-      <TopBar
-        title="Dumb Charades"
-        right={
-          <button
-            onClick={() => setShowRules(true)}
-            style={{ padding: "7px 14px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.grey1, fontFamily: "inherit" }}
-          >Rules</button>
-        }
-      />
+      <TopBar right={
+        <div style={{ display: "flex", gap: 8 }}>
+          <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+          <OptionsMenu onNewGame={resetForm} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
+        </div>
+      } />
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ paddingTop: 8, fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.2, lineHeight: 1.15, marginBottom: 10 }}>
+          Act it out. No words. Just<br />
+          <span style={{ color: tokens.coral }}>dumbcharades</span>.
+        </div>
+        <div style={{ fontSize: 14, color: tokens.grey2, lineHeight: 1.5, marginTop: 6 }}>
+          Mime it, flail it, crack up everyone. No sounds allowed.
+        </div>
 
         {/* Teams */}
         <AnimatePresence>
@@ -95,7 +108,13 @@ export function SetupScreen({ onStart }: Props) {
             <motion.div key={ti} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ delay: ti * 0.04 }}>
               <Card>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: accent(ti), flexShrink: 0 }} />
+                  <span style={{
+                    background: accent(ti) + "18", color: accent(ti),
+                    border: `1px solid ${accent(ti)}40`,
+                    borderRadius: 8, padding: "3px 10px",
+                    fontSize: 11, fontWeight: 700, letterSpacing: 0.4,
+                    flexShrink: 0, whiteSpace: "nowrap" as const,
+                  }}>Team {ti + 1}</span>
                   <input
                     value={team.name}
                     onChange={(e) => updateTeamName(ti, e.target.value)}
@@ -115,6 +134,14 @@ export function SetupScreen({ onStart }: Props) {
                     {team.players.map((p, pi) => (
                       <motion.div key={pi} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }}
                         style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                        <div style={{
+                          width: 28, height: 28, borderRadius: 7,
+                          background: accent(ti) + "20", color: accent(ti),
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 11, fontWeight: 700, flexShrink: 0,
+                        }}>
+                          {p.slice(0, 2).toUpperCase() || String(pi + 1)}
+                        </div>
                         <PlayerNameInput
                           value={p}
                           onChange={(val) => updatePlayer(ti, pi, val)}
@@ -158,7 +185,7 @@ export function SetupScreen({ onStart }: Props) {
                 <button
                   key={t}
                   onClick={() => setTimerDuration(t)}
-                  style={{ flex: 1, padding: "10px 0", borderRadius: 10, fontSize: 14, fontWeight: 600, border: `1.5px solid ${timerDuration === t ? TEAM_PALETTE[0] : tokens.border}`, background: timerDuration === t ? "#FFF3EF" : "transparent", color: timerDuration === t ? TEAM_PALETTE[0] : tokens.grey1, cursor: "pointer", fontFamily: "inherit" }}
+                  style={{ flex: 1, padding: "10px 0", borderRadius: 10, fontSize: 14, fontWeight: 600, border: `1.5px solid ${timerDuration === t ? tokens.coral : tokens.border}`, background: timerDuration === t ? "#FAECE7" : "transparent", color: timerDuration === t ? "#993C1D" : tokens.grey1, cursor: "pointer", fontFamily: "inherit" }}
                 >{t}s</button>
               ))}
             </div>
@@ -168,7 +195,7 @@ export function SetupScreen({ onStart }: Props) {
         {/* Categories */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <Card>
-            <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} accent="#E85D2F" accentBg="#FFF3EF" />
+            <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} />
           </Card>
         </motion.div>
 
@@ -180,6 +207,30 @@ export function SetupScreen({ onStart }: Props) {
         <Btn fullWidth onClick={handleStart} style={{ padding: "16px", fontSize: 16 }}>
           Start Game →
         </Btn>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
+            How it works
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {[
+              { icon: "🎬", title: "Pick your teams and a category", desc: "Split into teams and choose what to act out." },
+              { icon: "🎭", title: "One player acts it out", desc: "No talking, no sounds. Just wild gestures and desperate faces." },
+              { icon: "🏆", title: "Your team guesses the movie, song, or phrase", desc: "Get it right before the timer runs out for points." },
+            ].map((s, i) => (
+              <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 12, background: "#F5F0ED",
+                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
+                }}>{s.icon}</div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{s.title}</div>
+                  <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </Screen>
   );

@@ -1,13 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Card, Btn, tokens, Avatar, RoleBadge } from "@/components/ui";
+import { Card, Btn, tokens, Avatar, RoleBadge, Screen, TopBar, NavBtn, OptionsMenu } from "@/components/ui";
 import { PhaseTrail } from "@playhub/ui";
 import { useGame } from "@/lib/store";
 
 const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote"];
 import { getLiving } from "@/lib/gameEngine";
 import RulesModal from "@/components/game/RulesModal";
+
+const HOME_URL = () => process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
 
 export default function DayScreen() {
   const { game, set, reset } = useGame();
@@ -54,41 +56,29 @@ export default function DayScreen() {
   };
 
   return (
-    <div style={{
-      minHeight: "100dvh", background: tokens.bg,
-      fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
-    }}>
-      {/* Top bar */}
-      <div style={{
-        padding: "14px 20px", borderBottom: `1px solid ${tokens.border}`,
-        background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between",
-        position: "sticky", top: 0, zIndex: 10,
-      }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none" }}>← PlayHub</a>
-          <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black }}>
-            Mafia<span style={{ color: tokens.red }}>.</span>
+    <Screen>
+      <TopBar
+        title={`Day ${round} · Discussion`}
+        right={
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {timerActive ? (
+              <div style={{
+                fontSize: 18, fontWeight: 800, color: timerColor,
+                fontVariantNumeric: "tabular-nums",
+                background: timerColor + "15", padding: "6px 14px", borderRadius: 10,
+              }}>
+                {fmt(timeLeft)}
+              </div>
+            ) : (
+              <Btn variant="secondary" onClick={() => setTimerActive(true)} style={{ padding: "7px 14px", fontSize: 13 }}>
+                Start timer
+              </Btn>
+            )}
+            <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+            <OptionsMenu onNewGame={reset} onExit={() => { window.location.href = HOME_URL(); }} />
           </div>
-          <div style={{ fontSize: 12, color: tokens.grey3 }}>Day {round} · Discussion</div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {timerActive ? (
-            <div style={{
-              fontSize: 18, fontWeight: 800, color: timerColor,
-              fontVariantNumeric: "tabular-nums",
-              background: timerColor + "15", padding: "6px 14px", borderRadius: 10,
-            }}>
-              {fmt(timeLeft)}
-            </div>
-          ) : (
-            <Btn variant="secondary" onClick={() => setTimerActive(true)} style={{ padding: "7px 14px", fontSize: 13 }}>
-              Start timer
-            </Btn>
-          )}
-          <button onClick={() => setShowRules(true)} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.grey1, fontFamily: "inherit" }}>Rules</button>
-          <button onClick={() => { if (window.confirm("Exit to new game?")) reset(); }} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.red, fontFamily: "inherit" }}>Exit</button>
-        </div>
-      </div>
+        }
+      />
 
       <PhaseTrail phases={MAFIA_PHASES} current="Day" accentColor={tokens.coral} />
 
@@ -133,7 +123,7 @@ export default function DayScreen() {
                 <Avatar name={p.name} size={38} />
                 <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: tokens.black }}>{p.name}</div>
                 {p.role === "god" && (
-                  <span style={{ fontSize: 11, fontWeight: 700, color: tokens.yellow }}>⚡ GOD</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: tokens.yellow }}>GOD</span>
                 )}
               </div>
             ))}
@@ -168,6 +158,6 @@ export default function DayScreen() {
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
-    </div>
+    </Screen>
   );
 }

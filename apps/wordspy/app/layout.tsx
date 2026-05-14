@@ -2,12 +2,12 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Wordspy",
+  title: "Wordspy — PlayHub",
   description: "Social deduction word game for 3–10 players. Bollywood, Cricket, Biryani and more.",
   manifest: "/manifest.json",
   icons: { icon: "/favicon.svg" },
   openGraph: {
-    title: "Wordspy",
+    title: "Wordspy — PlayHub",
     description: "Find the Wordspy. A social deduction game with India-themed word packs.",
     type: "website",
   },

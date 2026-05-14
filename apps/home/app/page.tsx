@@ -1,38 +1,36 @@
+const CORAL = "#CC785C";
+
 const games = [
   {
     name: "Wordspy",
+    split: ["wordspy"],
     emoji: "🕵️",
-    description: "Find the undercover before they escape.",
+    description: "Social deduction for 3–10 players. Find the spy before they fool everyone.",
     href: process.env.NEXT_PUBLIC_WORDSPY_URL,
-    accent: "#CC785C",
-    bg: "#FFF8F5",
-    players: "4–10",
+    players: "3–10",
   },
   {
     name: "Mafia",
+    split: ["mafia"],
     emoji: "🔪",
-    description: "Lies, alliances, betrayal. Vote wisely.",
+    description: "Social deduction for 5–15 players. Vote out the Mafia before they take over.",
     href: process.env.NEXT_PUBLIC_MAFIA_URL,
-    accent: "#374151",
-    bg: "#F9FAFB",
     players: "5–15",
   },
   {
-    name: "Dumb Charades",
+    name: "DumbCharades",
+    split: ["dumbcharades"],
     emoji: "🎬",
-    description: "Act it out, no talking. Guess before time runs out.",
+    description: "Mime it, flail it, crack up everyone. No sounds allowed.",
     href: process.env.NEXT_PUBLIC_DUMBCHARADES_URL,
-    accent: "#E85D2F",
-    bg: "#FFF3EF",
     players: "4+",
   },
   {
     name: "Pictionary",
+    split: ["pictionary"],
     emoji: "🎨",
-    description: "Draw it, guess it. No letters, just art.",
+    description: "Draw a masterpiece, watch them guess 'stick figure'. Chaotic artistry.",
     href: process.env.NEXT_PUBLIC_PICITIONARY_URL,
-    accent: "#4A6CF7",
-    bg: "#EEF2FF",
     players: "4+",
   },
 ];
@@ -51,10 +49,17 @@ export default function HomePage() {
       }}
     >
       <header style={{ marginBottom: 32 }}>
-        <div style={{ fontSize: 28, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", lineHeight: 1 }}>
-          PlayHub
+        {/* PlayHub branded logo */}
+        <div style={{ display: "inline-flex", alignItems: "center", marginBottom: 6 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 2.5, marginRight: 6 }}>
+            <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: CORAL }} />
+            <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: CORAL, opacity: 0.55 }} />
+            <span style={{ display: "inline-block", width: 4, height: 4, borderRadius: "50%", background: CORAL, opacity: 0.25 }} />
+          </span>
+          <span style={{ fontSize: 28, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", lineHeight: 1 }}>play</span>
+          <span style={{ fontSize: 28, fontWeight: 800, color: CORAL, letterSpacing: "-0.02em", lineHeight: 1 }}>hub</span>
         </div>
-        <p style={{ margin: "6px 0 0", fontSize: 14, color: "#999", fontWeight: 400 }}>
+        <p style={{ margin: "0", fontSize: 14, color: "#999", fontWeight: 400 }}>
           Party games for groups
         </p>
       </header>
@@ -78,21 +83,22 @@ export default function HomePage() {
           >
             <div style={{
               width: 52, height: 52, borderRadius: 14,
-              background: game.bg, border: `1.5px solid ${game.accent}20`,
+              background: "#FFF8F5", border: `1.5px solid ${CORAL}20`,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 26, marginBottom: 14,
             }}>
               {game.emoji}
             </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", letterSpacing: "-0.01em", marginBottom: 4 }}>
-              {game.name}
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", marginBottom: 4 }}>
+              <span style={{ color: "#1A1A1A" }}>{game.split[0]}</span>
+              <span style={{ color: CORAL }}>{game.split[1]}</span>
             </div>
             <p style={{ margin: "0 0 14px", fontSize: 12, color: "#777", lineHeight: 1.45, fontWeight: 400, flex: 1 }}>
               {game.description}
             </p>
             <span style={{
-              fontSize: 11, fontWeight: 700, color: game.accent,
-              background: game.bg, border: `1px solid ${game.accent}30`,
+              fontSize: 11, fontWeight: 700, color: CORAL,
+              background: "#FAECE7", border: `1px solid ${CORAL}40`,
               borderRadius: 6, padding: "3px 8px", letterSpacing: "0.04em",
               textTransform: "uppercase", alignSelf: "flex-start",
             }}>

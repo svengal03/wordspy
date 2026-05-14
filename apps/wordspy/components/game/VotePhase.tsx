@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
-import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen, OptionsMenu } from "@/components/ui";
+import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen, OptionsMenu, NavBtn } from "@/components/ui";
 import RulesModal from "./RulesModal";
 import { PhaseTrail } from "@playhub/ui";
 
@@ -45,18 +45,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
 
   const topBarRight = (
     <div style={{ display: "flex", gap: 8 }}>
-      <button
-        onClick={() => setShowRules(true)}
-        style={{
-          padding: "7px 14px", borderRadius: 10,
-          border: `1.5px solid ${tokens.border}`,
-          background: tokens.white, cursor: "pointer",
-          fontSize: 13, fontWeight: 600, color: tokens.grey1,
-          fontFamily: "inherit", transition: "all 0.15s",
-        }}
-      >
-        Rules
-      </button>
+      <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
       {onLeave && <OptionsMenu onExit={onLeave} onNewGame={onNewGame} />}
     </div>
   );

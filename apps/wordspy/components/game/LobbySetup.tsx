@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, Btn, SectionLabel, Toggle, tokens, Logo, OptionsMenu, Badge } from "@/components/ui";
+import { Card, Btn, SectionLabel, Toggle, tokens, PlayHubLogo, OptionsMenu, Badge } from "@/components/ui";
 import RulesModal from "./RulesModal";
 import { WORD_PACKS } from "@/lib/wordPacks";
 import { GameConfig, GameState } from "@/lib/types";
@@ -44,7 +44,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
     const link = `${typeof window !== "undefined" ? window.location.origin : ""}/join/${gameState.roomCode}`;
     if (navigator.share) {
       navigator.share({
-        title: "Join my WordSpy game",
+        title: "Join my Wordspy game",
         text: `Use code ${gameState.roomCode}`,
         url: link,
       });
@@ -57,8 +57,8 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
       fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
     }}>
       {/* Top bar */}
-      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${tokens.border}`, background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Logo />
+      <div style={{ position: "sticky", top: 0, zIndex: 50, padding: "14px 20px", borderBottom: "0.5px solid rgba(0,0,0,0.08)", background: "#FAFAF8", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <PlayHubLogo />
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button
             onClick={() => setShowRules(true)}
