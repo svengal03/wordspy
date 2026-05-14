@@ -2,6 +2,10 @@
 import { motion } from "framer-motion";
 import { Card, Screen, TopBar, tokens } from "./ui";
 import type { Difficulty } from "@/lib/types";
+import { DIFFICULTY_LABEL, DIFFICULTY_COLOR } from "@playhub/core";
+import { PhaseTrail } from "@playhub/ui";
+
+const DC_PHASES = ["Word Reveal", "Acting", "Results"];
 
 interface Team {
   name: string;
@@ -10,32 +14,23 @@ interface Team {
   actorIdx: number;
 }
 
-const DIFFICULTY_LABEL: Record<Difficulty, string> = {
-  easy: "Easy",
-  medium: "Medium",
-  hard: "Hard",
-};
-const DIFFICULTY_COLOR: Record<Difficulty, string> = {
-  easy: "#2BB34A",
-  medium: "#F59E0B",
-  hard: "#E84040",
-};
-
 interface Props {
   correct: boolean;
   word: string;
   difficulty: Difficulty | null;
   teams: Team[];
   teamColors: string[];
+  actingTeamName?: string;
   onNext: () => void;
   onEndGame: () => void;
   onNewGame: () => void;
 }
 
-export function RoundResult({ correct, word, difficulty, teams, teamColors, onNext, onEndGame, onNewGame }: Props) {
+export function RoundResult({ correct, word, difficulty, teams, teamColors, actingTeamName, onNext, onEndGame, onNewGame }: Props) {
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar title="Dumb Charades" sub="Round Result" />
+      <PhaseTrail phases={DC_PHASES} current="Results" accentColor={teamColors[0]} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>
         <div style={{ width: "100%", maxWidth: 380 }}>
@@ -52,6 +47,11 @@ export function RoundResult({ correct, word, difficulty, teams, teamColors, onNe
               }}>
                 {correct ? "Correct!" : "Skipped"}
               </div>
+              {correct && actingTeamName && (
+                <div style={{ fontSize: 13, color: tokens.grey2, marginBottom: 6 }}>
+                  <strong style={{ color: tokens.black }}>{actingTeamName}</strong> guessed it
+                </div>
+              )}
               <div style={{ fontSize: 14, color: tokens.grey2, marginBottom: difficulty ? 6 : 0 }}>
                 The word was <strong style={{ color: tokens.black }}>{word}</strong>
               </div>

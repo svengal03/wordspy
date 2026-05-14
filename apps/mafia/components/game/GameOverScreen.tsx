@@ -116,7 +116,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
             Play Again →
           </Btn>
           <div style={{ textAlign: "center" }}>
-            <a href="/" style={{ fontSize: 13, color: tokens.grey3, textDecoration: "none" }}>← PlayHub</a>
+            <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 13, color: tokens.grey3, textDecoration: "none" }}>← PlayHub</a>
           </div>
         </motion.div>
       </div>

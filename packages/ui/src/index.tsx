@@ -151,3 +151,41 @@ export function RevealProgressDots({
     </div>
   );
 }
+
+export { CategoryPicker } from "./CategoryPicker";
+
+// ─── PlayerNameInput ──────────────────────────────────────────────────────────
+export function PlayerNameInput({
+  value,
+  onChange,
+  onKeyDown,
+  placeholder = "Player name…",
+  maxLength = 20,
+  autoFocus,
+  style,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+  placeholder?: string;
+  maxLength?: number;
+  autoFocus?: boolean;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value.replace(/[^a-zA-Z0-9]/g, ""))}
+      onKeyDown={onKeyDown}
+      placeholder={placeholder}
+      maxLength={maxLength}
+      autoFocus={autoFocus}
+      style={{
+        width: "100%", padding: "11px 13px", borderRadius: 10,
+        border: "1.5px solid #F0F0F0", fontSize: 14,
+        fontFamily: "inherit", background: "#FAFAFA", outline: "none",
+        color: "#1A1A1A", boxSizing: "border-box" as const, ...style,
+      }}
+    />
+  );
+}

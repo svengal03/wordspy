@@ -131,12 +131,12 @@ export function Avatar({ name, size = 40, active, eliminated }: { name: string; 
       width: size, height: size, borderRadius: size * 0.28,
       background: active ? tokens.coral : eliminated ? "#F5F5F5" : "#F0EDE9",
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.38, fontWeight: 700,
+      fontSize: size * 0.32, fontWeight: 700,
       color: active ? "#fff" : eliminated ? tokens.grey4 : tokens.grey2,
       flexShrink: 0, opacity: eliminated ? 0.5 : 1,
       border: active ? `2px solid ${tokens.coralLight}` : "2px solid transparent",
     }}>
-      {name[0].toUpperCase()}
+      {name.slice(0, 2).toUpperCase()}
     </div>
   );
 }
@@ -160,8 +160,11 @@ export function TopBar({ title, sub, right }: { title?: string; sub?: string; ri
       background: tokens.white, position: "sticky", top: 0, zIndex: 10,
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>
-          Mafia<span style={{ color: tokens.red }}>.</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: tokens.grey3, textDecoration: "none" }}>← PlayHub</a>
+          <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>
+            Mafia<span style={{ color: tokens.red }}>.</span>
+          </div>
         </div>
         {right}
       </div>

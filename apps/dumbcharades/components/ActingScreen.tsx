@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { tokens } from "./ui";
+import { PhaseTrail } from "@playhub/ui";
+
+const DC_PHASES = ["Word Reveal", "Acting", "Results"];
 
 interface Props {
   timerDuration: number;
@@ -67,6 +70,8 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
           }}>{timeLeft}</div>
         </div>
       </div>
+
+      <PhaseTrail phases={DC_PHASES} current="Acting" accentColor={teamColor} />
 
       {/* Timer bar */}
       <div style={{ height: 3, background: tokens.border }}>

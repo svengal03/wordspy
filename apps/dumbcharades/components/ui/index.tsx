@@ -83,7 +83,7 @@ export function TopBar({ title, sub, right, accent }: { title: string; sub?: str
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <a href="http://localhost:3000" style={{ fontSize: 11, fontWeight: 600, color: tokens.grey3, textDecoration: "none" }}>← PlayHub</a>
+          <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: tokens.grey3, textDecoration: "none" }}>← PlayHub</a>
           <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>
             {title}<span style={{ color: accent ?? tokens.accent }}>.</span>
           </div>

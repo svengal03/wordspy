@@ -1,6 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
 import { Card, Screen, TopBar, tokens } from "./ui";
+import { PhaseTrail } from "@playhub/ui";
+
+const PIC_PHASES = ["Word Reveal", "Drawing", "Results"];
 
 interface Team {
   name: string;
@@ -23,6 +26,7 @@ export function GameOver({ teams, teamColors, onPlayAgain }: Props) {
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar title="Pictionary" sub="Game Over" />
+      <PhaseTrail phases={PIC_PHASES} current="Results" accentColor={teamColors[0]} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
         <div style={{ width: "100%", maxWidth: 380 }}>

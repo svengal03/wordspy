@@ -5,10 +5,8 @@ import { WordReveal } from "@/components/WordReveal";
 import { DrawingCanvas } from "@/components/DrawingCanvas";
 import { RoundResult } from "@/components/RoundResult";
 import { GameOver } from "@/components/GameOver";
-import { WORD_PACKS } from "@/lib/wordPacks";
+import { WORD_PACKS, TEAM_PALETTE_PICTIONARY as TEAM_PALETTE } from "@playhub/core";
 import type { GameState, Team, Difficulty } from "@/lib/types";
-
-const TEAM_PALETTE = ["#4A6CF7", "#E85D2F", "#2BB34A", "#9333EA", "#F59E0B", "#06B6D4"];
 
 function teamColor(idx: number) {
   return TEAM_PALETTE[idx % TEAM_PALETTE.length]!;
@@ -157,8 +155,10 @@ export default function PictionaryPage() {
   if (phase === "drawing" && currentTeam) {
     return (
       <DrawingCanvas
+        key={state.roundNumber}
         timerDuration={timerDuration}
         word={currentWord}
+        difficulty={state.currentDifficulty}
         drawerName={currentDrawer}
         teamColor={color}
         onCorrect={(tl) => handleRoundEnd(true, tl)}
@@ -176,6 +176,7 @@ export default function PictionaryPage() {
         difficulty={lastDifficulty}
         teams={teams}
         teamColors={teams.map((_, i) => teamColor(i))}
+        actingTeamName={currentTeam?.name}
         onNext={handleNextRound}
         onEndGame={handleEndGame}
         onNewGame={handleNewGame}

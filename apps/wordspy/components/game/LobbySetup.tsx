@@ -92,7 +92,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
           <Card>
             <SectionLabel>Room Code — Share this</SectionLabel>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-              <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: 6, color: tokens.coral }}>
+              <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: 4, color: tokens.coral, overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>
                 {gameState.roomCode}
               </div>
               <Btn variant="ghost" onClick={copyCode} style={{ padding: "8px 16px", fontSize: 13 }}>
@@ -128,8 +128,8 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
                     <div style={{
                       width: 36, height: 36, borderRadius: 10, background: "#F0EDE9",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 16, fontWeight: 700, color: tokens.grey2,
-                    }}>{p.name[0].toUpperCase()}</div>
+                      fontSize: 13, fontWeight: 700, color: tokens.grey2,
+                    }}>{p.name.slice(0, 2).toUpperCase()}</div>
                     <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: tokens.black }}>{p.name}</div>
                     {p.isHost && <span style={{ fontSize: 11, color: tokens.coral, fontWeight: 700 }}>HOST</span>}
                     {p.id === localPlayer?.id && <span style={{ fontSize: 11, color: tokens.green, fontWeight: 700 }}>YOU</span>}

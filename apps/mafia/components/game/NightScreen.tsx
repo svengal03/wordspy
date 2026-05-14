@@ -2,7 +2,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Btn, Card, tokens } from "@/components/ui";
+import { PhaseTrail } from "@playhub/ui";
 import { useGame } from "@/lib/store";
+
+const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote"];
 import { Player, NightSubPhase } from "@/lib/types";
 import { getLiving, resolveNight, eliminatePlayer, checkWin } from "@/lib/gameEngine";
 import RulesModal from "@/components/game/RulesModal";
@@ -114,8 +117,10 @@ export default function NightScreen() {
       fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
       display: "flex", flexDirection: "column", padding: "24px 20px", boxSizing: "border-box",
     }}>
+      <PhaseTrail phases={MAFIA_PHASES} current="Night" accentColor={tokens.coral} />
       {/* Top bar */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none", display: "block", marginBottom: 2 }}>← PlayHub</a>
         <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black }}>
           Mafia<span style={{ color: tokens.red }}>.</span>
         </div>
@@ -178,8 +183,8 @@ export default function NightScreen() {
                       <div style={{
                         width: 36, height: 36, borderRadius: 10, background: "#F0EDE9",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 16, fontWeight: 700, color: tokens.grey2,
-                      }}>{p.name[0].toUpperCase()}</div>
+                        fontSize: 13, fontWeight: 700, color: tokens.grey2,
+                      }}>{p.name.slice(0, 2).toUpperCase()}</div>
                       <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black, flex: 1 }}>{p.name}</div>
                       {selectedId === p.id && <span style={{ fontSize: 16, color: info.color }}>✓</span>}
                     </button>

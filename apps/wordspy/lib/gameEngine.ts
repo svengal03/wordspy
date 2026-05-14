@@ -312,7 +312,7 @@ export function processGhostGuess(
   guess: string
 ): GameState {
   const normalizeText = (text: string) =>
-    text.toLowerCase().trim().replace(/\s+/g, " ");
+    text.toLowerCase().trim().replace(/['-]/g, "").replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ");
 
   const civilianWord = normalizeText(state.wordPair?.civilian ?? "");
   const correct = normalizeText(guess) === civilianWord;

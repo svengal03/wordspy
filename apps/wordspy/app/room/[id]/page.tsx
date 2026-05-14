@@ -367,8 +367,8 @@ export default function RoomPage() {
               <div style={{
                 width: 44, height: 44, borderRadius: 12, background: "#FFF8F5",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 18, fontWeight: 700, color: "#CC785C", flexShrink: 0,
-              }}>{p.name[0].toUpperCase()}</div>
+                fontSize: 14, fontWeight: 700, color: "#CC785C", flexShrink: 0,
+              }}>{p.name.slice(0, 2).toUpperCase()}</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: "#1A1A1A" }}>{p.name}</div>
                 <div style={{ fontSize: 13, color: "#888", marginTop: 2 }}>{p.votes} vote{p.votes !== 1 ? "s" : ""}</div>
