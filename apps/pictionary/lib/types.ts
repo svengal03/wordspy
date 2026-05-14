@@ -12,7 +12,8 @@ export interface Team {
   drawerIdx: number;
 }
 
-export type { Difficulty } from "@playhub/core";
+import type { Difficulty } from "@playhub/core";
+export type { Difficulty };
 
 export interface GameState {
   phase: Phase;
