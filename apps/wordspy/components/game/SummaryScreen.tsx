@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
-import { Card, Btn, RoleBadge, tokens, TopBar, Screen, Badge } from "@/components/ui";
+import { Card, Btn, RoleBadge, tokens, TopBar, Screen, Badge, NavBtn } from "@/components/ui";
 import RulesModal from "./RulesModal";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
@@ -37,7 +37,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
 
   function handleHome() {
     reset();
-    window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000";
+    window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
   }
 
   return (
@@ -46,18 +46,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
         title="Game Over"
         sub="Here's how it went"
         right={
-          <button
-            onClick={() => setShowRules(true)}
-            style={{
-              padding: "7px 14px", borderRadius: 10,
-              border: `1.5px solid ${tokens.border}`,
-              background: tokens.white, cursor: "pointer",
-              fontSize: 13, fontWeight: 600, color: tokens.grey1,
-              fontFamily: "inherit", transition: "all 0.15s",
-            }}
-          >
-            Rules
-          </button>
+          <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
         }
       />
       <PhaseTrail phases={PHASES} current="Results" accentColor={tokens.coral} />

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Btn, Card, Toggle, tokens } from "@/components/ui";
+import { Btn, Card, NavBtn, Toggle, tokens, PlayHubLogo, OptionsMenu } from "@/components/ui";
 import { PlayerNameInput } from "@playhub/ui";
 import { useGame } from "@/lib/store";
 import { createPlayer, assignRoles, getMafiaCount } from "@/lib/gameEngine";
@@ -92,6 +92,14 @@ function SetupScreen() {
     });
   }
 
+  function resetSetup() {
+    setHostConfirmed(false);
+    setHostName("");
+    setNames([]);
+    setConfigState({ ...DEFAULT_CONFIG });
+    setError("");
+  }
+
   const count = allNames.length;
   // 1 god always assigned; mafiaCount based on playing players (count - 1)
   const playingCount = Math.max(count - 1, 4);
@@ -107,21 +115,27 @@ function SetupScreen() {
         fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
         display: "flex", flexDirection: "column",
       }}>
-        <div style={{ flex: 1, maxWidth: 480, margin: "0 auto", width: "100%", padding: "0 24px 40px", boxSizing: "border-box" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0 36px" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none" }}>← PlayHub</a>
-              <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>
-                Mafia<span style={{ color: tokens.red }}>.</span>
-              </div>
-            </div>
-            <button onClick={() => setShowRules(true)} style={{ padding: "7px 14px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.grey1, fontFamily: "inherit" }}>Rules</button>
-          </div>
+        {/* Sticky Navbar */}
+      <div style={{
+        position: "sticky", top: 0, zIndex: 50,
+        padding: "14px 20px",
+        background: "#FAFAF8",
+        borderBottom: "0.5px solid rgba(0,0,0,0.08)",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <PlayHubLogo />
+        <div style={{ display: "flex", gap: 8 }}>
+          <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+          <OptionsMenu onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
+        </div>
+      </div>
 
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <div style={{ fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.2, lineHeight: 1.1, marginBottom: 10 }}>
+      <div style={{ flex: 1, maxWidth: 480, margin: "0 auto", width: "100%", padding: "0 24px 40px", boxSizing: "border-box" }}>
+
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ paddingTop: 32, marginBottom: 24 }}>
+            <div style={{ fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.2, lineHeight: 1.15, marginBottom: 10 }}>
               Lies, betrayal,<br />
-              <span style={{ color: tokens.red }}>Mafia.</span>
+              <span style={{ color: tokens.coral }}>mafia</span>.
             </div>
             <div style={{ fontSize: 15, color: tokens.grey2, lineHeight: 1.6, marginBottom: 32, maxWidth: 300 }}>
               Social deduction for 5–15 players. Vote out the Mafia before they take over.
@@ -154,6 +168,30 @@ function SetupScreen() {
               Set Up Game →
             </Btn>
           </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ marginTop: 32 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
+              How it works
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {[
+                { icon: "🎭", title: "Get your role", desc: "Mafia, Civilian, Doctor, or Detective. The God runs the game." },
+                { icon: "🌙", title: "Night falls", desc: "Mafia strikes in secret. Doctor protects. Police investigates." },
+                { icon: "☀️", title: "Day breaks", desc: "Discuss, accuse, and vote them out. Find the Mafia before it's too late." },
+              ].map((s, i) => (
+                <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 12, background: "#F5F0ED",
+                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
+                  }}>{s.icon}</div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{s.title}</div>
+                    <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
         </div>
         <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       </div>
@@ -168,19 +206,17 @@ function SetupScreen() {
     }}>
       {/* Header */}
       <div style={{
-        padding: "18px 20px 16px", borderBottom: `1px solid ${tokens.border}`,
-        background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between",
+        position: "sticky", top: 0, zIndex: 50,
+        padding: "14px 20px",
+        background: "#FAFAF8",
+        borderBottom: "0.5px solid rgba(0,0,0,0.08)",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <button onClick={() => { setHostConfirmed(false); setNames([]); setError(""); }} style={{ fontSize: 11, fontWeight: 600, color: "#AAA", background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", fontFamily: "inherit" }}>← Back</button>
-          <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>
-            Mafia<span style={{ color: tokens.red }}>.</span>
-          </div>
+        <PlayHubLogo />
+        <div style={{ display: "flex", gap: 8 }}>
+          <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+          <OptionsMenu onNewGame={resetSetup} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
         </div>
-        <button
-          onClick={() => setShowRules(true)}
-          style={{ padding: "7px 14px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.grey1, fontFamily: "inherit" }}
-        >Rules</button>
       </div>
 
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -344,9 +380,9 @@ function SetupScreen() {
                   onClick={() => setConfigState((c) => ({ ...c, discussionTimerSeconds: opt.value }))}
                   style={{
                     flex: 1, padding: "10px 0", borderRadius: 10, fontSize: 14, fontWeight: 600,
-                    border: `1.5px solid ${config.discussionTimerSeconds === opt.value ? tokens.red : tokens.border}`,
-                    background: config.discussionTimerSeconds === opt.value ? tokens.redBg : "transparent",
-                    color: config.discussionTimerSeconds === opt.value ? tokens.red : tokens.grey1,
+                    border: `1.5px solid ${config.discussionTimerSeconds === opt.value ? tokens.coral : tokens.border}`,
+                    background: config.discussionTimerSeconds === opt.value ? "#FAECE7" : "transparent",
+                    color: config.discussionTimerSeconds === opt.value ? "#993C1D" : tokens.grey1,
                     cursor: "pointer",
                   }}
                 >{opt.label}</button>
@@ -376,9 +412,9 @@ function SetupScreen() {
                     onClick={() => setConfigState((c) => ({ ...c, votingTimerSeconds: opt.value }))}
                     style={{
                       flex: 1, padding: "10px 0", borderRadius: 10, fontSize: 14, fontWeight: 600,
-                      border: `1.5px solid ${config.votingTimerSeconds === opt.value ? tokens.red : tokens.border}`,
-                      background: config.votingTimerSeconds === opt.value ? tokens.redBg : "transparent",
-                      color: config.votingTimerSeconds === opt.value ? tokens.red : tokens.grey1,
+                      border: `1.5px solid ${config.votingTimerSeconds === opt.value ? tokens.coral : tokens.border}`,
+                      background: config.votingTimerSeconds === opt.value ? "#FAECE7" : "transparent",
+                      color: config.votingTimerSeconds === opt.value ? "#993C1D" : tokens.grey1,
                       cursor: "pointer", fontFamily: "inherit",
                     }}
                   >{opt.label}</button>
@@ -400,9 +436,6 @@ function SetupScreen() {
             : "Start Game →"}
         </Btn>
 
-        <div style={{ textAlign: "center", fontSize: 12, color: tokens.grey4 }}>
-          <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ color: tokens.grey4, textDecoration: "none" }}>← PlayHub</a>
-        </div>
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />

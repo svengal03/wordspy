@@ -63,11 +63,11 @@ export default function RulesModal({ isOpen, onClose }: Props) {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {[
-                  { color: tokens.yellow,  bg: tokens.yellowBg,  label: "⚡ God",      desc: "The moderator. Runs the game, keeps the phone at night. Does not play." },
-                  { color: tokens.red,     bg: tokens.redBg,     label: "🔪 Mafia",    desc: "Hidden killers. Each night secretly eliminate a Villager." },
-                  { color: tokens.green,   bg: tokens.greenBg,   label: "🏘️ Villager", desc: "No special power — use discussion and instincts to find the Mafia." },
-                  { color: tokens.blue,    bg: tokens.blueBg,    label: "💊 Doctor",   desc: "Each night secretly protect one player from elimination." },
-                  { color: tokens.purple,  bg: tokens.purpleBg,  label: "🚔 Police",   desc: "Each night secretly investigate one player to learn if they're Mafia." },
+                  { color: tokens.yellow,  bg: tokens.yellowBg,  label: "God",      desc: "The moderator. Runs the game, keeps the phone at night. Does not play." },
+                  { color: tokens.red,     bg: tokens.redBg,     label: "Mafia",    desc: "Hidden killers. Each night secretly eliminate a Villager." },
+                  { color: tokens.green,   bg: tokens.greenBg,   label: "Villager", desc: "No special power — use discussion and instincts to find the Mafia." },
+                  { color: tokens.blue,    bg: tokens.blueBg,    label: "Doctor",   desc: "Each night secretly protect one player from elimination." },
+                  { color: tokens.purple,  bg: tokens.purpleBg,  label: "Police",   desc: "Each night secretly investigate one player to learn if they're Mafia." },
                 ].map((r) => (
                   <div key={r.label} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                     <span style={{

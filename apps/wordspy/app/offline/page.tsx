@@ -33,20 +33,12 @@ export default function OfflinePage() {
   function handleLeave() {
     if (!window.confirm("Exit game?")) return;
     reset();
-    router.push("/");
+    window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
   }
 
   function handleNewGame() {
-    if (!gameState) return;
-    const fresh = createInitialGameState("OFFLINE", config);
-    setGameState({
-      ...fresh,
-      players: gameState.players.map((p) => ({
-        ...p, role: "civilian" as const, word: null, isEliminated: false,
-        clue: null, votes: 0, hasVoted: false,
-      })),
-    });
-    setRevealIndex(0);
+    reset();
+    router.push("/offline");
   }
 
   function handleNextRound() {
@@ -488,15 +480,8 @@ export default function OfflinePage() {
   // ─── Summary ──────────────────────────────────────────────────────────────
   if (gameState.phase === "summary") {
     const handlePlayAgain = () => {
-      const fresh = createInitialGameState("OFFLINE", config);
-      setGameState({
-        ...fresh,
-        players: gameState.players.map((p) => ({
-          ...p, role: "civilian" as const, word: null, isEliminated: false,
-          clue: null, votes: 0, hasVoted: false,
-        })),
-        currentVoterIndex: 0,
-      });
+      reset();
+      router.push("/offline");
     };
     return <SummaryScreen gameState={gameState} localPlayer={localPlayer} onPlayAgain={handlePlayAgain} />;
   }

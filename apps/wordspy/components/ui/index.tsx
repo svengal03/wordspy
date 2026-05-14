@@ -25,23 +25,32 @@ export const tokens = {
   yellowBg: "#FEF9C3",
 };
 
-// ─── Logo ─────────────────────────────────────────────────────────────────────
+// ─── PlayHub Logo ─────────────────────────────────────────────────────────────
+export function PlayHubLogo() {
+  const homeUrl = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
+  return (
+    <a href={homeUrl} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+      <span style={{ fontSize: 14, color: "#AAA", fontWeight: 500, marginRight: 6 }}>←</span>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 2.5, marginRight: 5 }}>
+        <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#CC785C" }} />
+        <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: "50%", background: "#CC785C", opacity: 0.55 }} />
+        <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: "#CC785C", opacity: 0.25 }} />
+      </span>
+      <span style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", letterSpacing: -0.3 }}>play</span>
+      <span style={{ fontSize: 15, fontWeight: 700, color: "#CC785C", letterSpacing: -0.3 }}>hub</span>
+      <span style={{ fontSize: 14, color: "#CCC", margin: "0 7px", fontWeight: 400 }}>|</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: "#555", letterSpacing: -0.2 }}>Wordspy</span>
+    </a>
+  );
+}
+
+// ─── Logo (legacy — kept for LobbySetup) ─────────────────────────────────────
 export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
-  const s = size === "sm" ? 24 : size === "lg" ? 44 : 32;
-  const fs = size === "sm" ? 12 : size === "lg" ? 22 : 16;
   const textSize = size === "sm" ? 16 : size === "lg" ? 28 : 20;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <div style={{
-        width: s, height: s, borderRadius: s * 0.25,
-        background: `linear-gradient(135deg, ${tokens.coral}, ${tokens.coralLight})`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: fs, fontWeight: 800, color: "#fff", letterSpacing: -1,
-        boxShadow: `0 2px 8px ${tokens.coral}40`,
-      }}>W</div>
-      <span style={{ fontSize: textSize, fontWeight: 700, color: tokens.black, letterSpacing: -0.5 }}>
-        Wordspy
-      </span>
+    <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+      <span style={{ fontSize: textSize, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>word</span>
+      <span style={{ fontSize: textSize, fontWeight: 800, color: tokens.coral, letterSpacing: -0.5 }}>spy</span>
     </div>
   );
 }
@@ -67,13 +76,13 @@ interface BtnProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function Btn({ children, variant = "primary", fullWidth, style, ...props }: BtnProps) {
   const base: React.CSSProperties = {
     display: "inline-flex", alignItems: "center", justifyContent: "center",
-    gap: 8, padding: "13px 24px", borderRadius: 12, fontSize: 15,
+    gap: 8, padding: "13px 24px", borderRadius: 8, fontSize: 15,
     fontWeight: 600, cursor: "pointer", border: "none", fontFamily: "inherit",
     letterSpacing: -0.2, transition: "opacity .15s, transform .1s",
     width: fullWidth ? "100%" : undefined, ...style,
   };
   const variants: Record<string, React.CSSProperties> = {
-    primary: { background: `linear-gradient(135deg, ${tokens.coral}, ${tokens.coralLight})`, color: "#fff", boxShadow: `0 4px 14px ${tokens.coral}40` },
+    primary: { background: tokens.coral, color: "#fff", boxShadow: `0 4px 14px ${tokens.coral}40` },
     ghost: { background: "transparent", color: tokens.grey2, border: `1.5px solid ${tokens.border}` },
     danger: { background: tokens.redBg, color: tokens.red, border: `1.5px solid #FECACA` },
     secondary: { background: "#F5F5F5", color: tokens.black },
@@ -144,34 +153,35 @@ export function Avatar({ name, size = 40, active, eliminated }: { name: string; 
 export function Screen({ children, style }: { children: ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
+      "--brand": "#CC785C",
       minHeight: "100dvh", background: tokens.bg,
       fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
       paddingBottom: 32, ...style,
-    }}>{children}</div>
+    } as React.CSSProperties}>{children}</div>
   );
 }
 
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
-export function TopBar({ title, sub, showLogo = true, right }: { title?: string; sub?: string; showLogo?: boolean; right?: ReactNode }) {
+export function TopBar({ title, sub, right }: { title?: string; sub?: string; showLogo?: boolean; right?: ReactNode }) {
   return (
-    <div style={{
-      padding: "16px 20px 14px", borderBottom: `1px solid ${tokens.border}`,
-      background: tokens.white, position: "sticky", top: 0, zIndex: 10,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: tokens.grey3, textDecoration: "none" }}>← PlayHub</a>
-          {showLogo && <Logo />}
-        </div>
+    <>
+      <div style={{
+        padding: "14px 20px",
+        borderBottom: "0.5px solid rgba(0,0,0,0.08)",
+        background: "#FAFAF8",
+        position: "sticky", top: 0, zIndex: 50,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <PlayHubLogo />
         {right}
       </div>
-      {title && (
-        <div style={{ marginTop: showLogo ? 14 : 0 }}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>{title}</div>
+      {(title || sub) && (
+        <div style={{ padding: "14px 20px 12px", background: "#FAFAF8", borderBottom: "0.5px solid rgba(0,0,0,0.08)" }}>
+          {title && <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>{title}</div>}
           {sub && <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2 }}>{sub}</div>}
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -265,4 +275,22 @@ export function RoleBadge({ role }: { role: "civilian" | "undercover" | "ghost" 
   };
   const { emoji, label, color } = map[role];
   return <Badge color={color}>{emoji} {label}</Badge>;
+}
+
+// ─── Nav Action Button ────────────────────────────────────────────────────────
+export function NavBtn({ children, onClick, danger }: { children: ReactNode; onClick?: () => void; danger?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: "7px 14px", borderRadius: 10,
+        border: `1.5px solid ${danger ? "#FECACA" : "#F0F0F0"}`,
+        background: danger ? "#FEF2F2" : "#fff",
+        cursor: "pointer", fontSize: 13, fontWeight: 600,
+        color: danger ? "#DC2626" : "#555",
+        fontFamily: "inherit", transition: "opacity 0.15s",
+        whiteSpace: "nowrap" as const,
+      }}
+    >{children}</button>
+  );
 }

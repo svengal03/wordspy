@@ -154,6 +154,22 @@ export function RevealProgressDots({
 
 export { CategoryPicker } from "./CategoryPicker";
 
+// ─── PlayHubLogo ──────────────────────────────────────────────────────────────
+export function PlayHubLogo() {
+  const homeUrl = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
+  return (
+    <a href={homeUrl} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 2.5, marginRight: 5 }}>
+        <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#CC785C" }} />
+        <span style={{ display: "inline-block", width: 5.5, height: 5.5, borderRadius: "50%", background: "#CC785C", opacity: 0.55 }} />
+        <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: "#CC785C", opacity: 0.25 }} />
+      </span>
+      <span style={{ fontSize: 16, fontWeight: 700, color: "#1A1A1A", letterSpacing: -0.3 }}>play</span>
+      <span style={{ fontSize: 16, fontWeight: 700, color: "#CC785C", letterSpacing: -0.3 }}>hub</span>
+    </a>
+  );
+}
+
 // ─── PlayerNameInput ──────────────────────────────────────────────────────────
 export function PlayerNameInput({
   value,

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { tokens } from "./ui";
+import { tokens, OptionsMenu, PlayHubLogo } from "./ui";
 import { PhaseTrail } from "@playhub/ui";
 
 const DC_PHASES = ["Word Reveal", "Acting", "Results"];
@@ -45,15 +45,9 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
         padding: "14px 20px", background: tokens.white, borderBottom: `1px solid ${tokens.border}`,
         position: "sticky", top: 0, zIndex: 10,
       }}>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: teamColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>🎬 Acting</div>
-          <div style={{ fontSize: 15, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>{actorName}</div>
-        </div>
+        <PlayHubLogo />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <button
-            onClick={onNewGame}
-            style={{ padding: "5px 10px", borderRadius: 8, border: "1.5px solid #E8E5E1", background: "transparent", color: "#AAA", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
-          >New Game</button>
+          <OptionsMenu onNewGame={onNewGame} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
           <button
             onClick={() => setWordVisible((v) => !v)}
             style={{
@@ -87,6 +81,17 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
           padding: "10px 16px", fontSize: 15, fontWeight: 700,
         }}>{word}</div>
       )}
+
+      {/* Actor info */}
+      <div style={{
+        padding: "8px 20px", background: teamColor + "10",
+        borderBottom: `1px solid ${teamColor}20`,
+        display: "flex", alignItems: "center", gap: 8,
+      }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: teamColor, letterSpacing: 1, textTransform: "uppercase" }}>{teamName}</span>
+        <span style={{ fontSize: 11, color: tokens.grey4 }}>·</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: tokens.black }}>{actorName} is acting</span>
+      </div>
 
       {/* Center */}
       <div style={{

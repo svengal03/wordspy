@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Btn, Card, Logo, tokens } from "@/components/ui";
+import { Btn, Card, PlayHubLogo, NavBtn, tokens } from "@/components/ui";
 import { PlayerNameInput } from "@playhub/ui";
 import RulesModal from "@/components/game/RulesModal";
 import { useGameStore } from "@/lib/store";
@@ -111,34 +111,26 @@ export default function HomeScreen() {
       display: "flex", flexDirection: "column",
       overflowY: "auto",
     }}>
-      <div style={{ flex: 1, maxWidth: 480, margin: "0 auto", width: "100%", padding: "0 24px 40px", boxSizing: "border-box" }}>
+      {/* Sticky Navbar */}
+      <div style={{
+        position: "sticky", top: 0, zIndex: 50,
+        padding: "14px 20px",
+        background: "#FAFAF8",
+        borderBottom: "0.5px solid rgba(0,0,0,0.08)",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <PlayHubLogo />
+        <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+      </div>
 
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0 36px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none", letterSpacing: 0 }}>← PlayHub</a>
-            <Logo />
-          </div>
-          <button
-            onClick={() => setShowRules(true)}
-            style={{
-              padding: "7px 14px", borderRadius: 10,
-              border: `1.5px solid ${tokens.border}`,
-              background: tokens.white, cursor: "pointer",
-              fontSize: 13, fontWeight: 600, color: tokens.grey1,
-              fontFamily: "inherit", transition: "all 0.15s",
-            }}
-          >
-            Rules
-          </button>
-        </div>
+      <div style={{ flex: 1, maxWidth: 480, margin: "0 auto", width: "100%", padding: "0 24px 40px", boxSizing: "border-box" }}>
 
         {mode === null ? (
           <>
-            <motion.div {...fadeUp(0.05)}>
-              <div style={{ fontSize: 40, fontWeight: 800, color: tokens.black, letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 10 }}>
-                Find the<br />
-                <span style={{ color: tokens.coral }}>Mr. Phantom.</span>
+            <motion.div {...fadeUp(0.05)} style={{ paddingTop: 32, marginBottom: 24 }}>
+              <div style={{ fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 10 }}>
+                Words, bluffs, one<br />
+                <span style={{ color: tokens.coral }}>wordspy</span>.
               </div>
               <div style={{ fontSize: 15, color: tokens.grey2, lineHeight: 1.6, marginBottom: 32, maxWidth: 300 }}>
                 Social deduction word game for 3–10 players. Bluff, deduce, expose the infiltrators.
@@ -255,7 +247,7 @@ export default function HomeScreen() {
 
       <div style={{ textAlign: "center", padding: "16px 24px", color: tokens.grey4, fontSize: 12 }}>
         Part of{" "}
-        <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ color: tokens.grey3, fontWeight: 600, textDecoration: "none" }}>
+        <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"} style={{ color: tokens.grey3, fontWeight: 600, textDecoration: "none" }}>
           PlayHub
         </a>{" "}
         · All games, one place

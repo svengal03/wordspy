@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { PhaseTrail } from "@playhub/ui";
+import { OptionsMenu, PlayHubLogo } from "./ui";
 
 const PIC_PHASES = ["Word Reveal", "Drawing", "Results"];
 
@@ -147,17 +148,9 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
           flexShrink: 0,
         }}
       >
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: teamColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>
-            🎨 Drawing{difficulty ? ` · ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}` : ""}
-          </div>
-          <div style={{ fontSize: 15, fontWeight: 800, color: "#1A1A1A", letterSpacing: -0.3 }}>{drawerName}</div>
-        </div>
+        <PlayHubLogo />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <button
-            onClick={onNewGame}
-            style={{ padding: "5px 10px", borderRadius: 8, border: "1.5px solid #E8E5E1", background: "transparent", color: "#AAA", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
-          >New Game</button>
+          <OptionsMenu onNewGame={onNewGame} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
           <button
             onClick={() => setWordVisible((v) => !v)}
             style={{
@@ -173,6 +166,16 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
             fontVariantNumeric: "tabular-nums",
           }}>{timeLeft}</div>
         </div>
+      </div>
+
+      {/* Drawer info */}
+      <div style={{
+        padding: "7px 20px", background: teamColor + "10",
+        borderBottom: `1px solid ${teamColor}20`,
+        display: "flex", alignItems: "center", gap: 8, flexShrink: 0,
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A1A" }}>{drawerName} is drawing</span>
+        {difficulty && <><span style={{ fontSize: 11, color: "#CCC" }}>·</span><span style={{ fontSize: 11, fontWeight: 700, color: teamColor, letterSpacing: 0.5, textTransform: "uppercase" as const }}>{difficulty}</span></>}
       </div>
 
       <PhaseTrail phases={PIC_PHASES} current="Drawing" accentColor={teamColor} />

@@ -6,6 +6,7 @@ interface Props {
   onChange: (ids: string[]) => void;
   accent?: string;
   accentBg?: string;
+  accentText?: string;
 }
 
 const ghostBtn: React.CSSProperties = {
@@ -19,7 +20,7 @@ const ghostBtn: React.CSSProperties = {
   cursor: "pointer",
 };
 
-export function CategoryPicker({ selected, onChange, accent = "#4A6CF7", accentBg = "#EEF2FF" }: Props) {
+export function CategoryPicker({ selected, onChange }: Props) {
   const toggle = (id: string) => {
     if (selected.includes(id)) {
       if (selected.length === 1) return;
@@ -48,9 +49,9 @@ export function CategoryPicker({ selected, onChange, accent = "#4A6CF7", accentB
               style={{
                 padding: "6px 12px",
                 borderRadius: 20,
-                border: active ? `1.5px solid ${accent}` : "1.5px solid #E8E5E1",
-                background: active ? accentBg : "#fff",
-                color: active ? accent : "#666",
+                border: active ? "1.5px solid #CC785C" : "1.5px solid #E8E5E1",
+                background: active ? "#FAECE7" : "#fff",
+                color: active ? "#993C1D" : "#666",
                 fontSize: 13,
                 fontWeight: active ? 600 : 400,
                 cursor: "pointer",

@@ -38,6 +38,25 @@ export const ROLE_META = {
   god: { label: "God", emoji: "⚡", color: tokens.yellow, bg: tokens.yellowBg, team: "Neutral" },
 };
 
+// ─── PlayHub Logo ─────────────────────────────────────────────────────────────
+export function PlayHubLogo() {
+  const homeUrl = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
+  return (
+    <a href={homeUrl} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+      <span style={{ fontSize: 14, color: "#AAA", fontWeight: 500, marginRight: 6 }}>←</span>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 2.5, marginRight: 5 }}>
+        <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#CC785C" }} />
+        <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: "50%", background: "#CC785C", opacity: 0.55 }} />
+        <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: "#CC785C", opacity: 0.25 }} />
+      </span>
+      <span style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", letterSpacing: -0.3 }}>play</span>
+      <span style={{ fontSize: 15, fontWeight: 700, color: "#CC785C", letterSpacing: -0.3 }}>hub</span>
+      <span style={{ fontSize: 14, color: "#CCC", margin: "0 7px", fontWeight: 400 }}>|</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: "#555", letterSpacing: -0.2 }}>Mafia</span>
+    </a>
+  );
+}
+
 // ─── Badge ────────────────────────────────────────────────────────────────────
 export function Badge({ children, color = tokens.coral }: { children: ReactNode; color?: string }) {
   return (
@@ -59,7 +78,7 @@ interface BtnProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function Btn({ children, variant = "primary", fullWidth, style, disabled, ...props }: BtnProps) {
   const base: React.CSSProperties = {
     display: "inline-flex", alignItems: "center", justifyContent: "center",
-    gap: 8, padding: "13px 24px", borderRadius: 12, fontSize: 15,
+    gap: 8, padding: "13px 24px", borderRadius: 8, fontSize: 15,
     fontWeight: 600, cursor: disabled ? "not-allowed" : "pointer",
     border: "none", fontFamily: "inherit",
     letterSpacing: -0.2, transition: "opacity .15s, transform .1s",
@@ -68,7 +87,7 @@ export function Btn({ children, variant = "primary", fullWidth, style, disabled,
     ...style,
   };
   const variants: Record<string, React.CSSProperties> = {
-    primary: { background: `linear-gradient(135deg, ${tokens.coral}, ${tokens.coralLight})`, color: "#fff", boxShadow: `0 4px 14px ${tokens.coral}40` },
+    primary: { background: tokens.coral, color: "#fff", boxShadow: `0 4px 14px ${tokens.coral}40` },
     ghost: { background: "transparent", color: tokens.grey2, border: `1.5px solid ${tokens.border}` },
     danger: { background: tokens.redBg, color: tokens.red, border: `1.5px solid #FECACA` },
     secondary: { background: "#F5F5F5", color: tokens.black },
@@ -155,31 +174,29 @@ export function Screen({ children, style }: { children: ReactNode; style?: React
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 export function TopBar({ title, sub, right }: { title?: string; sub?: string; right?: ReactNode }) {
   return (
-    <div style={{
-      padding: "16px 20px 14px", borderBottom: `1px solid ${tokens.border}`,
-      background: tokens.white, position: "sticky", top: 0, zIndex: 10,
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: tokens.grey3, textDecoration: "none" }}>← PlayHub</a>
-          <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>
-            Mafia<span style={{ color: tokens.red }}>.</span>
-          </div>
-        </div>
+    <>
+      <div style={{
+        padding: "14px 20px",
+        borderBottom: "0.5px solid rgba(0,0,0,0.08)",
+        background: "#FAFAF8",
+        position: "sticky", top: 0, zIndex: 50,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <PlayHubLogo />
         {right}
       </div>
-      {title && (
-        <div style={{ marginTop: 12 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>{title}</div>
+      {(title || sub) && (
+        <div style={{ padding: "14px 20px 12px", background: "#FAFAF8", borderBottom: "0.5px solid rgba(0,0,0,0.08)" }}>
+          {title && <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>{title}</div>}
           {sub && <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2 }}>{sub}</div>}
         </div>
       )}
-    </div>
+    </>
   );
 }
 
 // ─── Options Menu ─────────────────────────────────────────────────────────────
-export function OptionsMenu({ onExit }: { onExit: () => void }) {
+export function OptionsMenu({ onNewGame, onExit }: { onNewGame?: () => void; onExit: () => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ position: "relative" }}>
@@ -202,8 +219,20 @@ export function OptionsMenu({ onExit }: { onExit: () => void }) {
             background: tokens.white, borderRadius: 12,
             border: `1.5px solid ${tokens.border}`,
             boxShadow: "0 4px 20px rgba(0,0,0,.12)",
-            zIndex: 101, minWidth: 140, overflow: "hidden",
+            zIndex: 101, minWidth: 150, overflow: "hidden",
           }}>
+            {onNewGame && (
+              <button
+                onClick={() => { setOpen(false); onNewGame(); }}
+                style={{
+                  display: "block", width: "100%", padding: "12px 16px",
+                  background: "none", border: "none", cursor: "pointer",
+                  fontSize: 14, fontWeight: 600, color: tokens.black,
+                  textAlign: "left", fontFamily: "inherit",
+                  borderBottom: `1px solid ${tokens.border}`,
+                }}
+              >New Game</button>
+            )}
             <button
               onClick={() => { setOpen(false); onExit(); }}
               style={{
@@ -228,5 +257,23 @@ export function Divider() {
 // ─── Role Badge ───────────────────────────────────────────────────────────────
 export function RoleBadge({ role }: { role: "mafia" | "villager" | "doctor" | "police" | "god" }) {
   const meta = ROLE_META[role];
-  return <Badge color={meta.color}>{meta.emoji} {meta.label}</Badge>;
+  return <Badge color={meta.color}>{meta.label}</Badge>;
+}
+
+// ─── Nav Action Button ────────────────────────────────────────────────────────
+export function NavBtn({ children, onClick, danger }: { children: ReactNode; onClick?: () => void; danger?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: "7px 14px", borderRadius: 10,
+        border: `1.5px solid ${danger ? "#FECACA" : "#F0F0F0"}`,
+        background: danger ? "#FEF2F2" : "#fff",
+        cursor: "pointer", fontSize: 13, fontWeight: 600,
+        color: danger ? "#DC2626" : "#555",
+        fontFamily: "inherit", transition: "opacity 0.15s",
+        whiteSpace: "nowrap" as const,
+      }}
+    >{children}</button>
+  );
 }

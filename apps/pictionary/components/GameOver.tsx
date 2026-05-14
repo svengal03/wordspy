@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Card, Screen, TopBar, tokens } from "./ui";
+import { Btn, Card, NavBtn, Screen, TopBar, tokens } from "./ui";
 import { PhaseTrail } from "@playhub/ui";
 
 const PIC_PHASES = ["Word Reveal", "Drawing", "Results"];
@@ -25,7 +25,7 @@ export function GameOver({ teams, teamColors, onPlayAgain }: Props) {
 
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
-      <TopBar title="Pictionary" sub="Game Over" />
+      <TopBar right={<NavBtn onClick={onPlayAgain}>New Game</NavBtn>} />
       <PhaseTrail phases={PIC_PHASES} current="Results" accentColor={teamColors[0]} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 20px" }}>
@@ -71,14 +71,14 @@ export function GameOver({ teams, teamColors, onPlayAgain }: Props) {
             })}
           </div>
 
-          <button
-            onClick={onPlayAgain}
-            style={{
-              width: "100%", padding: "16px 0", borderRadius: 14, border: "none",
-              background: "#4A6CF7", color: "#fff", fontSize: 16, fontWeight: 700,
-              cursor: "pointer", fontFamily: "inherit",
-            }}
-          >Play Again</button>
+          <div style={{ display: "flex", gap: 10 }}>
+            <Btn variant="ghost" fullWidth onClick={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} style={{ padding: "16px" }}>
+              ← PlayHub
+            </Btn>
+            <Btn fullWidth onClick={onPlayAgain} style={{ padding: "16px" }}>
+              Play Again →
+            </Btn>
+          </div>
         </div>
       </div>
     </Screen>
