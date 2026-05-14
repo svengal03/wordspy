@@ -2,16 +2,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CategoryPicker } from "./CategoryPicker";
+import { PlayerNameInput } from "@playhub/ui";
 import { Btn, Card, Screen, TopBar, SectionLabel, tokens } from "./ui";
 import { RulesModal } from "./RulesModal";
 import type { Team } from "@/lib/types";
+import { TIMER_OPTIONS, TEAM_PALETTE_DUMBCHARADES as TEAM_PALETTE } from "@playhub/core";
 
 interface Props {
   onStart: (teams: Team[], timerDuration: number, selectedPackIds: string[]) => void;
 }
-
-const TIMER_OPTIONS = [60, 90, 120];
-const TEAM_PALETTE = ["#E85D2F", "#4A6CF7", "#2BB34A", "#9333EA", "#F59E0B", "#06B6D4"];
 
 interface TeamDraft {
   name: string;
@@ -27,11 +26,12 @@ export function SetupScreen({ onStart }: Props) {
   const [timerDuration, setTimerDuration] = useState(60);
   const [selectedPackIds, setSelectedPackIds] = useState<string[]>(["bollywood", "tollywood", "south-food", "north-food"]);
   const [showRules, setShowRules] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
 
   const accent = (idx: number) => TEAM_PALETTE[idx % TEAM_PALETTE.length]!;
 
   function updateTeamName(ti: number, val: string) {
-    setTeams((prev) => prev.map((t, i) => i === ti ? { ...t, name: val.replace(/[^a-zA-Z\s\d]/g, "") } : t));
+    setTeams((prev) => prev.map((t, i) => i === ti ? { ...t, name: val } : t));
   }
 
   function addPlayer(ti: number) {
@@ -39,8 +39,7 @@ export function SetupScreen({ onStart }: Props) {
   }
 
   function updatePlayer(ti: number, pi: number, val: string) {
-    const cleaned = val.replace(/[^a-zA-Z\s]/g, "");
-    setTeams((prev) => prev.map((t, i) => i === ti ? { ...t, players: t.players.map((p, j) => j === pi ? cleaned : p) } : t));
+    setTeams((prev) => prev.map((t, i) => i === ti ? { ...t, players: t.players.map((p, j) => j === pi ? val : p) } : t));
   }
 
   function removePlayer(ti: number, pi: number) {
@@ -67,6 +66,12 @@ export function SetupScreen({ onStart }: Props) {
       players: t.players.filter(Boolean),
       actorIdx: 0,
     }));
+    const emptyTeam = builtTeams.find((t) => t.players.length === 0);
+    if (emptyTeam) {
+      setStartError(`${emptyTeam.name} has no players — add at least one.`);
+      return;
+    }
+    setStartError(null);
     onStart(builtTeams, timerDuration, selectedPackIds);
   }
 
@@ -110,11 +115,11 @@ export function SetupScreen({ onStart }: Props) {
                     {team.players.map((p, pi) => (
                       <motion.div key={pi} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }}
                         style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input
+                        <PlayerNameInput
                           value={p}
-                          onChange={(e) => updatePlayer(ti, pi, e.target.value)}
-                          style={{ flex: 1, padding: "9px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, fontSize: 13, color: tokens.black, outline: "none", background: "#FAFAFA", fontFamily: "inherit" }}
+                          onChange={(val) => updatePlayer(ti, pi, val)}
                           placeholder={`Player ${pi + 1}`}
+                          style={{ flex: 1 }}
                         />
                         {team.players.length > 1 && (
                           <button
@@ -163,10 +168,15 @@ export function SetupScreen({ onStart }: Props) {
         {/* Categories */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <Card>
-            <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} />
+            <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} accent="#E85D2F" accentBg="#FFF3EF" />
           </Card>
         </motion.div>
 
+        {startError && (
+          <div style={{ padding: "10px 14px", borderRadius: 10, background: "#FFF0EE", border: "1.5px solid #FECACA", fontSize: 13, fontWeight: 600, color: "#E84040" }}>
+            {startError}
+          </div>
+        )}
         <Btn fullWidth onClick={handleStart} style={{ padding: "16px", fontSize: 16 }}>
           Start Game →
         </Btn>

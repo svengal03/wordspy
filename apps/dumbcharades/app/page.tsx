@@ -5,10 +5,8 @@ import { WordReveal } from "@/components/WordReveal";
 import { ActingScreen } from "@/components/ActingScreen";
 import { RoundResult } from "@/components/RoundResult";
 import { GameOver } from "@/components/GameOver";
-import { WORD_PACKS } from "@/lib/wordPacks";
+import { WORD_PACKS, TEAM_PALETTE_DUMBCHARADES as TEAM_PALETTE } from "@playhub/core";
 import type { GameState, Team, Difficulty } from "@/lib/types";
-
-const TEAM_PALETTE = ["#E85D2F", "#4A6CF7", "#2BB34A", "#9333EA", "#F59E0B", "#06B6D4"];
 
 function teamColor(idx: number) {
   return TEAM_PALETTE[idx % TEAM_PALETTE.length]!;
@@ -177,6 +175,7 @@ export default function DumbCharadesPage() {
         difficulty={lastDifficulty}
         teams={teams}
         teamColors={teams.map((_, i) => teamColor(i))}
+        actingTeamName={currentTeam?.name}
         onNext={handleNextRound}
         onEndGame={handleEndGame}
         onNewGame={handleNewGame}

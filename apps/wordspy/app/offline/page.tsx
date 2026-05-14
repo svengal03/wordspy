@@ -138,8 +138,8 @@ export default function OfflinePage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
               {gameState.players.map((p) => (
                 <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F0EDE9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, color: tokens.grey2 }}>
-                    {p.name[0].toUpperCase()}
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "#F0EDE9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: tokens.grey2 }}>
+                    {p.name.slice(0, 2).toUpperCase()}
                   </div>
                   <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: tokens.black }}>{p.name}</div>
                   {p.isHost && <span style={{ fontSize: 11, color: tokens.coral, fontWeight: 700 }}>HOST</span>}
@@ -152,7 +152,7 @@ export default function OfflinePage() {
             <div style={{ display: "flex", gap: 8 }}>
               <input
                 value={newName}
-                onChange={(e) => { setNewName(e.target.value); setNameError(null); }}
+                onChange={(e) => { setNewName(e.target.value.replace(/[^a-zA-Z0-9]/g, "")); setNameError(null); }}
                 onKeyDown={(e) => e.key === "Enter" && addPlayer()}
                 placeholder="Add player name…"
                 maxLength={20}
@@ -347,8 +347,8 @@ export default function OfflinePage() {
                     <div style={{
                       width: 30, height: 30, borderRadius: 8, background: "#F5F5F5",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 13, fontWeight: 700, color: tokens.grey3,
-                    }}>{p.name[0].toUpperCase()}</div>
+                      fontSize: 11, fontWeight: 700, color: tokens.grey3,
+                    }}>{p.name.slice(0, 2).toUpperCase()}</div>
                     <span style={{ fontSize: 14, color: tokens.grey2, textDecoration: "line-through" }}>{p.name}</span>
                   </div>
                 ))}
@@ -470,8 +470,8 @@ export default function OfflinePage() {
                 <div style={{
                   width: 44, height: 44, borderRadius: 12, background: tokens.coralBg,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 18, fontWeight: 700, color: tokens.coral, flexShrink: 0,
-                }}>{p.name[0].toUpperCase()}</div>
+                  fontSize: 14, fontWeight: 700, color: tokens.coral, flexShrink: 0,
+                }}>{p.name.slice(0, 2).toUpperCase()}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: tokens.black }}>{p.name}</div>
                   <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2 }}>{p.votes} vote{p.votes !== 1 ? "s" : ""}</div>

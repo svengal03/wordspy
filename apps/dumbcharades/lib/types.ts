@@ -12,7 +12,7 @@ export interface Team {
   actorIdx: number;
 }
 
-export type Difficulty = "easy" | "medium" | "hard";
+export type { Difficulty } from "@playhub/core";
 
 export interface GameState {
   phase: Phase;

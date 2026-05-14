@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Btn, Card, tokens } from "@/components/ui";
+import { Btn, Card, Logo, tokens } from "@/components/ui";
+import { PlayerNameInput } from "@playhub/ui";
 import RulesModal from "@/components/game/RulesModal";
 import { useGameStore } from "@/lib/store";
 import { createPlayer } from "@/lib/gameEngine";
@@ -115,10 +116,8 @@ export default function HomeScreen() {
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0 36px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <a href="{process.env.NEXT_PUBLIC_HOME_URL}" style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none", letterSpacing: 0 }}>← PlayHub</a>
-            <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>
-              Word<span style={{ color: tokens.coral }}>spy</span>
-            </div>
+            <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none", letterSpacing: 0 }}>← PlayHub</a>
+            <Logo />
           </div>
           <button
             onClick={() => setShowRules(true)}
@@ -221,19 +220,13 @@ export default function HomeScreen() {
               <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
                 Your Name
               </div>
-              <input
+              <PlayerNameInput
                 value={name}
-                onChange={(e) => { setName(e.target.value); setError(""); }}
+                onChange={(val) => { setName(val); setError(""); }}
                 onKeyDown={handleKeyDown}
                 placeholder="e.g. Rahul, Priya…"
-                maxLength={20}
                 autoFocus={mode !== "join"}
-                style={{
-                  width: "100%", padding: "12px 14px", borderRadius: 10,
-                  border: `1.5px solid ${tokens.border}`, fontSize: 15,
-                  fontFamily: "inherit", background: "#FAFAFA", outline: "none",
-                  color: tokens.black, boxSizing: "border-box",
-                }}
+                style={{ fontSize: 15, padding: "12px 14px" }}
               />
             </Card>
 
@@ -262,7 +255,7 @@ export default function HomeScreen() {
 
       <div style={{ textAlign: "center", padding: "16px 24px", color: tokens.grey4, fontSize: 12 }}>
         Part of{" "}
-        <a href="{process.env.NEXT_PUBLIC_HOME_URL}" style={{ color: tokens.grey3, fontWeight: 600, textDecoration: "none" }}>
+        <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ color: tokens.grey3, fontWeight: 600, textDecoration: "none" }}>
           PlayHub
         </a>{" "}
         · All games, one place

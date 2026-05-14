@@ -56,7 +56,7 @@ export function resolveNight(state: GameState): NightResult {
   const savedByDoctor = state.config.doctorEnabled && mafiaTarget === doctorTarget;
   if (savedByDoctor) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: true, policeResult };
   const target = state.players.find((p) => p.id === mafiaTarget);
-  if (!target) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: false, policeResult };
+  if (!target || target.isEliminated) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: false, policeResult };
   return { killedId: target.id, killedName: target.name, killedRole: target.role, savedByDoctor: false, policeResult };
 }
 

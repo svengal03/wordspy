@@ -34,8 +34,7 @@ export interface GameConfig {
   safeRound: boolean;      // no elimination in round 1
   tieBreaker: boolean;     // re-clue and revote on ties
   jurySystem: boolean;     // eliminated players vote in final round
-  clueTimerSeconds: number | null; // null = no timer
-  showVotesLive: boolean;          // show vote counts to everyone during voting
+  showVotesLive: boolean;  // show vote counts to everyone during voting
 }
 
 // ─── Chat Message ─────────────────────────────────────────────────────────────
@@ -95,7 +94,6 @@ export const DEFAULT_CONFIG: GameConfig = {
   safeRound: false,
   tieBreaker: false,
   jurySystem: false,
-  clueTimerSeconds: null,
   showVotesLive: false,
 };
 

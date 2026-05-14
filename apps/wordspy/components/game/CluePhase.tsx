@@ -5,6 +5,9 @@ import { GameState, Player } from "@/lib/types";
 import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen, OptionsMenu } from "@/components/ui";
 import RulesModal from "./RulesModal";
 import ChatPanel from "./ChatPanel";
+import { PhaseTrail } from "@playhub/ui";
+
+const PHASES = ["Word Reveal", "Clue", "Vote", "Results"];
 
 interface Props {
   gameState: GameState;
@@ -23,7 +26,6 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
   const [showChat, setShowChat] = useState(false);
   const [lastReadCount, setLastReadCount] = useState(0);
   const [clueScreenActive, setClueScreenActive] = useState(false);
-  const [wordVisible, setWordVisible] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
@@ -33,10 +35,9 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
   const isSafeRound = gameState.config.safeRound && gameState.round === 1;
   const allClued = activePlayers.every((p) => p.clue !== null);
 
-  // Reset clue screen & word visibility when turn changes
+  // Reset clue screen when turn changes
   useEffect(() => {
     setClueScreenActive(false);
-    setWordVisible(false);
     setClue("");
     setClueError(null);
   }, [gameState.currentCluePlayerIndex]);
@@ -50,7 +51,6 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
       setClue("");
       setClueError(null);
       setClueScreenActive(false);
-      setWordVisible(false);
     }
   }
 
@@ -106,6 +106,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
     return (
       <Screen>
         {topBar}
+        <PhaseTrail phases={PHASES} current="Clue" accentColor={tokens.coral} />
         <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
         <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 
@@ -120,34 +121,23 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
             ← Back
           </button>
 
-          {/* Word card — hidden by default */}
-          <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: tokens.coral, letterSpacing: 1, textTransform: "uppercase" }}>{localPlayer.name}'s word</div>
-                <div style={{
-                  fontSize: 22, fontWeight: 800,
-                  color: wordVisible ? (myPlayer.role === "ghost" ? tokens.grey3 : tokens.black) : tokens.grey3,
-                  marginTop: 2,
-                  letterSpacing: wordVisible ? "normal" : 3,
-                }}>
-                  {wordVisible ? (myPlayer.role === "ghost" ? "  " : myPlayer.word) : "••••••"}
-                </div>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-                <button
-                  onClick={() => setWordVisible(!wordVisible)}
-                  style={{
-                    background: tokens.white, border: `1.5px solid ${tokens.coralBorder}`,
-                    borderRadius: 8, padding: "4px 10px", cursor: "pointer",
-                    fontSize: 12, fontWeight: 600, color: tokens.coral, fontFamily: "inherit",
-                  }}
-                >
-                  {wordVisible ? "Hide" : "Reveal"}
-                </button>
-              </div>
+          {/* Word card */}
+          <div style={{
+            borderRadius: 16,
+            background: myPlayer.role === "ghost" ? "#F5F3FF" : tokens.coralBg,
+            border: `2px solid ${myPlayer.role === "ghost" ? "#DDD6FE" : tokens.coralBorder}`,
+            padding: "20px 24px",
+            textAlign: "center",
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6, color: myPlayer.role === "ghost" ? "#7C3AED" : tokens.coral }}>
+              Your word
             </div>
-          </Card>
+            {myPlayer.role === "ghost" ? (
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#7C3AED" }}>👻 No word — listen and bluff</div>
+            ) : (
+              <div style={{ fontSize: 28, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>{myPlayer.word}</div>
+            )}
+          </div>
 
           {/* Clue input */}
           <motion.div key={currentPlayer?.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -200,20 +190,21 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
   return (
     <Screen>
       {topBar}
+      <PhaseTrail phases={PHASES} current="Clue" accentColor={tokens.coral} />
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
 
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 
-        {/* Round progress */}
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          {Array.from({ length: Math.min(gameState.round, 6) }, (_, i) => (
-            <div key={i} style={{ width: 8, height: 8, borderRadius: 4, background: tokens.coral }} />
-          ))}
-          {gameState.round > 6 && (
-            <div style={{ fontSize: 11, color: tokens.grey3 }}>+{gameState.round - 6}</div>
-          )}
-          <div style={{ fontSize: 12, color: tokens.grey3, marginLeft: 4 }}>Round {gameState.round}</div>
-        </div>
+        {/* Spectator banner for eliminated players */}
+        {myPlayer?.isEliminated && (
+          <div style={{
+            padding: "12px 16px", borderRadius: 12,
+            background: "#F5F5F5", border: "1.5px solid #E0E0E0",
+            textAlign: "center", fontSize: 13, color: tokens.grey2, fontWeight: 500,
+          }}>
+            You've been eliminated — watching as spectator
+          </div>
+        )}
 
         {/* Player clue list */}
         <Card>

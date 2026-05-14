@@ -6,6 +6,9 @@ import { Card, Btn, RoleBadge, tokens, TopBar, Screen, Badge } from "@/component
 import RulesModal from "./RulesModal";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
+import { PhaseTrail } from "@playhub/ui";
+
+const PHASES = ["Word Reveal", "Clue", "Vote", "Results"];
 
 interface Props {
   gameState: GameState;
@@ -34,7 +37,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
 
   function handleHome() {
     reset();
-    router.push("/");
+    window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000";
   }
 
   return (
@@ -57,6 +60,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
           </button>
         }
       />
+      <PhaseTrail phases={PHASES} current="Results" accentColor={tokens.coral} />
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 
@@ -156,7 +160,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
         </motion.div>
 
         <div style={{ display: "flex", gap: 10 }}>
-          <Btn variant="ghost" onClick={handleHome} style={{ flex: 1, padding: "14px" }}>← Home</Btn>
+          <Btn variant="ghost" onClick={handleHome} style={{ flex: 1, padding: "14px" }}>← PlayHub</Btn>
           <Btn onClick={onPlayAgain} style={{ flex: 1, padding: "14px" }}>Play Again →</Btn>
         </div>
       </div>

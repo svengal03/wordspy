@@ -17,17 +17,29 @@ interface Props {
 
 const roleInfo = {
   civilian: {
+    label: "Civilian",
+    color: "#2563EB",
+    bg: "#EDF6FF",
+    border: "#BFDBFE",
     tip: "Give clues that prove you know this word — but stay vague enough that Mr. Phantom can't guess it. Find your allies!",
   },
   undercover: {
+    label: "Undercover",
+    color: "#CC4E00",
+    bg: "#FFF3EE",
+    border: "#FECDB0",
     tip: "Your word is similar but different. Blend in with the Civilians — don't expose yourself too early!",
   },
   ghost: {
+    label: "Mr. Phantom",
+    color: "#7C3AED",
+    bg: "#F5F3FF",
+    border: "#DDD6FE",
     tip: "You have NO word. Listen to everyone's clues to figure out the secret word. If eliminated, guess it correctly to win!",
   },
 };
 
-const PHASES = ["Role Reveal", "Clue", "Vote", "Results"];
+const PHASES = ["Word Reveal", "Clue", "Vote", "Results"];
 
 export default function RoleReveal({ gameState, localPlayer, isOffline, revealIndex, onDone, onLeave, onNewGame }: Props) {
   const [revealed, setRevealed] = useState(false);
@@ -42,7 +54,6 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
-        title="Word Reveal"
         right={
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {isOffline && (
@@ -60,7 +71,7 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
         }
       />
 
-      <PhaseTrail phases={PHASES} current="Role Reveal" accentColor={tokens.coral} />
+      <PhaseTrail phases={PHASES} current="Word Reveal" accentColor={tokens.coral} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 20px" }}>
         <AnimatePresence mode="wait">
@@ -103,27 +114,55 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
               animate={{ opacity: 1, y: 0 }}
               style={{ textAlign: "center", width: "100%", maxWidth: 440 }}
             >
-              {/* Word box */}
-              <div style={{
-                margin: "12px 0 16px",
-                background: "#F5F5F0",
-                border: `1.5px solid ${tokens.border}`,
-                borderRadius: 16,
-                padding: "28px 32px",
-                textAlign: "center",
-                minHeight: 100,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <div style={{
-                  fontSize: 40, fontWeight: 800,
-                  color: currentPlayer.role === "ghost" ? tokens.grey3 : tokens.black,
-                  letterSpacing: -0.8,
+              {/* Role badge */}
+              <div style={{ marginBottom: 12 }}>
+                <span style={{
+                  display: "inline-block",
+                  padding: "4px 14px", borderRadius: 20,
+                  background: roleInfo[currentPlayer.role].bg,
+                  border: `1.5px solid ${roleInfo[currentPlayer.role].border}`,
+                  fontSize: 12, fontWeight: 700,
+                  color: roleInfo[currentPlayer.role].color,
+                  letterSpacing: 0.5,
+                  textTransform: "uppercase",
                 }}>
-                  {currentPlayer.role === "ghost" ? "  " : currentPlayer.word}
-                </div>
+                  {roleInfo[currentPlayer.role].label}
+                </span>
               </div>
 
-              <div style={{ fontSize: 13, color: tokens.grey3, lineHeight: 1.5, marginBottom: 20 }}>
+              {/* Word box */}
+              <div style={{
+                margin: "0 0 16px",
+                background: roleInfo[currentPlayer.role].bg,
+                border: `2px solid ${roleInfo[currentPlayer.role].border}`,
+                borderRadius: 20,
+                padding: "32px 32px",
+                textAlign: "center",
+                minHeight: 100,
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                gap: 6,
+              }}>
+                {currentPlayer.role === "ghost" ? (
+                  <>
+                    <div style={{ fontSize: 32 }}>👻</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: roleInfo.ghost.color }}>No Word</div>
+                  </>
+                ) : (
+                  <div style={{
+                    fontSize: 40, fontWeight: 800,
+                    color: tokens.black,
+                    letterSpacing: -0.8,
+                  }}>
+                    {currentPlayer.word}
+                  </div>
+                )}
+              </div>
+
+              <div style={{
+                fontSize: 13, color: tokens.grey2, lineHeight: 1.6, marginBottom: 20,
+                background: "#FAFAFA", border: `1px solid ${tokens.border}`,
+                borderRadius: 12, padding: "12px 16px", textAlign: "left",
+              }}>
                 {roleInfo[currentPlayer.role].tip}
               </div>
 

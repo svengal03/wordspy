@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { GameState, Player } from "@/lib/types";
 import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen, OptionsMenu } from "@/components/ui";
 import RulesModal from "./RulesModal";
+import { PhaseTrail } from "@playhub/ui";
+
+const PHASES = ["Word Reveal", "Clue", "Vote", "Results"];
 
 interface Props {
   gameState: GameState;
@@ -66,6 +69,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
           sub="Safe round — no elimination this round"
           right={topBarRight}
         />
+        <PhaseTrail phases={PHASES} current="Vote" accentColor={tokens.coral} />
         <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
         <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
           <InfoBox
@@ -91,6 +95,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
         sub={gameState.isTiebreaker ? "⚖️ Tiebreaker — tied players re-clued, vote again!" : "Who do you think is Undercover or Mr. Phantom?"}
         right={topBarRight}
       />
+      <PhaseTrail phases={PHASES} current="Vote" accentColor={tokens.coral} />
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 

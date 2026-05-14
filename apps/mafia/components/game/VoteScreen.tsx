@@ -2,7 +2,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, Btn, tokens, Avatar } from "@/components/ui";
+import { PhaseTrail } from "@playhub/ui";
 import { useGame } from "@/lib/store";
+
+const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote"];
 import { getLiving, eliminatePlayer, checkWin } from "@/lib/gameEngine";
 import RulesModal from "@/components/game/RulesModal";
 
@@ -47,7 +50,8 @@ export default function VoteScreen() {
         padding: "14px 20px", borderBottom: `1px solid ${tokens.border}`,
         background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none" }}>← PlayHub</a>
           <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black }}>
             Mafia<span style={{ color: tokens.red }}>.</span>
           </div>
@@ -67,6 +71,8 @@ export default function VoteScreen() {
           <button onClick={() => { if (window.confirm("Exit to new game?")) reset(); }} style={{ padding: "7px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.red, fontFamily: "inherit" }}>Exit</button>
         </div>
       </div>
+
+      <PhaseTrail phases={MAFIA_PHASES} current="Vote" accentColor={tokens.coral} />
 
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
 

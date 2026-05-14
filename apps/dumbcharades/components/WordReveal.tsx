@@ -39,7 +39,6 @@ export function WordReveal({ actorName, teamName, teamColor, wordOptions, onRead
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
         title="Dumb Charades"
-        sub="Pick a Word"
         accent={teamColor}
         right={
           <div style={{ display: "flex", gap: 8 }}>

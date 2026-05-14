@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@playhub/core": "*",
     "@playhub/ui": "*",
     "clsx": "^2.1.1",
     "framer-motion": "^11.3.0",

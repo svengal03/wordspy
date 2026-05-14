@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Btn, Card, Toggle, tokens } from "@/components/ui";
+import { PlayerNameInput } from "@playhub/ui";
 import { useGame } from "@/lib/store";
 import { createPlayer, assignRoles, getMafiaCount } from "@/lib/gameEngine";
 import { DEFAULT_CONFIG, GameConfig } from "@/lib/types";
@@ -13,7 +14,7 @@ import GameOverScreen from "@/components/game/GameOverScreen";
 import RulesModal from "@/components/game/RulesModal";
 
 export default function MafiaApp() {
-  const { game, set, reset } = useGame();
+  const { game, reset } = useGame();
 
   // ─── Phase switcher ───────────────────────────────────────────────────────
   if (game.phase === "role-reveal") return <RoleReveal />;
@@ -45,7 +46,6 @@ function SetupScreen() {
   function confirmHost() {
     const name = hostName.trim();
     if (!name) return setError("Enter your name");
-    if (!/^[a-zA-Z\s]+$/.test(name)) return setError("Name must contain only letters");
     setHostName(name);
     setHostConfirmed(true);
     setError("");
@@ -54,7 +54,6 @@ function SetupScreen() {
   function addPlayer() {
     const name = input.trim();
     if (!name) return;
-    if (!/^[a-zA-Z\s]+$/.test(name)) return setError("Name must contain only letters");
     if (allNames.length >= 15) return setError("Maximum 15 players");
     if (allNames.some((n) => n.toLowerCase() === name.toLowerCase())) return setError("Name already taken");
     setNames([...names, name]);
@@ -111,7 +110,7 @@ function SetupScreen() {
         <div style={{ flex: 1, maxWidth: 480, margin: "0 auto", width: "100%", padding: "0 24px 40px", boxSizing: "border-box" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0 36px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <a href="{process.env.NEXT_PUBLIC_HOME_URL}" style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none" }}>← PlayHub</a>
+              <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ fontSize: 11, fontWeight: 600, color: "#AAA", textDecoration: "none" }}>← PlayHub</a>
               <div style={{ fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: -0.3 }}>
                 Mafia<span style={{ color: tokens.red }}>.</span>
               </div>
@@ -134,19 +133,13 @@ function SetupScreen() {
               <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
                 Your Name (Host)
               </div>
-              <input
+              <PlayerNameInput
                 value={hostName}
-                onChange={(e) => { setHostName(e.target.value.replace(/[^a-zA-Z\s]/g, "")); setError(""); }}
+                onChange={(val) => { setHostName(val); setError(""); }}
                 onKeyDown={handleKey}
                 placeholder="e.g. Rahul, Priya…"
-                maxLength={20}
                 autoFocus
-                style={{
-                  width: "100%", padding: "12px 14px", borderRadius: 10,
-                  border: `1.5px solid ${tokens.border}`, fontSize: 15,
-                  fontFamily: "inherit", background: "#FAFAFA", outline: "none",
-                  color: tokens.black, boxSizing: "border-box",
-                }}
+                style={{ fontSize: 15, padding: "12px 14px" }}
               />
             </Card>
 
@@ -205,7 +198,7 @@ function SetupScreen() {
                 width: 30, height: 30, borderRadius: 8, background: tokens.redBg,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 13, fontWeight: 700, color: tokens.red, flexShrink: 0,
-              }}>{hostName[0].toUpperCase()}</div>
+              }}>{hostName.slice(0, 2).toUpperCase()}</div>
               <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: tokens.black }}>{hostName}</div>
               <span style={{ fontSize: 11, color: tokens.red, fontWeight: 700 }}>HOST</span>
             </div>
@@ -223,8 +216,8 @@ function SetupScreen() {
                       <div style={{
                         width: 30, height: 30, borderRadius: 8, background: "#F0EDE9",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 13, fontWeight: 700, color: tokens.grey2, flexShrink: 0,
-                      }}>{name[0].toUpperCase()}</div>
+                        fontSize: 11, fontWeight: 700, color: tokens.grey2, flexShrink: 0,
+                      }}>{name.slice(0, 2).toUpperCase()}</div>
                       <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: tokens.black }}>{name}</div>
                       <button
                         onClick={() => removePlayer(i)}
@@ -239,14 +232,13 @@ function SetupScreen() {
             {/* Add player input */}
             {count < 15 && (
               <div style={{ display: "flex", gap: 8 }}>
-                <input
+                <PlayerNameInput
                   value={input}
-                  onChange={(e) => { setInput(e.target.value.replace(/[^a-zA-Z\s]/g, "")); setError(""); }}
+                  onChange={(val) => { setInput(val); setError(""); }}
                   onKeyDown={handleKey}
                   placeholder="Add player…"
-                  maxLength={20}
                   autoFocus
-                  style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, fontSize: 14, fontFamily: "inherit", background: "#FAFAFA", outline: "none", color: tokens.black }}
+                  style={{ flex: 1 }}
                 />
                 <Btn onClick={addPlayer} style={{ padding: "10px 16px", fontSize: 14 }}>Add</Btn>
               </div>
@@ -409,7 +401,7 @@ function SetupScreen() {
         </Btn>
 
         <div style={{ textAlign: "center", fontSize: 12, color: tokens.grey4 }}>
-          <a href="/" style={{ color: tokens.grey4, textDecoration: "none" }}>← PlayHub</a>
+          <a href={process.env.NEXT_PUBLIC_HOME_URL ?? "http://localhost:3000"} style={{ color: tokens.grey4, textDecoration: "none" }}>← PlayHub</a>
         </div>
       </div>
 

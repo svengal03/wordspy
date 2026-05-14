@@ -1,9 +1,13 @@
 "use client";
 import { useRef, useEffect, useState, useCallback } from "react";
+import { PhaseTrail } from "@playhub/ui";
+
+const PIC_PHASES = ["Word Reveal", "Drawing", "Results"];
 
 interface Props {
   timerDuration: number;
   word: string;
+  difficulty?: string;
   drawerName: string;
   teamColor: string;
   onCorrect: (timeLeft: number) => void;
@@ -14,10 +18,11 @@ interface Props {
 const COLORS = ["#1A1A1A", "#E84040", "#4A6CF7", "#2BB34A", "#F59E0B", "#9333EA"];
 const SIZES = [3, 6, 12];
 
-export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCorrect, onSkip, onNewGame }: Props) {
+export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, teamColor, onCorrect, onSkip, onNewGame }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const snapshots = useRef<ImageData[]>([]);
+  const done = useRef(false);
   const [color, setColor] = useState(COLORS[0]);
   const [size, setSize] = useState(SIZES[1]);
   const [eraser, setEraser] = useState(false);
@@ -25,8 +30,10 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
   const [wordVisible, setWordVisible] = useState(false);
 
   useEffect(() => {
+    done.current = false;
     const tick = setInterval(() => {
       setTimeLeft((t) => {
+        if (done.current) return t;
         if (t <= 1) {
           clearInterval(tick);
           onSkip();
@@ -124,6 +131,8 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
         fontFamily: "'DM Sans', sans-serif",
         background: "#FAFAF8",
         overflow: "hidden",
+        paddingLeft: "env(safe-area-inset-left, 0px)",
+        paddingRight: "env(safe-area-inset-right, 0px)",
       }}
     >
       {/* Header */}
@@ -139,7 +148,9 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
         }}
       >
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: teamColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>🎨 Drawing</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: teamColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>
+            🎨 Drawing{difficulty ? ` · ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}` : ""}
+          </div>
           <div style={{ fontSize: 15, fontWeight: 800, color: "#1A1A1A", letterSpacing: -0.3 }}>{drawerName}</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -163,6 +174,8 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
           }}>{timeLeft}</div>
         </div>
       </div>
+
+      <PhaseTrail phases={PIC_PHASES} current="Drawing" accentColor={teamColor} />
 
       {wordVisible && (
         <div
@@ -304,7 +317,7 @@ export function DrawingCanvas({ timerDuration, word, drawerName, teamColor, onCo
             Skip →
           </button>
           <button
-            onClick={() => onCorrect(timeLeft)}
+            onClick={() => { done.current = true; onCorrect(timeLeft); }}
             style={{
               flex: 2,
               padding: "12px 0",
