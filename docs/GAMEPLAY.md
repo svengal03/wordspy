@@ -1,172 +1,141 @@
-# 🎲 Wordspy — Gameplay Guide
+# PlayHub — Gameplay
 
-## The Story
+`GAMEPLAY.md` is the canonical index for all game designs in PlayHub. It defines what games exist, where their full design docs live, and the reading order for understanding or extending the platform.
 
-In a world where identities have been scrambled, players receive secret words to rediscover who they are, find their allies, and expose the infiltrators hiding among them.
-
----
-
-## Roles
-
-### 🎭 Civilian (majority)
-- Receives the **main secret word**
-- All Civilians share the **same word**
-- **Goal:** Find and eliminate all Undercovers and Ghosts before being outnumbered
-
-### 🕵️ Undercover (1–2 players)
-- Receives a word **similar but different** from the Civilians'
-- Must **blend in** — give plausible clues without exposing the difference
-- **Goal:** Survive until only 1 Civilian remains
-
-### 👻 Ghost (0–1 players)
-- Receives **no word at all**
-- Must **improvise** clues by listening carefully to others
-- If eliminated, gets **one last chance** to guess the Civilian word
-- **Goal:** Survive to the end, OR guess the word correctly if eliminated
+Standards for app structure and file layout are owned by `docs/ARCHITECTURE.md`. Per-game design docs own the rules, phases, types, and config for each game.
 
 ---
 
-## Role Counts by Players
+## Reading Order
 
-| Players | Civilians | Undercovers | Ghosts |
-|---|---|---|---|
-| 3 | 2 | 1 | 0 |
-| 4 | 3 | 1 | 0 |
-| 5 | 3 | 1 | 1 |
-| 6 | 4 | 1 | 1 |
-| 7 | 4 | 2 | 1 |
-| 8 | 5 | 2 | 1 |
-| 9 | 6 | 2 | 1 |
-| 10 | 7 | 2 | 1 |
+| Step | Read | Why |
+|---|---|---|
+| 1 | [ARCHITECTURE.md](ARCHITECTURE.md) | Understand the monorepo structure, app patterns, shared packages, and UI conventions |
+| 2 | This file | Know what games exist and where their design docs live |
+| 3 | [gameplay/MAFIA.md](gameplay/MAFIA.md) | Canonical reference for a simple offline pass-phone game |
+| 4 | [gameplay/WORDSPY.md](gameplay/WORDSPY.md) | Reference for the more complex online + offline game |
+| 5 | [NEW_GAME.md](NEW_GAME.md) | Follow when adding a new game to the platform |
 
 ---
 
-## Game Flow
+## Games
 
-### Phase 1 — Setup
-1. Host creates a room and shares the code
-2. Players join on their devices
-3. Host selects a **Word Pack** and configures options
-4. Host starts the game
+### Home
 
-### Phase 2 — Role Reveal
-- Each player privately views their secret word
-- **Online:** Each player taps "Reveal" on their own device
-- **Offline:** Phone is passed around — each player taps to reveal privately
-- Don't show your word to anyone!
-
-### Phase 3 — Clue Phase (each round)
-- Starting from a **randomly selected player**, everyone gives **one clue**
-- A clue is a **single word or short phrase** that describes your secret word
-- Clues must be **truthful** — you cannot lie about your word
-- The Ghost must **improvise** — listen carefully to other clues!
-
-**Clue strategy:**
-- **Civilians:** Be specific enough to find allies, but don't make it obvious to the Ghost
-- **Undercover:** Your word is close — give plausible clues that could work for both words
-- **Ghost:** Listen to everyone, piece together the word, blend in
-
-### Phase 4 — Discussion
-- After all clues are given, players **openly debate**
-- Accuse, defend, question — anything goes
-- Look for inconsistencies in clues
-- Chat is available in online mode
-
-### Phase 5 — Vote
-- Everyone votes for who they think is an infiltrator
-- The player with the **most votes is eliminated**
-- Their role and word are revealed publicly
-
-**When votes are tied:**
-- **Tie Breaker ON:** Tied players each give one more clue, then the whole group votes again (only between the tied players)
-- **Tie Breaker OFF:** The game enters **Host Pick** — the host manually selects which tied player to eliminate
-
-### Phase 6 — Elimination
-- The eliminated player's role is revealed
-- If it's a **Ghost** — they get one chance to guess the Civilian word
-  - Correct guess → **Ghost wins immediately!**
-  - Wrong guess → game continues
-
-### Phase 7 — Repeat
-- Rounds continue until a win condition is met
+PlayHub hub — lists all games with one-tap links to each. No gameplay of its own. Game links are configured via environment variables per deployment (`NEXT_PUBLIC_{GAME}_URL`).
 
 ---
 
-## Win Conditions
+### Wordspy — [Full design doc](gameplay/WORDSPY.md)
 
-| Winner | Condition |
+Social deduction word game for **3–10 players**. Players receive secret roles and a word. Through one-word clues and open debate, Civilians try to find and eliminate the infiltrators before being outnumbered.
+
+| | |
 |---|---|
-| 🏆 **Civilians** | All Undercovers and Ghosts are eliminated |
-| 🕵️ **Undercover** | Only 1 Civilian remains (with at least 1 Undercover alive) |
-| 👻 **Ghost** | Survives to the final 2, OR correctly guesses the Civilian word when eliminated |
+| **Roles** | Civilian · Undercover · Ghost |
+| **Win** | Civilians eliminate all threats · Undercover outlasts civilians · Ghost survives or guesses the word |
+| **Phases** | Lobby → Role Reveal → Clue → Discussion → Vote → Elimination → Summary |
+| **Mode** | Online (multi-device via Pusher) + Offline (pass-the-phone) |
+| **Players** | 3–10 |
 
 ---
 
-## Host Options
+### Mafia — [Full design doc](gameplay/MAFIA.md)
 
-### 🛡️ Safe Round
-- No elimination happens in **Round 1**
-- Players still give clues, but no vote occurs
-- Gives everyone time to settle in and observe
-- **Recommended for:** First-time players, larger groups
+Social deduction role-play for **5–15 players**. A hidden Mafia faction eliminates someone each night. Each day, the group debates and votes to expose them. One player is God (host/narrator) and is never eliminated.
 
-### ⚖️ Tie Breaker
-- When votes are tied, tied players give one more clue
-- Then the group votes again (only between tied players)
-- If **disabled**, ties go to Host Pick instead (host decides)
-- **Recommended for:** Competitive games
-
-### 👨‍⚖️ Jury System
-- Eliminated players become **jury members**
-- In the final round, jury members collectively cast one extra vote
-- Adds drama and gives eliminated players continued involvement
-- **Recommended for:** Larger groups (6+)
+| | |
+|---|---|
+| **Roles** | Mafia · Villager · Doctor (optional) · Police (optional) · God |
+| **Win** | Villagers eliminate all Mafia · Mafia reaches parity with non-Mafia living players |
+| **Phases** | Setup → Role Reveal → Night → Day → Vote → Game Over |
+| **Mode** | Offline only |
+| **Players** | 5–15 |
 
 ---
 
-## Strategy Tips
+### Pictionary — [Full design doc](gameplay/PICTIONARY.md)
 
-### For Civilians
-- **Round 1:** Give a clue that's clear to fellow Civilians but vague to the Ghost
-- Watch for clues that are **too generic** — could indicate a Ghost
-- Watch for clues that are **subtly off** — could indicate an Undercover
-- Build trust with other Civilians through consistent, specific clues
+Team-based drawing and guessing for **4+ players** (2–6 teams). The active drawer picks a secret word from 3 difficulty options and draws it on the phone screen. Teammates guess verbally. Points awarded by difficulty.
 
-### For Undercover
-- **Don't overthink** — your word is close, most clues work for both
-- Give clues at the **same specificity level** as Civilians
-- Vote **convincingly** — accuse others to deflect suspicion
-- Never be the first or last to give a clue in early rounds
-
-### For Ghost
-- **Listen first** — let others give clues and piece together the word
-- Give **generic but plausible** clues (e.g. "food", "round", "popular")
-- Watch who reacts to clues — Civilians confirm each other subtly
-- If eliminated, take your best guess — you've been listening!
+| | |
+|---|---|
+| **Teams** | 2–6, rotating drawer within each team |
+| **Win** | Most points when host ends the game |
+| **Phases** | Setup → Word Reveal → Drawing → Round Result → Game Over |
+| **Mode** | Offline only |
+| **Players** | 4+ |
 
 ---
 
-## Example Round
+### Dumb Charades — [Full design doc](gameplay/DUMBCHARADES.md)
 
-**Word pair:** Civilians = "Dosa" | Undercover = "Uttapam"
+Team-based silent acting and guessing for **4+ players** (2–6 teams). Identical structure to Pictionary — the active player acts silently instead of drawing. No sounds, no mouthing words.
 
-| Player | Role | Clue | Notes |
-|---|---|---|---|
-| Rahul | Civilian | "crispy" | Good for Dosa, bad for Uttapam |
-| Priya | Undercover | "breakfast" | Works for both |
-| Arjun | Ghost | "South Indian" | Very generic — suspicious? |
-| Sneha | Civilian | "thin" | Specific to Dosa |
-| Kiran | Civilian | "fermented batter" | Strong Civilian signal |
-
-Discussion: Arjun's clue was too generic → voted out → Ghost revealed!
+| | |
+|---|---|
+| **Teams** | 2–6, rotating actor within each team |
+| **Win** | Most points when host ends the game |
+| **Phases** | Setup → Word Reveal → Acting → Round Result → Game Over |
+| **Mode** | Offline only |
+| **Players** | 4+ |
 
 ---
 
-## Offline Mode Notes
+## Common Mechanics
 
-In offline (pass-phone) mode:
-- Host adds all players by name before starting
-- Phone is passed face-down for each player's reveal
-- Clue phase: phone is passed to the current player for input
-- Voting: host tallies votes from verbal discussion
-- Chat is disabled (everyone is in the same room!)
+### Pass-the-Phone
+
+All games are designed for same-room play on a single shared phone. No installs for other players — phone is passed face-down for private reveals.
+
+### Word Packs
+
+Shared word content from `@playhub/core`. All packs are available across games.
+
+| Pack ID | Contents |
+|---|---|
+| `bollywood` | Hindi cinema 2000–2025 |
+| `tollywood` | Telugu and Tamil cinema 2000–2025 |
+| `south-food` | South Indian dishes and snacks |
+| `north-food` | North Indian dishes and snacks |
+
+Wordspy uses paired word packs (`{ civilian, undercover }` per entry). Pictionary and Dumb Charades use word lists with difficulty tiers.
+
+### Difficulty Scoring
+
+Used by Pictionary and Dumb Charades. Three tiers per turn — actor/drawer picks one.
+
+| Tier | Color | Points |
+|---|---|---|
+| Easy | Green | Low |
+| Medium | Amber | Standard |
+| Hard | Red | High |
+
+Point values are defined as constants in `@playhub/core`.
+
+---
+
+## Documentation Index
+
+| Doc | Purpose | Owned By |
+|---|---|---|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | App structure, file layout, shared packages, UI conventions | Source of truth |
+| [GAMEPLAY.md](GAMEPLAY.md) | Games index, reading order, shared mechanics | This file |
+| [gameplay/WORDSPY.md](gameplay/WORDSPY.md) | Wordspy rules, phases, config, state types | Wordspy |
+| [gameplay/MAFIA.md](gameplay/MAFIA.md) | Mafia rules, phases, config, state types | Mafia |
+| [gameplay/PICTIONARY.md](gameplay/PICTIONARY.md) | Pictionary rules, phases, config, state types | Pictionary |
+| [gameplay/DUMBCHARADES.md](gameplay/DUMBCHARADES.md) | Dumb Charades rules, phases, config, state types | Dumb Charades |
+| [NEW_GAME.md](NEW_GAME.md) | End-to-end instruction for adding a new game | New game process |
+
+---
+
+## Adding a New Game
+
+See [NEW_GAME.md](NEW_GAME.md) for the complete step-by-step instruction.
+
+When a new game is added:
+1. Create `docs/gameplay/{GAME_NAME}.md` following the template in NEW_GAME.md
+2. Implement the app following `docs/ARCHITECTURE.md`
+3. Register the game in `apps/home`
+4. Add a section to this file under Games
+5. Add a row to the Documentation Index table above
