@@ -102,7 +102,7 @@ function SetupScreen() {
 
   const count = allNames.length;
   // 1 god always assigned; mafiaCount based on playing players (count - 1)
-  const playingCount = Math.max(count - 1, 4);
+  const playingCount = Math.max(count - 1, 0);
   const mafiaCount = getMafiaCount(playingCount);
   const specialCount = (config.doctorEnabled ? 1 : 0) + (config.policeEnabled ? 1 : 0);
   const villagerCount = Math.max(0, playingCount - mafiaCount - specialCount);

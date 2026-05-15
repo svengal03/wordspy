@@ -16,13 +16,14 @@ interface Props {
   onNewGame: () => void;
 }
 
-const COLORS = ["#1A1A1A", "#E84040", "#4A6CF7", "#2BB34A", "#F59E0B", "#9333EA"];
+const COLORS = ["#1A1A1A", "#E84040", "#4A6CF7", "#2BB34A", "#F59E0B", "#9333EA", "#FFFFFF"];
 const SIZES = [3, 6, 12];
 
 export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, teamColor, onCorrect, onSkip, onNewGame }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const snapshots = useRef<ImageData[]>([]);
+  const redoStack = useRef<ImageData[]>([]);
   const done = useRef(false);
   const [color, setColor] = useState(COLORS[0]);
   const [size, setSize] = useState(SIZES[1]);
@@ -36,6 +37,8 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
       setTimeLeft((t) => {
         if (done.current) return t;
         if (t <= 1) {
+          if (done.current) return 0;
+          done.current = true;
           clearInterval(tick);
           onSkip();
           return 0;
@@ -96,7 +99,8 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
     const ctx = getCtx();
     if (canvas && ctx) {
       snapshots.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-      if (snapshots.current.length > 30) snapshots.current.shift();
+      if (snapshots.current.length > 10) snapshots.current.shift();
+      redoStack.current = [];
     }
   };
 
@@ -104,12 +108,22 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
     const canvas = canvasRef.current;
     const ctx = getCtx();
     if (!canvas || !ctx) return;
-    snapshots.current.pop();
+    const top = snapshots.current.pop();
+    if (top) redoStack.current.push(top);
     if (snapshots.current.length > 0) {
       ctx.putImageData(snapshots.current[snapshots.current.length - 1], 0, 0);
     } else {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
+  };
+
+  const handleRedo = () => {
+    const canvas = canvasRef.current;
+    const ctx = getCtx();
+    if (!canvas || !ctx || redoStack.current.length === 0) return;
+    const top = redoStack.current.pop()!;
+    snapshots.current.push(top);
+    ctx.putImageData(top, 0, 0);
   };
 
   const handleClear = () => {
@@ -118,6 +132,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
     if (!canvas || !ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     snapshots.current = [];
+    redoStack.current = [];
   };
 
   const timerPct = timeLeft / timerDuration;
@@ -150,7 +165,6 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
       >
         <PlayHubLogo />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <OptionsMenu onNewGame={onNewGame} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
           <button
             onClick={() => setWordVisible((v) => !v)}
             style={{
@@ -165,6 +179,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
             background: timerColor + "15", padding: "5px 10px", borderRadius: 8,
             fontVariantNumeric: "tabular-nums",
           }}>{timeLeft}</div>
+          <OptionsMenu onNewGame={onNewGame} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
         </div>
       </div>
 
@@ -248,6 +263,8 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
               <button
                 key={c}
                 onClick={() => { setColor(c); setEraser(false); }}
+                aria-label={`Color: ${c === "#1A1A1A" ? "Black" : c === "#E84040" ? "Red" : c === "#4A6CF7" ? "Blue" : c === "#2BB34A" ? "Green" : c === "#F59E0B" ? "Yellow" : c === "#9333EA" ? "Purple" : "White"}`}
+                aria-pressed={color === c && !eraser}
                 style={{
                   width: 24,
                   height: 24,
@@ -255,7 +272,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
                   background: c,
                   border: color === c && !eraser ? "2.5px solid #1A1A1A" : "2px solid transparent",
                   cursor: "pointer",
-                  outline: color === c && !eraser ? "2px solid #fff" : "none",
+                  outline: color === c && !eraser ? "2px solid #fff" : undefined,
                   outlineOffset: "-4px",
                 }}
               />
@@ -266,6 +283,8 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
               <button
                 key={s}
                 onClick={() => setSize(s)}
+                aria-label={`Brush size ${s}`}
+                aria-pressed={size === s}
                 style={{
                   width: s * 2.5 + 10,
                   height: s * 2.5 + 10,
@@ -294,6 +313,11 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
               style={{ padding: "4px 10px", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
               title="Undo"
             >Undo</button>
+            <button
+              onClick={handleRedo}
+              style={{ padding: "4px 10px", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
+              title="Redo"
+            >Redo</button>
             <button
               onClick={handleClear}
               style={{ padding: "4px 10px", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}

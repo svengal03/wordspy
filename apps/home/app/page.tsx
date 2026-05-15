@@ -1,9 +1,12 @@
+"use client";
+import { useState } from "react";
+
 const CORAL = "#CC785C";
 
 const games = [
   {
     name: "Wordspy",
-    split: ["wordspy"],
+    split: ["Word", "spy"],
     emoji: "🕵️",
     description: "Social deduction for 3–10 players. Find the spy before they fool everyone.",
     href: process.env.NEXT_PUBLIC_WORDSPY_URL,
@@ -11,7 +14,7 @@ const games = [
   },
   {
     name: "Mafia",
-    split: ["mafia"],
+    split: ["Ma", "fia"],
     emoji: "🔪",
     description: "Social deduction for 5–15 players. Vote out the Mafia before they take over.",
     href: process.env.NEXT_PUBLIC_MAFIA_URL,
@@ -19,7 +22,7 @@ const games = [
   },
   {
     name: "DumbCharades",
-    split: ["dumbcharades"],
+    split: ["Dumb", " Charades"],
     emoji: "🎬",
     description: "Mime it, flail it, crack up everyone. No sounds allowed.",
     href: process.env.NEXT_PUBLIC_DUMBCHARADES_URL,
@@ -27,7 +30,7 @@ const games = [
   },
   {
     name: "Pictionary",
-    split: ["pictionary"],
+    split: ["Pic", "tionary"],
     emoji: "🎨",
     description: "Draw a masterpiece, watch them guess 'stick figure'. Chaotic artistry.",
     href: process.env.NEXT_PUBLIC_PICITIONARY_URL,
@@ -36,13 +39,15 @@ const games = [
 ];
 
 export default function HomePage() {
+  const [hoveredGame, setHoveredGame] = useState<string | null>(null);
+
   return (
-    <div
+    <main
       style={{
         minHeight: "100dvh",
         background: "#FAFAF8",
         fontFamily: "'DM Sans', sans-serif",
-        padding: "48px 20px 40px",
+        padding: "32px 20px 32px",
         maxWidth: 520,
         margin: "0 auto",
         boxSizing: "border-box",
@@ -69,6 +74,11 @@ export default function HomePage() {
           <a
             key={game.name}
             href={game.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={game.name}
+            onMouseEnter={() => setHoveredGame(game.name)}
+            onMouseLeave={() => setHoveredGame(null)}
             style={{
               display: "flex",
               flexDirection: "column",
@@ -78,6 +88,7 @@ export default function HomePage() {
               padding: "20px 16px",
               textDecoration: "none",
               transition: "box-shadow 0.15s ease",
+              boxShadow: hoveredGame === game.name ? "0 4px 16px rgba(0,0,0,0.10)" : "none",
               boxSizing: "border-box",
             }}
           >
@@ -87,13 +98,13 @@ export default function HomePage() {
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 26, marginBottom: 14,
             }}>
-              {game.emoji}
+              <span aria-hidden="true">{game.emoji}</span>
             </div>
             <div style={{ fontSize: 14, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", marginBottom: 4 }}>
               <span style={{ color: "#1A1A1A" }}>{game.split[0]}</span>
               <span style={{ color: CORAL }}>{game.split[1]}</span>
             </div>
-            <p style={{ margin: "0 0 14px", fontSize: 12, color: "#777", lineHeight: 1.45, fontWeight: 400, flex: 1 }}>
+            <p style={{ margin: "0 0 14px", fontSize: 13, color: "#777", lineHeight: 1.45, fontWeight: 400, flex: 1 }}>
               {game.description}
             </p>
             <span style={{
@@ -109,8 +120,9 @@ export default function HomePage() {
       </div>
 
       <footer style={{
-        marginTop: 40,
+        marginTop: 32,
         paddingTop: 20,
+        paddingBottom: "max(20px, env(safe-area-inset-bottom))",
         borderTop: "1px solid #E8E5E1",
         textAlign: "center",
       }}>
@@ -118,6 +130,6 @@ export default function HomePage() {
           Made in haste, play with a straight face. © R3GUn
         </div>
       </footer>
-    </div>
+    </main>
   );
 }

@@ -14,12 +14,13 @@ interface Props {
 }
 
 interface TeamDraft {
+  id: string;
   name: string;
   players: string[];
 }
 
 function makeTeam(idx: number): TeamDraft {
-  return { name: `Team ${idx + 1}`, players: [""] };
+  return { id: Math.random().toString(36).slice(2), name: `Team ${idx + 1}`, players: [""] };
 }
 
 export function SetupScreen({ onStart, onNewGame }: Props) {
@@ -80,6 +81,10 @@ export function SetupScreen({ onStart, onNewGame }: Props) {
       setStartError(`${emptyTeam.name} has no players — add at least one.`);
       return;
     }
+    if (selectedPackIds.length === 0) {
+      setStartError("Select at least one category.");
+      return;
+    }
     setStartError(null);
     onStart(builtTeams, timerDuration, selectedPackIds);
   }
@@ -105,7 +110,7 @@ export function SetupScreen({ onStart, onNewGame }: Props) {
         {/* Teams */}
         <AnimatePresence>
           {teams.map((team, ti) => (
-            <motion.div key={ti} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ delay: ti * 0.04 }}>
+            <motion.div key={team.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ delay: ti * 0.04 }}>
               <Card>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                   <span style={{

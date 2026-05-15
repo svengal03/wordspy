@@ -10,7 +10,7 @@ import { Player, NightSubPhase } from "@/lib/types";
 import { getLiving, resolveNight, eliminatePlayer, checkWin } from "@/lib/gameEngine";
 import RulesModal from "@/components/game/RulesModal";
 
-const HOME_URL = () => process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
+const HOME_URL = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
 
 export default function NightScreen() {
   const { game, set, reset } = useGame();
@@ -52,11 +52,16 @@ export default function NightScreen() {
 
   function advanceAfterRole(sub: NightSubPhase) {
     if (sub === "mafia-wake") {
-      if (config.doctorEnabled) goToSubPhase("doctor-wake");
-      else if (config.policeEnabled) goToSubPhase("police-wake");
-      else endNight();
+      const doctorAlive = players.some(p => p.role === "doctor" && !p.isEliminated);
+      if (config.doctorEnabled && doctorAlive) goToSubPhase("doctor-wake");
+      else {
+        const policeAlive = players.some(p => p.role === "police" && !p.isEliminated);
+        if (config.policeEnabled && policeAlive) goToSubPhase("police-wake");
+        else endNight();
+      }
     } else if (sub === "doctor-wake") {
-      if (config.policeEnabled) goToSubPhase("police-wake");
+      const policeAlive = players.some(p => p.role === "police" && !p.isEliminated);
+      if (config.policeEnabled && policeAlive) goToSubPhase("police-wake");
       else endNight();
     } else if (sub === "police-wake") {
       endNight();
@@ -69,23 +74,22 @@ export default function NightScreen() {
   }
 
   function endNight() {
-    set({ nightSubPhase: "resolving" });
     const result = resolveNight(game);
     let updatedPlayers = players;
     const history = [...game.eliminationHistory];
     if (result.killedId) {
       updatedPlayers = eliminatePlayer(players, result.killedId);
-      history.push({ round, phase: "night", playerName: result.killedName!, role: result.killedRole! });
+      history.push({ round, phase: "night" as const, playerName: result.killedName!, role: result.killedRole! });
     }
     const winner = checkWin(updatedPlayers);
     set({
+      nightSubPhase: "resolving",
       players: updatedPlayers,
       lastNightResult: result,
       eliminationHistory: history,
       nightActions: { ...nightActions, doctorLastTarget: nightActions.doctorTarget },
       winner,
       phase: winner ? "game-over" : "day",
-      nightSubPhase: "sleeping",
     });
   }
 
@@ -119,7 +123,7 @@ export default function NightScreen() {
         right={
           <div style={{ display: "flex", gap: 8 }}>
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
-            <OptionsMenu onNewGame={reset} onExit={() => { window.location.href = HOME_URL(); }} />
+            <OptionsMenu onNewGame={reset} onExit={() => { window.location.href = HOME_URL; }} />
           </div>
         }
       />
@@ -151,7 +155,7 @@ export default function NightScreen() {
                 </Btn>
               </Card>
               <div style={{ fontSize: 12, color: tokens.grey3, textAlign: "center" }}>
-                Living: {playingLiving.length} · Mafia: {playingLiving.filter(p => p.role === "mafia").length} · Others: {playingLiving.filter(p => p.role !== "mafia").length}
+                Living: {playingLiving.length}
               </div>
             </motion.div>
           )}
@@ -164,7 +168,11 @@ export default function NightScreen() {
                   {info.instruction}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                  {targets.map((p) => (
+                  {targets.length === 0 ? (
+                    <div style={{ fontSize: 14, color: tokens.grey2, textAlign: "center", padding: 16 }}>
+                      No valid targets available.
+                    </div>
+                  ) : targets.map((p) => (
                     <button
                       key={p.id}
                       onClick={() => setSelectedId(p.id)}

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { SetupScreen } from "@/components/SetupScreen";
 import { WordReveal } from "@/components/WordReveal";
 import { DrawingCanvas } from "@/components/DrawingCanvas";
@@ -64,8 +64,26 @@ const defaultState: GameState = {
   lastDifficulty: null,
 };
 
+const SESSION_KEY = "pictionary-game-state";
+
 export default function PictionaryPage() {
-  const [state, setState] = useState<GameState>(defaultState);
+  const [state, setState] = useState<GameState>(() => {
+    if (typeof window === "undefined") return defaultState;
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      return saved ? (JSON.parse(saved) as GameState) : defaultState;
+    } catch {
+      return defaultState;
+    }
+  });
+
+  useEffect(() => {
+    if (state.phase === "setup") {
+      sessionStorage.removeItem(SESSION_KEY);
+    } else {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+    }
+  }, [state]);
 
   const handleStart = useCallback((teams: Team[], timerDuration: number, selectedPackIds: string[]) => {
     const pool = buildWordPool(selectedPackIds);
@@ -104,7 +122,7 @@ export default function PictionaryPage() {
     setState((s) => {
       const nextTeamIdx = (s.currentTeamIdx + 1) % s.teams.length;
       const nextTeam = s.teams[nextTeamIdx]!;
-      const nextDrawerIdx = (nextTeam.drawerIdx + (nextTeamIdx === 0 ? 1 : 0)) % Math.max(nextTeam.players.length, 1);
+      const nextDrawerIdx = (nextTeam.drawerIdx + 1) % Math.max(nextTeam.players.length, 1);
       const updatedTeams = s.teams.map((team, i) =>
         i === nextTeamIdx ? { ...team, drawerIdx: nextDrawerIdx } : team
       );
@@ -152,6 +170,8 @@ export default function PictionaryPage() {
     );
   }
 
+  const handleSkip = useCallback(() => handleRoundEnd(false), [handleRoundEnd]);
+
   if (phase === "drawing" && currentTeam) {
     return (
       <DrawingCanvas
@@ -162,7 +182,7 @@ export default function PictionaryPage() {
         drawerName={currentDrawer}
         teamColor={color}
         onCorrect={(tl) => handleRoundEnd(true, tl)}
-        onSkip={() => handleRoundEnd(false)}
+        onSkip={handleSkip}
         onNewGame={handleNewGame}
       />
     );
@@ -177,6 +197,7 @@ export default function PictionaryPage() {
         teams={teams}
         teamColors={teams.map((_, i) => teamColor(i))}
         actingTeamName={currentTeam?.name}
+        actingTeamIdx={currentTeamIdx}
         onNext={handleNextRound}
         onEndGame={handleEndGame}
         onNewGame={handleNewGame}

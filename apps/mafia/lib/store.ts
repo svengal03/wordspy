@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { GameState, GameConfig, DEFAULT_CONFIG } from "./types";
 
 const INITIAL_STATE: GameState = {
@@ -23,8 +24,15 @@ interface GameStore {
   reset: () => void;
 }
 
-export const useGame = create<GameStore>((setState) => ({
-  game: { ...INITIAL_STATE },
-  set: (partial) => setState((s) => ({ game: { ...s.game, ...partial } })),
-  reset: () => setState({ game: { ...INITIAL_STATE } }),
-}));
+export const useGame = create<GameStore>()(
+  persist(
+    (setState) => ({
+      game: { ...INITIAL_STATE },
+      set: (partial) => setState((s) => ({ game: { ...s.game, ...partial } })),
+      reset: () => setState({ game: { ...INITIAL_STATE } }),
+    }),
+    {
+      name: "mafia-store",
+    }
+  )
+);

@@ -23,6 +23,14 @@ export function GameOver({ teams, teamColors, onPlayAgain }: Props) {
   const tied = sorted[0]!.score === sorted[1]?.score;
   const winner = sorted[0]!;
 
+  const ordinal = (n: number) => {
+    if (n === 0) return "1st place";
+    if (n === 1) return "2nd place";
+    if (n === 2) return "3rd place";
+    const s = ["th", "st", "nd", "rd"], v = (n + 1) % 100;
+    return `${n + 1}${s[(v - 20) % 10] || s[v] || s[0]} place`;
+  };
+
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar right={<NavBtn onClick={onPlayAgain}>New Game</NavBtn>} />
@@ -57,7 +65,7 @@ export function GameOver({ teams, teamColors, onPlayAgain }: Props) {
                   }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: tokens.grey3, marginBottom: 2 }}>
-                        {i === 0 && !tied ? "1st place" : i === 1 ? "2nd place" : "3rd place"}
+                        {i === 0 && tied ? "1st place (tie)" : ordinal(i)}
                       </div>
                       <div style={{ fontSize: 15, fontWeight: 700, color: tokens.black }}>{team.name}</div>
                       <div style={{ fontSize: 12, color: tokens.grey3 }}>{team.players.join(", ")}</div>

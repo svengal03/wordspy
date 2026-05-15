@@ -10,7 +10,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   themeColor: "#FAFAF8",
 };
 
@@ -18,6 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body style={{ margin: 0, padding: 0, background: "#FAFAF8" }}>
+      <body style={{ margin: 0, padding: 0, paddingBottom: "env(safe-area-inset-bottom)", background: "#FAFAF8" }}>
         <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100dvh" }}>
           {children}
         </div>

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { tokens, OptionsMenu, PlayHubLogo } from "./ui";
 import { PhaseTrail } from "@playhub/ui";
 
@@ -19,11 +19,22 @@ interface Props {
 export function ActingScreen({ timerDuration, word, actorName, teamName, teamColor, onCorrect, onSkip, onNewGame }: Props) {
   const [timeLeft, setTimeLeft] = useState(timerDuration);
   const [wordVisible, setWordVisible] = useState(false);
+  const fired = useRef(false);
+
+  useEffect(() => {
+    fired.current = false;
+  }, [word]);
 
   useEffect(() => {
     const tick = setInterval(() => {
       setTimeLeft((t) => {
-        if (t <= 1) { clearInterval(tick); onSkip(); return 0; }
+        if (t <= 1) {
+          if (fired.current) return 0;
+          fired.current = true;
+          clearInterval(tick);
+          onSkip();
+          return 0;
+        }
         return t - 1;
       });
     }, 1000);
@@ -129,7 +140,7 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
           }}
         >Correct ✓</button>
         <button
-          onClick={onSkip}
+          onClick={() => { if (!fired.current) { fired.current = true; onSkip(); } }}
           style={{
             width: "100%", padding: "14px 0", borderRadius: 14,
             border: `1.5px solid ${tokens.border}`, background: tokens.white,
