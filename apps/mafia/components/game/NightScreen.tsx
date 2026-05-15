@@ -120,6 +120,7 @@ export default function NightScreen() {
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
+        appName="Mafia"
         right={
           <div style={{ display: "flex", gap: 8 }}>
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>

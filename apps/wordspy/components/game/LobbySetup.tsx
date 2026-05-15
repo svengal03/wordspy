@@ -58,7 +58,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
     }}>
       {/* Top bar */}
       <div style={{ position: "sticky", top: 0, zIndex: 50, padding: "14px 20px", borderBottom: "0.5px solid rgba(0,0,0,0.08)", background: "#FAFAF8", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <PlayHubLogo />
+        <PlayHubLogo appName="Wordspy" />
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button
             onClick={() => setShowRules(true)}

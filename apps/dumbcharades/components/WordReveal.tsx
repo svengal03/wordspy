@@ -38,6 +38,7 @@ export function WordReveal({ actorName, teamName, teamColor, wordOptions, onRead
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
+        appName="Dumb Charades"
         right={
           <div style={{ display: "flex", gap: 8 }}>
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>

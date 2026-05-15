@@ -123,7 +123,7 @@ function SetupScreen() {
         borderBottom: "0.5px solid rgba(0,0,0,0.08)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <PlayHubLogo />
+        <PlayHubLogo appName="Mafia" />
         <div style={{ display: "flex", gap: 8 }}>
           <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
           <OptionsMenu onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
@@ -212,7 +212,7 @@ function SetupScreen() {
         borderBottom: "0.5px solid rgba(0,0,0,0.08)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <PlayHubLogo />
+        <PlayHubLogo appName="Mafia" />
         <div style={{ display: "flex", gap: 8 }}>
           <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
           <OptionsMenu onNewGame={resetSetup} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />

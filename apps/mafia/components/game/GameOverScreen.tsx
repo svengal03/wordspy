@@ -14,6 +14,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
   return (
     <Screen>
       <TopBar
+        appName="Mafia"
         right={<NavBtn onClick={onPlayAgain}>New Game</NavBtn>}
       />
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto" }}>

@@ -31,8 +31,8 @@ function buildWordPool(packIds: string[]): string[] {
   for (const pack of WORD_PACKS) {
     if (packIds.includes(pack.id)) {
       for (const pair of pack.pairs) {
-        words.push(pair.civilian);
-        words.push(pair.undercover);
+        words.push(pair.word1);
+        words.push(pair.word2);
       }
     }
   }
@@ -45,6 +45,8 @@ function buildWordPool(packIds: string[]): string[] {
 
 function pickThree(pool: string[], fallback: string[]): { options: [string, string, string]; remaining: string[] } {
   let p = pool.length >= 3 ? pool : [...pool, ...buildWordPool(fallback)];
+  // degenerate guard: if pack is tiny, cycle words rather than crash
+  while (p.length < 3) p = [...p, ...p];
   const options: [string, string, string] = [p[0]!, p[1]!, p[2]!];
   return { options, remaining: p.slice(3) };
 }
@@ -150,6 +152,8 @@ export default function PictionaryPage() {
     setState(defaultState);
   }, []);
 
+  const handleSkip = useCallback(() => handleRoundEnd(false), [handleRoundEnd]);
+
   const { phase, teams, currentTeamIdx, timerDuration, currentWord, wordOptions, lastRoundCorrect, lastDifficulty } = state;
   const currentTeam = teams[currentTeamIdx];
   const currentDrawer = currentTeam?.players[currentTeam.drawerIdx] ?? "Drawer";
@@ -169,8 +173,6 @@ export default function PictionaryPage() {
       />
     );
   }
-
-  const handleSkip = useCallback(() => handleRoundEnd(false), [handleRoundEnd]);
 
   if (phase === "drawing" && currentTeam) {
     return (
@@ -196,6 +198,8 @@ export default function PictionaryPage() {
         difficulty={lastDifficulty}
         teams={teams}
         teamColors={teams.map((_, i) => teamColor(i))}
+        phases={["Word Reveal", "Drawing", "Results"]}
+        appName="Pictionary"
         actingTeamName={currentTeam?.name}
         actingTeamIdx={currentTeamIdx}
         onNext={handleNextRound}
@@ -210,6 +214,8 @@ export default function PictionaryPage() {
       <GameOver
         teams={teams}
         teamColors={teams.map((_, i) => teamColor(i))}
+        phases={["Word Reveal", "Drawing", "Results"]}
+        appName="Pictionary"
         onPlayAgain={handleNewGame}
       />
     );

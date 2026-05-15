@@ -54,6 +54,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
     return (
       <Screen style={{ background: tokens.greenBg }}>
         <TopBar
+          appName="Wordspy"
           title={`Vote Phase — Round ${gameState.round}`}
           sub="Safe round — no elimination this round"
           right={topBarRight}
@@ -80,6 +81,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
   return (
     <Screen>
       <TopBar
+        appName="Wordspy"
         title={`Vote Phase — Round ${gameState.round}`}
         sub={gameState.isTiebreaker ? "⚖️ Tiebreaker — tied players re-clued, vote again!" : "Who do you think is Undercover or Mr. Phantom?"}
         right={topBarRight}

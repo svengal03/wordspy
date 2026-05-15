@@ -26,14 +26,14 @@ function makeTeam(idx: number): TeamDraft {
 export function SetupScreen({ onStart, onNewGame }: Props) {
   const [teams, setTeams] = useState<TeamDraft[]>([makeTeam(0), makeTeam(1)]);
   const [timerDuration, setTimerDuration] = useState(60);
-  const [selectedPackIds, setSelectedPackIds] = useState<string[]>(["bollywood", "tollywood", "south-food", "north-food"]);
+  const [selectedPackIds, setSelectedPackIds] = useState<string[]>(["bollywood", "tollywood", "bollywood-songs", "tollywood-songs"]);
   const [showRules, setShowRules] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
   function resetForm() {
     setTeams([makeTeam(0), makeTeam(1)]);
     setTimerDuration(60);
-    setSelectedPackIds(["bollywood", "tollywood", "south-food", "north-food"]);
+    setSelectedPackIds(["bollywood", "tollywood", "bollywood-songs", "tollywood-songs"]);
     setStartError(null);
     onNewGame?.();
   }
@@ -91,7 +91,7 @@ export function SetupScreen({ onStart, onNewGame }: Props) {
 
   return (
     <Screen>
-      <TopBar right={
+      <TopBar appName="Dumb Charades" right={
         <div style={{ display: "flex", gap: 8 }}>
           <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
           <OptionsMenu onNewGame={resetForm} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
@@ -200,7 +200,7 @@ export function SetupScreen({ onStart, onNewGame }: Props) {
         {/* Categories */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <Card>
-            <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} />
+            <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} game="dumbcharades" />
           </Card>
         </motion.div>
 
