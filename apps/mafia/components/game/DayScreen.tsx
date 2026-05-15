@@ -9,7 +9,7 @@ const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote"];
 import { getLiving } from "@/lib/gameEngine";
 import RulesModal from "@/components/game/RulesModal";
 
-const HOME_URL = () => process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
+const HOME_URL = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
 
 export default function DayScreen() {
   const { game, set, reset } = useGame();
@@ -75,7 +75,7 @@ export default function DayScreen() {
               </Btn>
             )}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
-            <OptionsMenu onNewGame={reset} onExit={() => { window.location.href = HOME_URL(); }} />
+            <OptionsMenu onNewGame={reset} onExit={() => { window.location.href = HOME_URL; }} />
           </div>
         }
       />

@@ -20,8 +20,15 @@ interface Props {
 
 export function GameOver({ teams, teamColors, onPlayAgain }: Props) {
   const sorted = [...teams].sort((a, b) => b.score - a.score);
-  const tied = sorted[0]!.score === sorted[1]?.score;
+  const topScore = sorted[0]!.score;
+  const tied = sorted.filter(t => t.score === topScore).length > 1;
   const winner = sorted[0]!;
+
+  const ordinal = (n: number) => {
+    if (tied && n === 0) return "Tied";
+    const s = ["th", "st", "nd", "rd"], v = (n + 1) % 100;
+    return `${n + 1}${s[(v - 20) % 10] || s[v] || s[0]} place`;
+  };
 
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
@@ -57,7 +64,7 @@ export function GameOver({ teams, teamColors, onPlayAgain }: Props) {
                   }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: tokens.grey3, marginBottom: 2 }}>
-                        {i === 0 && !tied ? "1st place" : i === 1 ? "2nd place" : "3rd place"}
+                        {ordinal(i)}
                       </div>
                       <div style={{ fontSize: 15, fontWeight: 700, color: tokens.black }}>{team.name}</div>
                       <div style={{ fontSize: 12, color: tokens.grey3 }}>{team.players.join(", ")}</div>

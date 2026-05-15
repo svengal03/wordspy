@@ -80,6 +80,10 @@ export function SetupScreen({ onStart, onNewGame }: Props) {
       setStartError(`${emptyTeam.name} has no players — add at least one.`);
       return;
     }
+    if (selectedPackIds.length === 0) {
+      setStartError("Pick at least one word pack to play.");
+      return;
+    }
     setStartError(null);
     onStart(builtTeams, timerDuration, selectedPackIds);
   }
@@ -216,7 +220,7 @@ export function SetupScreen({ onStart, onNewGame }: Props) {
             {[
               { icon: "🖌️", title: "Pick your teams and a category", desc: "Split into teams and pick what to draw from." },
               { icon: "✏️", title: "One player draws, no letters allowed", desc: "Shapes, arrows, stick figures — anything except actual words." },
-              { icon: "⏱️", title: "Your team guesses before the timer runs out", desc: "First team to guess right gets the points." },
+              { icon: "⏱️", title: "Your team guesses before the timer runs out", desc: "Your team guesses — get it right before the timer runs out for points." },
             ].map((s, i) => (
               <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
                 <div style={{

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { SetupScreen } from "@/components/SetupScreen";
 import { WordReveal } from "@/components/WordReveal";
 import { ActingScreen } from "@/components/ActingScreen";
@@ -31,8 +31,7 @@ function buildWordPool(packIds: string[]): string[] {
   for (const pack of WORD_PACKS) {
     if (packIds.includes(pack.id)) {
       for (const pair of pack.pairs) {
-        words.push(pair.civilian);
-        words.push(pair.undercover);
+        words.push(Math.random() < 0.5 ? pair.civilian : pair.undercover);
       }
     }
   }
@@ -64,11 +63,30 @@ const defaultState: GameState = {
   lastDifficulty: null,
 };
 
+const SESSION_KEY = "dc-game-state";
+
 export default function DumbCharadesPage() {
-  const [state, setState] = useState<GameState>(defaultState);
+  const [state, setState] = useState<GameState>(() => {
+    if (typeof window === "undefined") return defaultState;
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      return saved ? (JSON.parse(saved) as GameState) : defaultState;
+    } catch {
+      return defaultState;
+    }
+  });
+
+  useEffect(() => {
+    if (state.phase === "setup") {
+      sessionStorage.removeItem(SESSION_KEY);
+    } else {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
+    }
+  }, [state]);
 
   const handleStart = useCallback((teams: Team[], timerDuration: number, selectedPackIds: string[]) => {
     const pool = buildWordPool(selectedPackIds);
+    if (pool.length === 0) return;
     const { options, remaining } = pickThree(pool, selectedPackIds);
     setState({
       phase: "word-reveal",
@@ -104,7 +122,7 @@ export default function DumbCharadesPage() {
     setState((s) => {
       const nextTeamIdx = (s.currentTeamIdx + 1) % s.teams.length;
       const nextTeam = s.teams[nextTeamIdx]!;
-      const nextActorIdx = (nextTeam.actorIdx + (nextTeamIdx === 0 ? 1 : 0)) % Math.max(nextTeam.players.length, 1);
+      const nextActorIdx = (nextTeam.actorIdx + 1) % Math.max(nextTeam.players.length, 1);
       const updatedTeams = s.teams.map((team, i) =>
         i === nextTeamIdx ? { ...team, actorIdx: nextActorIdx } : team
       );
@@ -176,6 +194,7 @@ export default function DumbCharadesPage() {
         teams={teams}
         teamColors={teams.map((_, i) => teamColor(i))}
         actingTeamName={currentTeam?.name}
+        actingTeamIdx={currentTeamIdx}
         onNext={handleNextRound}
         onEndGame={handleEndGame}
         onNewGame={handleNewGame}

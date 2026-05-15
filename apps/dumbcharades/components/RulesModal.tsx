@@ -16,6 +16,8 @@ export function RulesModal({ isOpen, onClose }: Props) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
+          onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
+          tabIndex={-1}
           style={{
             position: "fixed", inset: 0,
             background: "rgba(0,0,0,0.45)", zIndex: 1000,
@@ -29,6 +31,9 @@ export function RulesModal({ isOpen, onClose }: Props) {
             exit={{ opacity: 0, scale: 0.92, y: 16 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="How to Play"
             style={{
               maxWidth: 400, width: "100%",
               background: tokens.white, borderRadius: 20,

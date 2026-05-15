@@ -16,6 +16,7 @@ import CluePhase from "@/components/game/CluePhase";
 import VotePhase from "@/components/game/VotePhase";
 import EliminationScreen from "@/components/game/EliminationScreen";
 import SummaryScreen from "@/components/game/SummaryScreen";
+import ChatPanel from "@/components/game/ChatPanel";
 
 export default function RoomPage() {
   const params = useParams();
@@ -204,7 +205,7 @@ export default function RoomPage() {
 
   async function handlePlayAgain() {
     if (!gameState) return;
-    const reset: GameState = {
+    const freshState: GameState = {
       ...gameState,
       phase: "lobby",
       round: 0,
@@ -222,8 +223,8 @@ export default function RoomPage() {
       isTiebreaker: false,
       chat: [],
     };
-    await pushState(reset);
-    await publish("game-state-update", reset);
+    await pushState(freshState);
+    await publish("game-state-update", freshState);
   }
 
   const isKicked = gameState && localPlayer &&
@@ -306,18 +307,23 @@ export default function RoomPage() {
 
   if (phase === "vote") {
     return (
-      <VotePhase
-        gameState={gameState}
-        localPlayer={localPlayer}
-        onVote={handleVote}
-        onLeave={handleLeave}
-        onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
-        onContinue={async () => {
-          const updated = nextRound(gameState);
-          await pushState(updated);
-          await publish("game-state-update", updated);
-        }}
-      />
+      <div>
+        <VotePhase
+          gameState={gameState}
+          localPlayer={localPlayer}
+          onVote={handleVote}
+          onLeave={handleLeave}
+          onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
+          onContinue={async () => {
+            const updated = nextRound(gameState);
+            await pushState(updated);
+            await publish("game-state-update", updated);
+          }}
+        />
+        <div style={{ padding: "0 20px 32px", maxWidth: 480, margin: "0 auto" }}>
+          <ChatPanel messages={gameState.chat} localPlayer={localPlayer} onSend={handleChat} />
+        </div>
+      </div>
     );
   }
 
@@ -383,19 +389,31 @@ export default function RoomPage() {
 
   if (phase === "elimination") {
     return (
-      <EliminationScreen
-        gameState={gameState}
-        localPlayer={localPlayer}
-        onGhostGuess={handleGhostGuess}
-        onContinue={handleContinue}
-        onLeave={handleLeave}
-        onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
-      />
+      <div>
+        <EliminationScreen
+          gameState={gameState}
+          localPlayer={localPlayer}
+          onGhostGuess={handleGhostGuess}
+          onContinue={handleContinue}
+          onLeave={handleLeave}
+          onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
+        />
+        <div style={{ padding: "0 20px 32px", maxWidth: 480, margin: "0 auto" }}>
+          <ChatPanel messages={gameState.chat} localPlayer={localPlayer} onSend={handleChat} />
+        </div>
+      </div>
     );
   }
 
   if (phase === "summary") {
-    return <SummaryScreen gameState={gameState} localPlayer={localPlayer} onPlayAgain={handlePlayAgain} />;
+    return (
+      <div>
+        <SummaryScreen gameState={gameState} localPlayer={localPlayer} onPlayAgain={handlePlayAgain} />
+        <div style={{ padding: "0 20px 32px", maxWidth: 480, margin: "0 auto" }}>
+          <ChatPanel messages={gameState.chat} localPlayer={localPlayer} onSend={handleChat} />
+        </div>
+      </div>
+    );
   }
 
   return null;

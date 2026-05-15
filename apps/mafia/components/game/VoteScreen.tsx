@@ -9,7 +9,7 @@ const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote"];
 import { getLiving, eliminatePlayer, checkWin } from "@/lib/gameEngine";
 import RulesModal from "@/components/game/RulesModal";
 
-const HOME_URL = () => process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
+const HOME_URL = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
 
 export default function VoteScreen() {
   const { game, set, reset } = useGame();
@@ -58,7 +58,7 @@ export default function VoteScreen() {
               }}>{timeLeft}s</div>
             )}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
-            <OptionsMenu onNewGame={reset} onExit={() => { window.location.href = HOME_URL(); }} />
+            <OptionsMenu onNewGame={reset} onExit={() => { window.location.href = HOME_URL; }} />
           </div>
         }
       />
@@ -81,7 +81,7 @@ export default function VoteScreen() {
           borderRadius: 14, padding: "12px 16px",
           display: "flex", flexDirection: "column", gap: 6,
         }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: tokens.yellow }}>Village must eliminate someone today</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: tokens.yellow }}>Village votes to eliminate — or skip if no consensus</div>
           <div style={{ fontSize: 12, color: tokens.grey1, lineHeight: 1.5 }}>
             Vote verbally. Once decided, God taps the eliminated player below. Do not reveal their role.
           </div>
@@ -120,7 +120,7 @@ export default function VoteScreen() {
         {/* Actions */}
         <div style={{ display: "flex", gap: 10 }}>
           <Btn variant="ghost" fullWidth onClick={cancel} style={{ padding: "14px" }}>
-            Cancel
+            Skip Round
           </Btn>
           <Btn variant="danger" fullWidth onClick={confirm} disabled={!selectedId} style={{ padding: "14px" }}>
             Eliminate →

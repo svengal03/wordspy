@@ -11,8 +11,8 @@ export const tokens = {
   black: "#1A1A1A",
   grey1: "#555",
   grey2: "#888",
-  grey3: "#AAA",
-  grey4: "#CCC",
+  grey3: "#666",
+  grey4: "#777",
   border: "#F0F0F0",
   bg: "#FAFAF8",
   white: "#FFFFFF",
@@ -118,11 +118,18 @@ export function SectionLabel({ children }: { children: ReactNode }) {
 // ─── Toggle ───────────────────────────────────────────────────────────────────
 export function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div onClick={() => onChange(!value)} style={{
-      width: 44, height: 26, borderRadius: 13, cursor: "pointer",
-      background: value ? tokens.coral : "#E5E5E5", position: "relative",
-      transition: "background .2s", flexShrink: 0,
-    }}>
+    <div
+      role="switch"
+      aria-checked={value}
+      tabIndex={0}
+      onClick={() => onChange(!value)}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange(!value); } }}
+      style={{
+        width: 44, height: 26, borderRadius: 13, cursor: "pointer",
+        background: value ? tokens.coral : "#E5E5E5", position: "relative",
+        transition: "background .2s", flexShrink: 0,
+      }}
+    >
       <div style={{
         position: "absolute", top: 3, left: value ? 21 : 3,
         width: 20, height: 20, borderRadius: 10, background: "#fff",

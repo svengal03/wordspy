@@ -110,7 +110,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
               )}
             </div>
             <div style={{ fontSize: 13, color: tokens.grey3, marginTop: 8 }}>
-              Friends join at wordspy.vercel.app with this code
+              Friends join at {typeof window !== "undefined" ? window.location.hostname : "wordspy.vercel.app"} with this code
             </div>
           </Card>
         </motion.div>

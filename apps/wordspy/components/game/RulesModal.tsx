@@ -16,6 +16,7 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
+          onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
           style={{
             position: "fixed", inset: 0,
             background: "rgba(0,0,0,0.45)", zIndex: 1000,
@@ -24,6 +25,9 @@ export default function RulesModal({ isOpen, onClose }: RulesModalProps) {
           }}
         >
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="WordSpy Rules"
             initial={{ opacity: 0, scale: 0.92, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 16 }}

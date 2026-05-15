@@ -21,16 +21,17 @@ interface Props {
   teams: Team[];
   teamColors: string[];
   actingTeamName?: string;
+  actingTeamIdx?: number;
   onNext: () => void;
   onEndGame: () => void;
   onNewGame: () => void;
 }
 
-export function RoundResult({ correct, word, difficulty, teams, teamColors, actingTeamName, onNext, onEndGame, onNewGame }: Props) {
+export function RoundResult({ correct, word, difficulty, teams, teamColors, actingTeamName, actingTeamIdx, onNext, onEndGame, onNewGame }: Props) {
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar right={<OptionsMenu onNewGame={onNewGame} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />} />
-      <PhaseTrail phases={DC_PHASES} current="Results" accentColor={teamColors[0]} />
+      <PhaseTrail phases={DC_PHASES} current="Results" accentColor={teamColors[actingTeamIdx ?? 0]} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>
         <div style={{ width: "100%", maxWidth: 380 }}>
@@ -88,7 +89,7 @@ export function RoundResult({ correct, word, difficulty, teams, teamColors, acti
           </motion.div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <Btn fullWidth color={teamColors[0]} onClick={onNext} style={{ padding: "15px", borderRadius: 12 }}>
+            <Btn fullWidth color={teamColors[actingTeamIdx ?? 0]} onClick={onNext} style={{ padding: "15px", borderRadius: 12 }}>
               Next Round →
             </Btn>
             <div style={{ display: "flex", gap: 10 }}>
