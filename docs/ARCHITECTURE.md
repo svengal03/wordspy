@@ -1,221 +1,184 @@
-# 🏗️ Wordspy — Architecture
+# PlayHub — Architecture
 
 ## Overview
 
-Wordspy is a **serverless, real-time party game** built on Next.js with Pusher as the realtime backbone. There is no traditional always-on backend server — all game logic runs in the browser and is coordinated via Pusher channels.
+PlayHub is a Turborepo monorepo hosting independent offline party-game apps. Each app is a standalone Next.js project deployed separately. Shared primitives (design tokens, UI components, word packs, game constants) live in workspace packages consumed by all apps.
+
+All games run client-side first — game logic is pure TypeScript with no database dependency. Wordspy adds an optional online layer via Pusher for multi-device play. Every other game is pass-the-phone only.
 
 ---
 
-## System Diagram
+## Monorepo Structure
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        VERCEL                               │
-│                                                             │
-│  ┌─────────────────────┐    ┌──────────────────────────┐   │
-│  │   Next.js Frontend  │    │  Next.js API Routes      │   │
-│  │   (React + Zustand) │    │  (Serverless Functions)  │   │
-│  │                     │    │                          │   │
-│  │  • Home Screen      │    │  /api/pusher-event       │   │
-│  │  • Lobby            │    │  /api/rooms              │   │
-│  │  • Role Reveal      │    │                          │   │
-│  │  • Clue Phase       │    │  In-memory room store    │   │
-│  │  • Vote Phase       │    │  (Map<code, GameState>)  │   │
-│  │  • Elimination      │    │                          │   │
-│  │  • Summary          │    └──────────────────────────┘   │
-│  └──────────┬──────────┘                                   │
-│             │                                               │
-└─────────────┼───────────────────────────────────────────────┘
-              │
-              │ WebSocket (Pusher SDK)
-              │
-┌─────────────▼───────────────────────────────────────────────┐
-│                        PUSHER                               │
-│                                                             │
-│  Channel: wordspy-{ROOM_CODE}                               │
-│                                                             │
-│  Events published:                                          │
-│  • game-state-update  → full GameState snapshot             │
-│  • player-joined      → new player object                   │
-│  • chat-message       → ChatMessage object                  │
-│                                                             │
-│  All clients subscribe → receive updates → update UI        │
-└─────────────────────────────────────────────────────────────┘
+playhub/
+├── apps/
+│   ├── home/           ← PlayHub hub — lists all games, links to each
+│   ├── wordspy/        ← Social deduction, online + offline
+│   ├── mafia/          ← Mafia, offline only
+│   ├── pictionary/     ← Pictionary drawing game, offline only
+│   └── dumbcharades/   ← Dumb Charades, offline only
+├── packages/
+│   ├── core/           ← Shared: types, word packs, game constants, difficulty
+│   └── ui/             ← Shared: RevealCover, PlayerNameInput, CategoryPicker
+├── docs/
+│   ├── ARCHITECTURE.md ← This file
+│   ├── GAMEPLAY.md     ← Overview of all games with links to per-game docs
+│   ├── gameplay/       ← Deep-dive per-game docs
+│   │   ├── WORDSPY.md
+│   │   ├── MAFIA.md
+│   │   ├── PICTIONARY.md
+│   │   └── DUMBCHARADES.md
+│   └── NEW_GAME.md     ← End-to-end guide for adding a new game
+├── turbo.json
+└── package.json
 ```
+
+Each app is independently deployable to Vercel. The `home` app links to every other app via environment variables (`NEXT_PUBLIC_{GAME}_URL`).
 
 ---
 
-## Data Flow
+## App Architecture Patterns
 
-### 1. Room Creation
-```
-Host clicks "Create Room"
-  → POST /api/rooms { action: "create" }
-  → Server generates room code, creates GameState
-  → Returns { roomCode, gameState }
-  → Host navigates to /room/{code}
-  → Pusher channel subscribed: wordspy-{code}
-```
+### Pattern A — Pass-Phone Local (Mafia, Pictionary, Dumb Charades)
 
-### 2. Player Joins
+Single device. State lives in React (Zustand or useState). No network calls during gameplay. State resets on page refresh.
+
 ```
-Player enters code → POST /api/rooms { action: "get", roomCode }
-  → Receives current GameState
-  → Creates local Player object
-  → Publishes "player-joined" event on Pusher channel
-  → All other clients receive event → update their player list
+Single device (pass-the-phone)
+
+  React state (Zustand or useState)
+    → game logic in lib/gameEngine.ts (pure functions)
+    → components render based on current phase
+    → no network calls during gameplay
+
+  No Pusher. No API routes. No persistence.
 ```
 
-### 3. Game State Updates (the core pattern)
+### Pattern B — Online + Offline (Wordspy only)
+
 ```
-Any action (clue, vote, etc.)
-  → Pure function transforms GameState → new GameState
-  → POST /api/rooms { action: "update", gameState }   [persists to server memory]
-  → publish("game-state-update", newGameState)          [broadcasts to all players via Pusher]
-  → All clients receive event → setGameState(newState) → UI re-renders
+  VERCEL
+  ┌───────────────────┐  ┌─────────────────────┐
+  │  Next.js Frontend │  │  API Routes         │
+  │  React + Zustand  │  │  /api/pusher-event  │
+  │                   │  │  /api/rooms         │
+  └────────┬──────────┘  └─────────────────────┘
+           │ WebSocket
+  ┌────────▼────────────────────────────────────┐
+  │  PUSHER — Channel: wordspy-{ROOM_CODE}       │
+  │  Broadcasts full GameState snapshots to all  │
+  │  connected players on every state change     │
+  └─────────────────────────────────────────────┘
 ```
 
-This **full-state-snapshot** approach (vs delta updates) keeps the code simple and avoids state conflicts.
+Online mode: game state lives on the server (in-memory Map) and is broadcast via Pusher. Every action runs a pure function → persists via API route → broadcasts full state snapshot to all connected players.
+
+Offline mode: same game logic, state lives in Zustand on device, no network calls.
 
 ---
 
-## State Management
+## Per-App Summary
 
-### Server (API Route)
-- `Record<string, GameState>` in Node.js module scope
-- Persists within a serverless function instance
-- Rooms auto-expire after 4 hours (cleanup runs every 30 min via `setInterval`)
-- **Caveat:** Vercel may spin up multiple instances — for production, replace with Redis (Upstash free tier)
-
-### Client (Zustand)
-```ts
-interface GameStore {
-  localPlayer: Player | null      // This device's player identity
-  roomCode: string | null         // Current room
-  gameState: GameState | null     // Full game state (Pusher-synced)
-  config: GameConfig              // Host configuration
-  isOffline: boolean              // Offline mode flag
-  revealIndex: number             // Which player is currently revealing (offline)
-}
-
-// GameState key fields (lib/types.ts)
-interface GameState {
-  roomCode: string
-  phase: "lobby" | "role-reveal" | "clue" | "discussion" | "vote" | "host-pick" | "elimination" | "summary"
-  round: number
-  players: Player[]
-  config: GameConfig
-  wordPair: { civilian: string; undercover: string } | null
-  currentCluePlayerIndex: number
-  currentVoterIndex: number
-  eliminatedThisRound: string | null
-  ghostGuessAllowed: boolean
-  ghostGuess: string | null
-  winner: "civilians" | "undercover" | "ghost" | null
-  isTiebreaker: boolean           // true when in a tiebreaker re-clue/revote cycle
-  chat: ChatMessage[]
-  createdAt: number               // used for 4-hour auto-cleanup
-}
-```
+| App | Mode | State | Realtime | Players |
+|---|---|---|---|---|
+| `home` | — | None | None | — |
+| `wordspy` | Online + Offline | Zustand + Server Map | Pusher | 3–10 |
+| `mafia` | Offline only | Zustand | None | 5–15 |
+| `pictionary` | Offline only | useState | None | 4+ (teams) |
+| `dumbcharades` | Offline only | useState | None | 4+ (teams) |
 
 ---
 
-## Game Engine (Pure Functions)
+## File Structure Per App
 
-All game logic lives in `lib/gameEngine.ts` as **pure functions** — no side effects, no network calls:
+Every game app follows this structure:
 
-```
-startGame(state)                      → GameState (roles assigned, phase = "role-reveal")
-submitClue(state, id, clue)           → { state, error? } (clue recorded, duplicate check, auto-advance)
-castVote(state, voterId, targetId)    → GameState (vote recorded; when all voted → processVotes)
-eliminatePlayer(state, playerId)      → GameState (host-pick path: manually eliminate a tied player)
-processGhostGuess(state, guess)       → GameState (correct → ghost wins; wrong → next round or civilians win)
-nextRound(state)                      → GameState (reset clues/votes, increment round, random start player)
-checkWinCondition(state)              → "civilians" | "undercover" | "ghost" | null
-assignRoles(players, config)          → { players, pair } (shuffle roles, assign words)
-createPlayer(name, isHost)            → Player
-generateRoomCode()                    → string (6-char alphanumeric, ambiguous chars excluded)
-```
-
-This makes the logic **fully testable** and easy to reason about.
-
----
-
-## Realtime Architecture (Pusher)
-
-### Why Pusher over Socket.io?
-- No persistent server to manage — works with Vercel's serverless model
-- Free tier: 200 concurrent connections, 800K messages/day
-- Never cold-starts (unlike Render free tier)
-- Simple channel/event model, solid client SDK
-
-### Channel naming
-```
-wordspy-{ROOM_CODE}    e.g. wordspy-ABC123
-```
-
-### Event types
-```ts
-// All events sent on the "game-event" Pusher event name.
-// The GameEvent envelope carries type, payload, senderId, timestamp.
-type GameEventType =
-  | "game-state-update"   // full state snapshot (most common)
-  | "player-joined"       // new player joined lobby
-  | "player-left"         // player disconnected / removed
-  | "clue-submitted"      // a player submitted their clue
-  | "vote-cast"           // a player cast their vote
-  | "ghost-guess"         // ghost submitted word guess
-  | "chat-message"        // inline chat message
-  | "phase-change"        // explicit phase transition
-  | "host-action"         // host-only command
-```
-
-### Credentials (security)
-The Pusher secret and app ID never reach the browser. The server-side API route (`/api/pusher-event`) holds `PUSHER_APP_ID` and `PUSHER_SECRET` and publishes events on behalf of clients. The browser only uses `NEXT_PUBLIC_PUSHER_KEY` and `NEXT_PUBLIC_PUSHER_CLUSTER` to subscribe.
-
----
-
-## Offline Mode Architecture
-
-Offline mode is entirely **client-side** — no Pusher, no API calls after initial page load:
-
-```
-GameState lives in Zustand store
-  → Host adds players by name (no accounts)
-  → Game starts → roles assigned
-  → Phone passed around (revealIndex increments)
-  → Clues, votes, elimination all happen locally
-  → State never leaves the device
-```
-
----
-
-## Upgrade Path
-
-The architecture is designed for easy upgrades:
-
-| Now | Upgrade |
+| File / Folder | Purpose |
 |---|---|
-| In-memory room store | Redis (Upstash — 1 line change) |
-| No auth | Clerk or Supabase Auth |
-| Hardcoded word packs | Claude API word generator |
-| Single Vercel instance | Edge runtime + Redis |
-| No persistence | PostgreSQL for game history/stats |
+| `app/page.tsx` | Phase switcher — renders one screen component per phase |
+| `lib/types.ts` | All types: GameState, GameConfig, Player/Team + DEFAULT_CONFIG |
+| `lib/gameEngine.ts` | All game logic as pure functions — no React, no side effects |
+| `lib/store.ts` | Zustand store: `{ game, set, reset }` |
+| `components/game/` | One component per game phase |
+| `components/ui/` | Local tokens, Btn, Card, Screen, TopBar, NavBtn, PlayHubLogo |
+| `components/game/RulesModal.tsx` | Full rules, accessible from any screen |
+| `package.json` | App name, dev port |
+| `next.config.js` | App name, env vars |
+
+Pattern B (online) apps also have:
+
+| File | Purpose |
+|---|---|
+| `app/api/rooms/route.ts` | Create / get / update rooms in server-side Map |
+| `app/api/pusher-event/route.ts` | Server-side Pusher publish (keeps secret keys off the client) |
+
+---
+
+## Shared Packages
+
+### `@playhub/core`
+
+Located at `packages/core/src/`. Consumed by all apps.
+
+Exports:
+- Generic Player, Room, GamePhase types
+- Word packs with paired words (civilian/undercover) and word lists
+- Difficulty constants and point values
+- Timer options (60s / 90s / 120s)
+- Team color palettes — one palette per game type
+
+Available word packs: `bollywood` (Hindi cinema 2000–2025), `tollywood` (Telugu/Tamil cinema 2000–2025), `south-food`, `north-food`.
+
+### `@playhub/ui`
+
+Located at `packages/ui/src/`. Consumed by wordspy, pictionary, dumbcharades.
+
+| Component | Purpose |
+|---|---|
+| `RevealCover` | Pass-the-phone cover card for private role/word reveals |
+| `CategoryPicker` | Word pack selector grid (multi-select) |
+| `PlayerNameInput` | Inline name input with add button |
+
+---
+
+## UI Conventions (all apps)
+
+All apps share the same visual language:
+
+| Rule | Value |
+|---|---|
+| Font | DM Sans (Google Fonts, display=swap) |
+| Primary color | Coral `#CC785C` |
+| Background | `#FAFAF8` |
+| Card style | White, 20px border-radius, 1.5px border `#F0F0F0` |
+| Animations | Framer Motion — fade-up on mount, whileTap scale 0.97 |
+| Layout | Max 480px centered, mobile-first |
+| Screen structure | `<Screen>` → `<TopBar>` → content → `<Btn variant="primary" fullWidth>` at bottom |
+| Required on every screen | TopBar with PlayHubLogo + RulesModal trigger |
+
+---
+
+## Adding a New Game
+
+See `docs/NEW_GAME.md` for the complete end-to-end guide and copy-pasteable AI prompts.
+
+Quick order:
+1. Write `docs/gameplay/{GAME_NAME}.md` — rules, phases, types, config
+2. Scaffold from `apps/mafia` as base
+3. Implement types → game engine → store → screen components
+4. Register in `apps/home`
 
 ---
 
 ## Security
 
-- **Pusher server-side publish** — `PUSHER_SECRET` and `PUSHER_APP_ID` never exposed to browser
-- **No user accounts** — no PII stored
-- **Room codes** — 6-character random codes, expire after 4 hours
-- **Host validation** — only host can start game / change config (enforced client-side; for production, add server-side role validation)
-
----
+- Pusher secret keys are server-only — never reach the browser bundle
+- No user accounts — no PII stored anywhere
+- Room codes expire after 4 hours
 
 ## Performance
 
-- **No database calls** during gameplay — all state via Pusher
-- **Full snapshots** over deltas — simpler code, negligible bandwidth for party game payloads (~2-5KB per event)
-- **DM Sans** loaded via Google Fonts with `display=swap` — no layout shift
-- **Framer Motion** — only animates on mount/exit, no continuous animations
+- No DB calls during gameplay — all state via Pusher or local memory
+- Full state snapshots (not deltas) — simpler code, small payload per event
+- Wordspy room expiry: in-memory store — use Redis (Upstash) for multi-instance production

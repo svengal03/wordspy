@@ -38,6 +38,7 @@ export function WordReveal({ drawerName, teamName, teamColor, wordOptions, onRea
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
+        appName="Pictionary"
         right={
           <div style={{ display: "flex", gap: 8 }}>
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>

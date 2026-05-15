@@ -44,19 +44,23 @@ export function usePusherRoom(
   }, [roomCode, playerId]);
 
   const publish = useCallback(
-    async (type: GameEventType, payload: unknown) => {
+    async (type: GameEventType, payload: unknown): Promise<boolean> => {
       const event: GameEvent = {
         type,
         payload,
         senderId: playerId,
         timestamp: Date.now(),
       };
-      // Pusher requires server-side publishing
-      await fetch("/api/pusher-event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roomCode, event }),
-      });
+      try {
+        const res = await fetch("/api/pusher-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ roomCode, event }),
+        });
+        return res.ok;
+      } catch {
+        return false;
+      }
     },
     [roomCode, playerId]
   );

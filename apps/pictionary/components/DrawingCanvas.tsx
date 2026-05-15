@@ -25,6 +25,8 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
   const snapshots = useRef<ImageData[]>([]);
   const redoStack = useRef<ImageData[]>([]);
   const done = useRef(false);
+  const onSkipRef = useRef(onSkip);
+  onSkipRef.current = onSkip;
   const [color, setColor] = useState(COLORS[0]);
   const [size, setSize] = useState(SIZES[1]);
   const [eraser, setEraser] = useState(false);
@@ -37,17 +39,16 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
       setTimeLeft((t) => {
         if (done.current) return t;
         if (t <= 1) {
-          if (done.current) return 0;
           done.current = true;
           clearInterval(tick);
-          onSkip();
+          onSkipRef.current();
           return 0;
         }
         return t - 1;
       });
     }, 1000);
     return () => clearInterval(tick);
-  }, [onSkip]);
+  }, []);
 
   const getCtx = useCallback(() => {
     const canvas = canvasRef.current;
@@ -94,6 +95,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
 
   const handlePointerUp = (e: React.PointerEvent) => {
     e.preventDefault();
+    if (!drawing.current) return;
     drawing.current = false;
     const canvas = canvasRef.current;
     const ctx = getCtx();
@@ -135,7 +137,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
     redoStack.current = [];
   };
 
-  const timerPct = timeLeft / timerDuration;
+  const timerPct = timerDuration > 0 ? timeLeft / timerDuration : 0;
   const timerColor = timerPct > 0.4 ? "#2BB34A" : timerPct > 0.2 ? "#F59E0B" : "#E84040";
 
   return (
@@ -158,12 +160,12 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
           alignItems: "center",
           justifyContent: "space-between",
           padding: "14px 20px",
-          background: "#FFFFFF",
-          borderBottom: "1px solid #F0F0F0",
+          background: "#FAFAF8",
+          borderBottom: "0.5px solid rgba(0,0,0,0.08)",
           flexShrink: 0,
         }}
       >
-        <PlayHubLogo />
+        <PlayHubLogo appName="Pictionary" />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
             onClick={() => setWordVisible((v) => !v)}
@@ -224,7 +226,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
       </div>
 
       {/* Canvas */}
-      <div style={{ flex: 1, position: "relative", overflow: "hidden", touchAction: "none" }}>
+      <div style={{ flex: 1, position: "relative", overflow: "hidden", touchAction: "none", WebkitUserSelect: "none", userSelect: "none" }}>
         <canvas
           ref={canvasRef}
           width={800}
@@ -241,6 +243,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
+          onPointerCancel={handlePointerUp}
         />
       </div>
 
@@ -256,8 +259,8 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
           flexShrink: 0,
         }}
       >
-        {/* Colors + sizes */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "space-between" }}>
+        {/* Row 1: Colors */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
             {COLORS.map((c) => (
               <button
@@ -266,14 +269,12 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
                 aria-label={`Color: ${c === "#1A1A1A" ? "Black" : c === "#E84040" ? "Red" : c === "#4A6CF7" ? "Blue" : c === "#2BB34A" ? "Green" : c === "#F59E0B" ? "Yellow" : c === "#9333EA" ? "Purple" : "White"}`}
                 aria-pressed={color === c && !eraser}
                 style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: "50%",
-                  background: c,
+                  width: 26, height: 26, borderRadius: "50%", background: c,
                   border: color === c && !eraser ? "2.5px solid #1A1A1A" : "2px solid transparent",
                   cursor: "pointer",
                   outline: color === c && !eraser ? "2px solid #fff" : undefined,
                   outlineOffset: "-4px",
+                  flexShrink: 0,
                 }}
               />
             ))}
@@ -286,43 +287,41 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
                 aria-label={`Brush size ${s}`}
                 aria-pressed={size === s}
                 style={{
-                  width: s * 2.5 + 10,
-                  height: s * 2.5 + 10,
+                  width: s * 2.5 + 10, height: s * 2.5 + 10,
                   borderRadius: "50%",
                   background: size === s ? "#1A1A1A" : "#E8E5E1",
-                  border: "none",
-                  cursor: "pointer",
-                  minWidth: 18,
-                  minHeight: 18,
+                  border: "none", cursor: "pointer",
+                  minWidth: 18, minHeight: 18, flexShrink: 0,
                 }}
               />
             ))}
-            <button
-              onClick={() => setEraser((e) => !e)}
-              style={{
-                padding: "4px 10px", borderRadius: 8, fontFamily: "inherit",
-                border: `1.5px solid ${eraser ? "#E84040" : "#F0F0F0"}`,
-                background: eraser ? "#FFF0F0" : "transparent",
-                fontSize: 12, fontWeight: 600, color: eraser ? "#E84040" : "#888",
-                cursor: "pointer",
-              }}
-              title="Eraser"
-            >Erase</button>
-            <button
-              onClick={handleUndo}
-              style={{ padding: "4px 10px", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
-              title="Undo"
-            >Undo</button>
-            <button
-              onClick={handleRedo}
-              style={{ padding: "4px 10px", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
-              title="Redo"
-            >Redo</button>
-            <button
-              onClick={handleClear}
-              style={{ padding: "4px 10px", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
-            >Clear</button>
           </div>
+        </div>
+
+        {/* Row 2: Tools */}
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <button
+            onClick={() => setEraser((e) => !e)}
+            style={{
+              flex: 1, padding: "5px 0", borderRadius: 8, fontFamily: "inherit",
+              border: `1.5px solid ${eraser ? "#E84040" : "#F0F0F0"}`,
+              background: eraser ? "#FFF0F0" : "transparent",
+              fontSize: 12, fontWeight: 600, color: eraser ? "#E84040" : "#888",
+              cursor: "pointer",
+            }}
+          >{eraser ? "✏️ Pen" : "⬜ Erase"}</button>
+          <button
+            onClick={handleUndo}
+            style={{ flex: 1, padding: "5px 0", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
+          >Undo</button>
+          <button
+            onClick={handleRedo}
+            style={{ flex: 1, padding: "5px 0", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
+          >Redo</button>
+          <button
+            onClick={handleClear}
+            style={{ flex: 1, padding: "5px 0", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
+          >Clear</button>
         </div>
 
         {/* Action buttons */}

@@ -58,6 +58,7 @@ export default function DayScreen() {
   return (
     <Screen>
       <TopBar
+        appName="Mafia"
         title={`Day ${round} · Discussion`}
         right={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

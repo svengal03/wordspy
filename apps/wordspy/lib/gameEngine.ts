@@ -14,13 +14,13 @@ export function generateRoomCode(): string {
 export function assignRoles(
   players: Player[],
   config: GameConfig,
-  pair?: { civilian: string; undercover: string }
+  pair?: { word1: string; word2: string }
 ): { players: Player[]; pair: { civilian: string; undercover: string } } {
   const rawPair = pair || getRandomPair(config.packId);
-  // Randomly swap which word goes to civilians vs undercovers for variety
-  const wordPair = Math.random() < 0.5
-    ? rawPair
-    : { civilian: rawPair.undercover, undercover: rawPair.civilian };
+  const [civilianWord, undercoverWord] = Math.random() < 0.5
+    ? [rawPair.word1, rawPair.word2]
+    : [rawPair.word2, rawPair.word1];
+  const wordPair = { civilian: civilianWord, undercover: undercoverWord };
 
   // Clamp config values to valid range for actual player count
   const undercovers = Math.min(config.undercoverCount, Math.max(1, players.length - 2));
@@ -109,6 +109,10 @@ export function startGame(state: GameState): GameState {
 }
 
 // ─── Check duplicate clues ────────────────────────────────────────────────────
+function normalizeClue(clue: string): string {
+  return clue.toLowerCase().replace(/\s/g, "");
+}
+
 export function isDuplicateClue(
   state: GameState,
   playerId: string,
@@ -116,9 +120,9 @@ export function isDuplicateClue(
 ): boolean {
   const activeClues = state.players
     .filter((p) => !p.isEliminated && p.id !== playerId && p.clue)
-    .map((p) => p.clue!.toLowerCase().trim());
+    .map((p) => normalizeClue(p.clue!));
 
-  return activeClues.includes(newClue.toLowerCase().trim());
+  return activeClues.includes(normalizeClue(newClue));
 }
 
 // ─── Submit clue ──────────────────────────────────────────────────────────────

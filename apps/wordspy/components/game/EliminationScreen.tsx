@@ -37,6 +37,7 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
   return (
     <Screen style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
       <TopBar
+        appName="Wordspy"
         title="Eliminated!"
         right={
           <div style={{ display: "flex", gap: 8 }}>

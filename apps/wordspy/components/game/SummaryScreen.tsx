@@ -43,6 +43,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
   return (
     <Screen>
       <TopBar
+        appName="Wordspy"
         title="Game Over"
         sub="Here's how it went"
         right={
