@@ -53,10 +53,10 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
       {/* TopBar */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "14px 20px", background: tokens.white, borderBottom: `1px solid ${tokens.border}`,
+        padding: "14px 20px", background: "#FAFAF8", borderBottom: "0.5px solid rgba(0,0,0,0.08)",
         position: "sticky", top: 0, zIndex: 10,
       }}>
-        <PlayHubLogo />
+        <PlayHubLogo appName="Dumb Charades" />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <OptionsMenu onNewGame={onNewGame} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />
           <button

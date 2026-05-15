@@ -119,7 +119,7 @@ export default function HomeScreen() {
         borderBottom: "0.5px solid rgba(0,0,0,0.08)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <PlayHubLogo />
+        <PlayHubLogo appName="Wordspy" />
         <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
       </div>
 

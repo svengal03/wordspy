@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\saikumargoud.vengali\\\\Desktop\\\\projects\\\\Personal\\\\wordspy\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(dir \"c:\\\\Users\\\\saikumargoud.vengali\\\\Desktop\\\\projects\\\\Personal\\\\wordspy\\\\docs\\\\gameplay\")",
+      "Bash(find \"c:/Users/saikumargoud.vengali/Desktop/projects\" -name \"*.md\" -path \"*/docs/*\" -not -path \"*/wordspy/*\" 2>/dev/null | head -40)",
+      "Read(//c/Users/saikumargoud.vengali/Desktop/projects/**)",
+      "Bash(ls \"c:/Users/saikumargoud.vengali/Desktop/projects\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\saikumargoud.vengali\\\\Desktop\\\\projects\\\\Personal\\\\wordspy\\\\apps\" -Directory)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\saikumargoud.vengali\\\\Desktop\\\\projects\\\\Personal\\\\wordspy\\\\apps\\\\dumbcharades\" -Recurse -Filter \"*RoleReveal*\" -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\saikumargoud.vengali\\\\Desktop\\\\projects\\\\Personal\\\\wordspy\\\\AUDIT.md\")",
+      "Bash(Remove-Item \"c:\\\\Users\\\\saikumargoud.vengali\\\\Desktop\\\\projects\\\\Personal\\\\wordspy\\\\scripts\\\\check-ui-duplication.mjs\")",
+      "Bash(grep -v \"^--$\")",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

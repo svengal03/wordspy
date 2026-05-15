@@ -158,12 +158,12 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
           alignItems: "center",
           justifyContent: "space-between",
           padding: "14px 20px",
-          background: "#FFFFFF",
-          borderBottom: "1px solid #F0F0F0",
+          background: "#FAFAF8",
+          borderBottom: "0.5px solid rgba(0,0,0,0.08)",
           flexShrink: 0,
         }}
       >
-        <PlayHubLogo />
+        <PlayHubLogo appName="Pictionary" />
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
             onClick={() => setWordVisible((v) => !v)}

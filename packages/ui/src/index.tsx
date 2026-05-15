@@ -333,7 +333,6 @@ export function RevealCover({
       style={{ width: "100%", maxWidth: 440 }}
     >
       <div
-        onClick={onReveal}
         style={{
           background: "#FFFFFF",
           border: `2px dashed ${tokens.border}`,
@@ -341,7 +340,6 @@ export function RevealCover({
           padding: "56px 40px",
           textAlign: "center",
           boxShadow: "0 2px 20px rgba(0,0,0,0.06)",
-          cursor: "pointer",
         }}
       >
         <div style={{ fontSize: 12, color: "#AAA", marginBottom: 12, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" }}>
@@ -370,7 +368,7 @@ export function RevealCover({
         </div>
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={(e) => { e.stopPropagation(); onReveal(); }}
+          onClick={onReveal}
           style={{
             width: "100%",
             padding: "16px 24px",
