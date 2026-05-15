@@ -36,7 +36,7 @@ export function Modal({ open, onClose, children }: ModalProps) {
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
             style={{
-              maxWidth: 400, width: "100%",
+              maxWidth: "min(400px, calc(100vw - 40px))", width: "100%",
               background: tokens.white, borderRadius: 20,
               border: `1.5px solid ${tokens.border}`,
               boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
@@ -47,6 +47,7 @@ export function Modal({ open, onClose, children }: ModalProps) {
           >
             <button
               onClick={onClose}
+              aria-label="Close"
               style={{
                 position: "absolute", top: 16, right: 16,
                 width: 32, height: 32, borderRadius: 8,

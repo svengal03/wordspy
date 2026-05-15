@@ -31,7 +31,7 @@ function buildWordPool(packIds: string[]): string[] {
   for (const pack of WORD_PACKS) {
     if (packIds.includes(pack.id)) {
       for (const pair of pack.pairs) {
-        words.push(Math.random() < 0.5 ? pair.civilian : pair.undercover);
+        words.push(Math.random() < 0.5 ? pair.word1 : pair.word2);
       }
     }
   }
@@ -44,6 +44,7 @@ function buildWordPool(packIds: string[]): string[] {
 
 function pickThree(pool: string[], fallback: string[]): { options: [string, string, string]; remaining: string[] } {
   let p = pool.length >= 3 ? pool : [...pool, ...buildWordPool(fallback)];
+  while (p.length < 3) p = [...p, ...p];
   const options: [string, string, string] = [p[0]!, p[1]!, p[2]!];
   return { options, remaining: p.slice(3) };
 }

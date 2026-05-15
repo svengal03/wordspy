@@ -25,13 +25,13 @@ function makeTeam(idx: number): TeamDraft {
 export function SetupScreen({ onStart, onNewGame }: Props) {
   const [teams, setTeams] = useState<TeamDraft[]>([makeTeam(0), makeTeam(1)]);
   const [timerDuration, setTimerDuration] = useState(60);
-  const [selectedPackIds, setSelectedPackIds] = useState<string[]>(["bollywood", "tollywood", "south-food", "north-food"]);
+  const [selectedPackIds, setSelectedPackIds] = useState<string[]>(["bollywood", "tollywood", "street-food", "south-indian-usa"]);
   const [showRules, setShowRules] = useState(false);
 
   function resetForm() {
     setTeams([makeTeam(0), makeTeam(1)]);
     setTimerDuration(60);
-    setSelectedPackIds(["bollywood", "tollywood", "south-food", "north-food"]);
+    setSelectedPackIds(["bollywood", "tollywood", "street-food", "south-indian-usa"]);
     onNewGame?.();
   }
 
@@ -199,7 +199,7 @@ export function SetupScreen({ onStart, onNewGame }: Props) {
         {/* Categories */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <Card>
-            <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} />
+            <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} game="pictionary" />
           </Card>
         </motion.div>
 

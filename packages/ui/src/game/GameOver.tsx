@@ -15,6 +15,7 @@ interface Props {
 
 export function GameOver({ teams, teamColors, phases, appName, onPlayAgain }: Props) {
   const sorted = [...teams].sort((a, b) => b.score - a.score);
+  if (sorted.length === 0) return null;
   const topScore = sorted[0]!.score;
   const tied = sorted.filter(t => t.score === topScore).length > 1;
   const winner = sorted[0]!;

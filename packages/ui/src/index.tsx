@@ -1,6 +1,6 @@
 "use client";
 import { ReactNode, ButtonHTMLAttributes, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export { tokens } from "./tokens";
 export { Modal } from "./Modal";
@@ -12,22 +12,24 @@ import { tokens } from "./tokens";
 export function PlayHubLogo({ appName }: { appName?: string }) {
   const homeUrl = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
   return (
-    <a href={homeUrl} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
-      <span style={{ fontSize: 14, color: "#AAA", fontWeight: 500, marginRight: 6 }}>←</span>
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 2.5, marginRight: 5 }}>
-        <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#CC785C" }} />
-        <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: "50%", background: "#CC785C", opacity: 0.55 }} />
-        <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: "#CC785C", opacity: 0.25 }} />
-      </span>
-      <span style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", letterSpacing: -0.3 }}>play</span>
-      <span style={{ fontSize: 15, fontWeight: 700, color: "#CC785C", letterSpacing: -0.3 }}>hub</span>
+    <div style={{ display: "inline-flex", alignItems: "center" }}>
+      <a href={homeUrl} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+        <span style={{ fontSize: 14, color: "#AAA", fontWeight: 500, marginRight: 6 }}>←</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 2.5, marginRight: 5 }}>
+          <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#CC785C" }} />
+          <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: "50%", background: "#CC785C", opacity: 0.55 }} />
+          <span style={{ display: "inline-block", width: 3, height: 3, borderRadius: "50%", background: "#CC785C", opacity: 0.25 }} />
+        </span>
+        <span style={{ fontSize: 15, fontWeight: 700, color: "#1A1A1A", letterSpacing: -0.3 }}>play</span>
+        <span style={{ fontSize: 15, fontWeight: 700, color: "#CC785C", letterSpacing: -0.3 }}>hub</span>
+      </a>
       {appName && (
         <>
           <span style={{ fontSize: 14, color: "#CCC", margin: "0 7px", fontWeight: 400 }}>|</span>
           <span style={{ fontSize: 14, fontWeight: 600, color: "#555", letterSpacing: -0.2 }}>{appName}</span>
         </>
       )}
-    </a>
+    </div>
   );
 }
 

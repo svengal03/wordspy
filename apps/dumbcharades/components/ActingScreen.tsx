@@ -20,28 +20,27 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
   const [timeLeft, setTimeLeft] = useState(timerDuration);
   const [wordVisible, setWordVisible] = useState(false);
   const fired = useRef(false);
+  const onSkipRef = useRef(onSkip);
+  onSkipRef.current = onSkip;
 
   useEffect(() => {
     fired.current = false;
-  }, [word]);
-
-  useEffect(() => {
     const tick = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
           if (fired.current) return 0;
           fired.current = true;
           clearInterval(tick);
-          onSkip();
+          onSkipRef.current();
           return 0;
         }
         return t - 1;
       });
     }, 1000);
     return () => clearInterval(tick);
-  }, [onSkip]);
+  }, []);
 
-  const timerPct = timeLeft / timerDuration;
+  const timerPct = timerDuration > 0 ? timeLeft / timerDuration : 0;
   const timerColor = timerPct > 0.4 ? tokens.green : timerPct > 0.2 ? "#F59E0B" : tokens.red;
 
   return (

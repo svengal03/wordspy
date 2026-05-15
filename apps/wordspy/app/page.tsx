@@ -59,8 +59,8 @@ export default function HomeScreen() {
       if (!res.ok) { setLoading(false); return setError("Room not found. Check the code."); }
       const data = await res.json();
       const trimmedName = name.trim().toLowerCase();
-      const duplicate = data.gameState.players.find(
-        (p: any) => p.name.toLowerCase() === trimmedName
+      const duplicate = (data.gameState.players as import("@/lib/types").Player[]).find(
+        (p) => p.name.toLowerCase() === trimmedName
       );
       if (duplicate) {
         setLocalPlayer(duplicate);
