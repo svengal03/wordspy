@@ -45,6 +45,7 @@ export default function VoteScreen() {
   return (
     <Screen>
       <TopBar
+        appName="Mafia"
         title={`Day ${round} · Vote`}
         right={
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

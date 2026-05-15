@@ -48,6 +48,7 @@ export default function RoleReveal() {
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
+        appName="Mafia"
         right={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <RevealProgressDots

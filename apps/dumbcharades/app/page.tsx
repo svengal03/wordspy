@@ -193,6 +193,8 @@ export default function DumbCharadesPage() {
         difficulty={lastDifficulty}
         teams={teams}
         teamColors={teams.map((_, i) => teamColor(i))}
+        phases={["Word Reveal", "Acting", "Results"]}
+        appName="Dumb Charades"
         actingTeamName={currentTeam?.name}
         actingTeamIdx={currentTeamIdx}
         onNext={handleNextRound}
@@ -207,6 +209,8 @@ export default function DumbCharadesPage() {
       <GameOver
         teams={teams}
         teamColors={teams.map((_, i) => teamColor(i))}
+        phases={["Word Reveal", "Acting", "Results"]}
+        appName="Dumb Charades"
         onPlayAgain={handleNewGame}
       />
     );

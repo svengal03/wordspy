@@ -91,7 +91,7 @@ export function SetupScreen({ onStart, onNewGame }: Props) {
 
   return (
     <Screen>
-      <TopBar right={
+      <TopBar appName="Dumb Charades" right={
         <div style={{ display: "flex", gap: 8 }}>
           <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
           <OptionsMenu onNewGame={resetForm} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />

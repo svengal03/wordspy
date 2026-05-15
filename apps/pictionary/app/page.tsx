@@ -196,6 +196,8 @@ export default function PictionaryPage() {
         difficulty={lastDifficulty}
         teams={teams}
         teamColors={teams.map((_, i) => teamColor(i))}
+        phases={["Word Reveal", "Drawing", "Results"]}
+        appName="Pictionary"
         actingTeamName={currentTeam?.name}
         actingTeamIdx={currentTeamIdx}
         onNext={handleNextRound}
@@ -210,6 +212,8 @@ export default function PictionaryPage() {
       <GameOver
         teams={teams}
         teamColors={teams.map((_, i) => teamColor(i))}
+        phases={["Word Reveal", "Drawing", "Results"]}
+        appName="Pictionary"
         onPlayAgain={handleNewGame}
       />
     );

@@ -54,6 +54,7 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
+        appName="Wordspy"
         right={
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {isOffline && (

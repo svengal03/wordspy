@@ -56,6 +56,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
 
   const topBar = (
     <TopBar
+      appName="Wordspy"
       title={`Round ${gameState.round} — Clue Phase`}
       sub={isSafeRound ? "🛡️ Safe Round — no elimination this round" : undefined}
       right={

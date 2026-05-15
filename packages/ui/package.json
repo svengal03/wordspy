@@ -4,6 +4,12 @@
   "private": true,
   "main": "./src/index.tsx",
   "types": "./src/index.tsx",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./tokens": "./src/tokens.ts",
+    "./modal": "./src/Modal.tsx",
+    "./game": "./src/game/index.tsx"
+  },
   "peerDependencies": {
     "framer-motion": ">=11",
     "react": ">=18"
