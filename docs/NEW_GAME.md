@@ -96,19 +96,52 @@ Do not proceed to Step 2 until the gameplay doc is complete and reviewed.
 
 ## Step 2 — Scaffold the App
 
-Copy the Mafia app as the base — it is the simplest offline pass-phone game.
+Before creating any files, read the shared packages to know what already exists:
+
+| Read | Why |
+|---|---|
+| `packages/ui/src/` | All shared components — use these, don't re-implement |
+| `packages/core/src/` | Shared types, word packs, constants — import instead of copying |
+| `apps/mafia/` | Reference only — how a minimal Pattern A app is wired |
+| `apps/wordspy/` | Reference only — how Pattern B (online) is wired |
+
+Then determine the pattern from the gameplay doc:
+
+| If the game needs... | Use |
+|---|---|
+| Pass-the-phone, no network | Pattern A — offline only |
+| Multi-device real-time play | Pattern B — online + offline (Pusher) |
+
+Create `apps/{game-name}/` from scratch using the standard file structure from `docs/ARCHITECTURE.md`. Do not copy any app directory — copying imports Mafia-specific logic that must then be deleted, which is error-prone. Instead, create each file fresh with only what this game needs.
+
+**Minimum files to create:**
 
 ```
-cp -r apps/mafia apps/{game-name}
+apps/{game-name}/
+├── package.json          ← name: "{game-name}", dev port: next available after existing apps
+├── next.config.js        ← app name, any required env vars
+├── app/
+│   └── page.tsx          ← placeholder until Step 3
+├── lib/
+│   ├── types.ts          ← placeholder until Step 3
+│   ├── gameEngine.ts     ← placeholder until Step 3
+│   └── store.ts          ← placeholder until Step 3
+└── components/
+    ├── ui/
+    │   └── index.tsx     ← copy ONLY this file from apps/mafia/components/ui/index.tsx,
+    │                        then update the app name string inside PlayHubLogo
+    └── game/             ← empty dir, populated in Step 3
 ```
 
-Update `package.json`:
-- Set `name` to the game slug
-- Set the dev port (`next dev --port {PORT}`) — pick the next available port after existing apps
+Pattern B apps also need:
 
-Update `next.config.js`:
-- Set the app name
-- Add any required environment variables
+```
+app/api/
+├── rooms/route.ts
+└── pusher-event/route.ts
+```
+
+Pick the next available dev port by checking `package.json` in each existing app under `apps/`.
 
 ---
 
@@ -118,7 +151,7 @@ Work through files in this order. Each file must be derived directly from the ga
 
 ### `lib/types.ts`
 
-Wipe the Mafia types. Implement from scratch using the gameplay doc's **State Shape Reference** section:
+Implement from scratch using the gameplay doc's **State Shape Reference** section:
 - All phase and role union types
 - `Player` or `Team` interface
 - All sub-types (`NightResult`, `EliminationRecord`, etc.)
@@ -138,7 +171,7 @@ Derive functions from the gameplay doc's **Game Phases** and **Win Condition Log
 
 ### `lib/store.ts`
 
-Zustand store following the Mafia pattern:
+Zustand store:
 - State shape: `{ game: GameState, set: (partial) => void, reset: () => void }`
 - Initial state matches DEFAULT_CONFIG values
 
@@ -165,7 +198,7 @@ UI rules — all from `docs/ARCHITECTURE.md`:
 
 ### `components/ui/index.tsx`
 
-Copy from `apps/mafia/components/ui/index.tsx`. Update only the app name string inside `PlayHubLogo`.
+Already created in Step 2. No further changes needed unless the game requires custom tokens beyond the standard palette.
 
 ---
 
@@ -229,7 +262,7 @@ Use these as calibration for expected depth and implementation quality.
 
 | Game | Design Doc | App | Pattern |
 |---|---|---|---|
-| Mafia | `docs/gameplay/MAFIA.md` | `apps/mafia/` | Simplest offline — start here |
+| Mafia | `docs/gameplay/MAFIA.md` | `apps/mafia/` | Simplest offline pass-phone, no teams |
 | Pictionary | `docs/gameplay/PICTIONARY.md` | `apps/pictionary/` | Team-based with canvas |
 | Dumb Charades | `docs/gameplay/DUMBCHARADES.md` | `apps/dumbcharades/` | Team-based, no canvas |
 | Wordspy | `docs/gameplay/WORDSPY.md` | `apps/wordspy/` | Online + offline, Pusher |

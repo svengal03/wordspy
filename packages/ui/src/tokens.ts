@@ -3,6 +3,7 @@
 export const tokens = {
   coral: "#CC785C",
   coralLight: "#E8956D",
+  coralDark: "#993C1D",
   coralBg: "#FFF8F5",
   coralBorder: "#CC785C30",
   accent: "#CC785C",

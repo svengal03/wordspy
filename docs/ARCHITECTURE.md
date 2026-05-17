@@ -87,6 +87,7 @@ Offline mode: same game logic, state lives in Zustand on device, no network call
 | `mafia` | Offline only | Zustand | None | 5–15 |
 | `pictionary` | Offline only | useState | None | 4+ (teams) |
 | `dumbcharades` | Offline only | useState | None | 4+ (teams) |
+| `wavelength` | Offline only | Zustand | None | 4–12 (2 teams) |
 
 ---
 
@@ -165,7 +166,7 @@ See `docs/NEW_GAME.md` for the complete end-to-end guide and copy-pasteable AI p
 
 Quick order:
 1. Write `docs/gameplay/{GAME_NAME}.md` — rules, phases, types, config
-2. Scaffold from `apps/mafia` as base
+2. Scaffold `apps/{game-name}/` from scratch — read `packages/ui/src/` and `packages/core/src/` first; use Mafia and Wordspy as reference only
 3. Implement types → game engine → store → screen components
 4. Register in `apps/home`
 

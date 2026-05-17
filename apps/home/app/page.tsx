@@ -36,6 +36,14 @@ const games = [
     href: process.env.NEXT_PUBLIC_PICITIONARY_URL,
     players: "4+",
   },
+  {
+    name: "Wavelength",
+    split: ["Wave", "length"],
+    emoji: "〰️",
+    description: "Two teams. One spectrum. Give a clue, find the wavelength.",
+    href: process.env.NEXT_PUBLIC_WAVELENGTH_URL,
+    players: "4–12",
+  },
 ];
 
 export default function HomePage() {
