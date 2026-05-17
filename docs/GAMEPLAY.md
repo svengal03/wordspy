@@ -68,6 +68,20 @@ Team-based drawing and guessing for **4+ players** (2–6 teams). The active dra
 
 ---
 
+### Wavelength — [Full design doc](gameplay/WAVELENGTH.md)
+
+Team-based spectrum guessing game for **4–12 players**. Two teams compete to read each other's minds. A Psychic sees a hidden target on a spectrum between two opposite concepts and gives one clue. Their team drags a needle to their best guess. The opposing team bets left or right for a bonus point.
+
+| | |
+|---|---|
+| **Teams** | 2 teams, rotating Psychic within each |
+| **Win** | First team to reach the target score (default 10) |
+| **Phases** | Setup → Team Assign → Clue → Guess → Opposing Bet → Reveal → Game Over |
+| **Mode** | Offline only |
+| **Players** | 4–12 |
+
+---
+
 ### Dumb Charades — [Full design doc](gameplay/DUMBCHARADES.md)
 
 Team-based silent acting and guessing for **4+ players** (2–6 teams). Identical structure to Pictionary — the active player acts silently instead of drawing. No sounds, no mouthing words.
@@ -125,6 +139,7 @@ Point values are defined as constants in `@playhub/core`.
 | [gameplay/MAFIA.md](gameplay/MAFIA.md) | Mafia rules, phases, config, state types | Mafia |
 | [gameplay/PICTIONARY.md](gameplay/PICTIONARY.md) | Pictionary rules, phases, config, state types | Pictionary |
 | [gameplay/DUMBCHARADES.md](gameplay/DUMBCHARADES.md) | Dumb Charades rules, phases, config, state types | Dumb Charades |
+| [gameplay/WAVELENGTH.md](gameplay/WAVELENGTH.md) | Wavelength rules, phases, config, state types | Wavelength |
 | [NEW_GAME.md](NEW_GAME.md) | End-to-end instruction for adding a new game | New game process |
 
 ---
