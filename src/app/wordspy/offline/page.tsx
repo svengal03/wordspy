@@ -9,9 +9,9 @@ import {
 import { GameState, GameConfig } from "../lib/types";
 import { tokens, Btn, Card, SectionLabel, Toggle, OptionsMenu, Screen, TopBar, NavBtn, PlayHubLogo } from "@playhub/ui";
 import RulesModal from "../components/RulesModal";
-import { WORD_PACKS } from "../lib/wordPacks";
 import { motion } from "framer-motion";
 import { useGoHome } from "@playhub/ui";
+import { getPacks, getWords, type WordPackRow, type WordRow } from "@/lib/db/wordpacks";
 
 import RoleReveal from "../components/RoleReveal";
 import CluePhase from "../components/CluePhase";
@@ -31,6 +31,29 @@ export default function OfflinePage() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [showRoundStart, setShowRoundStart] = useState(false);
+
+  // ── Supabase word packs (read-only, no realtime needed) ────────────────────
+  const [packs, setPacks] = useState<WordPackRow[]>([]);
+  const [packWords, setPackWords] = useState<WordRow[]>([]);
+  const [packsLoading, setPacksLoading] = useState(true);
+
+  useEffect(() => {
+    getPacks("wordspy")
+      .then((rows) => {
+        setPacks(rows);
+        // Pre-select the first pack if config hasn't been set yet
+        if (rows.length > 0 && !rows.find((r) => r.id === config.packId)) {
+          setConfig({ packId: rows[0].id });
+        }
+      })
+      .finally(() => setPacksLoading(false));
+  }, []);
+
+  // Fetch words whenever the selected pack changes
+  useEffect(() => {
+    if (!config.packId) return;
+    getWords(config.packId).then(setPackWords);
+  }, [config.packId]);
 
   function handleLeave() {
     if (!window.confirm("Exit game?")) return;
@@ -100,7 +123,15 @@ export default function OfflinePage() {
     };
 
     const handleStart = () => {
-      const started = startGame({ ...gameState, config });
+      // Pick a random word pair from the DB-fetched words
+      const pairs = packWords.filter((w) => w.word_b !== null);
+      const rawPair = pairs.length > 0
+        ? pairs[Math.floor(Math.random() * pairs.length)]
+        : undefined;
+      const wordPair = rawPair
+        ? { word1: rawPair.word_a, word2: rawPair.word_b! }
+        : undefined;
+      const started = startGame({ ...gameState, config }, wordPair);
       setGameState(started);
       setRevealIndex(0);
     };
@@ -224,21 +255,25 @@ export default function OfflinePage() {
             })()}
           </Card>
 
-          {/* Word Pack */}
+          {/* Word Pack — fetched from Supabase (read-only) */}
           <Card>
             <SectionLabel>Word Pack</SectionLabel>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {WORD_PACKS.map((pack) => (
-                <button key={pack.id} onClick={() => updateConfig({ packId: pack.id })} style={{
-                  padding: "7px 12px", borderRadius: 10, fontSize: 13, fontWeight: 500,
-                  border: `1.5px solid ${config.packId === pack.id ? tokens.coral : tokens.border}`,
-                  background: config.packId === pack.id ? tokens.coralBg : "transparent",
-                  color: config.packId === pack.id ? tokens.coral : tokens.grey1, cursor: "pointer",
-                }}>
-                  {pack.emoji} {pack.name}
-                </button>
-              ))}
-            </div>
+            {packsLoading ? (
+              <div style={{ fontSize: 13, color: tokens.grey3 }}>Loading packs…</div>
+            ) : (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {packs.map((pack) => (
+                  <button key={pack.id} onClick={() => updateConfig({ packId: pack.id })} style={{
+                    padding: "7px 12px", borderRadius: 10, fontSize: 13, fontWeight: 500,
+                    border: `1.5px solid ${config.packId === pack.id ? tokens.coral : tokens.border}`,
+                    background: config.packId === pack.id ? tokens.coralBg : "transparent",
+                    color: config.packId === pack.id ? tokens.coral : tokens.grey1, cursor: "pointer",
+                  }}>
+                    {pack.emoji} {pack.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </Card>
 
           {/* Options */}

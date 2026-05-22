@@ -90,8 +90,12 @@ export function createInitialGameState(
 }
 
 // ─── Start game ───────────────────────────────────────────────────────────────
-export function startGame(state: GameState): GameState {
-  const { players: assignedPlayers, pair } = assignRoles(state.players, state.config);
+// wordPair is optional: pass a DB-fetched pair to skip the hardcoded lookup.
+export function startGame(
+  state: GameState,
+  wordPair?: { word1: string; word2: string }
+): GameState {
+  const { players: assignedPlayers, pair } = assignRoles(state.players, state.config, wordPair);
   const startIndex = Math.floor(Math.random() * assignedPlayers.length);
 
   return {

@@ -49,9 +49,9 @@ function getCurrentPsychic(players: Player[], teams: [Team, Team], teamId: TeamI
   return teamPlayers[team.psychicIndex % teamPlayers.length].id;
 }
 
-export function startGame(players: Player[], config: GameConfig): Partial<GameState> {
+export async function startGame(players: Player[], config: GameConfig): Promise<Partial<GameState>> {
   const teams: [Team, Team] = [makeTeam("A"), makeTeam("B")];
-  const card = drawCard(config.packId, []);
+  const card = await drawCard(config.packId, []);
   const psychicId = getCurrentPsychic(players, teams, "A");
   return {
     phase: "clue",
@@ -142,7 +142,7 @@ export function resolveReveal(state: GameState): Partial<GameState> {
   };
 }
 
-export function nextRound(state: GameState): Partial<GameState> {
+export async function nextRound(state: GameState): Promise<Partial<GameState>> {
   const nextTeamId: TeamId = state.currentTeamId === "A" ? "B" : "A";
 
   const newTeams: [Team, Team] = state.teams.map((t) => {
@@ -153,7 +153,7 @@ export function nextRound(state: GameState): Partial<GameState> {
     return t;
   }) as [Team, Team];
 
-  const card = drawCard(state.config.packId, state.usedCardIds);
+  const card = await drawCard(state.config.packId, state.usedCardIds);
   const psychicId = getCurrentPsychic(state.players, newTeams, nextTeamId);
   const newUsed = state.usedCardIds.includes(card.id) ? state.usedCardIds : [...state.usedCardIds, card.id];
 

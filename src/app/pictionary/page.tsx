@@ -1,12 +1,13 @@
 "use client";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { SetupScreen } from "./components/SetupScreen";
 import { WordReveal } from "./components/WordReveal";
 import { DrawingCanvas } from "./components/DrawingCanvas";
 import { RoundResult } from "@playhub/ui/game";
 import { GameOver } from "@playhub/ui/game";
 import { useGoHome } from "@playhub/ui";
-import { WORD_PACKS, TEAM_PALETTE_PICTIONARY as TEAM_PALETTE } from "@playhub/core";
+import { TEAM_PALETTE_PICTIONARY as TEAM_PALETTE } from "@playhub/core";
+import { getPacks, getWords, type WordRow } from "@/lib/db/wordpacks";
 import type { GameState, Team, Difficulty } from "./lib/types";
 
 function teamColor(idx: number) {
@@ -27,14 +28,12 @@ function calcScore(timeLeft: number, timerDuration: number, difficulty: Difficul
   return 2;
 }
 
-function buildWordPool(packIds: string[]): string[] {
+function buildWordPool(packIds: string[], rows: Record<string, WordRow[]>): string[] {
   const words: string[] = [];
-  for (const pack of WORD_PACKS) {
-    if (packIds.includes(pack.id)) {
-      for (const pair of pack.pairs) {
-        words.push(pair.word1);
-        words.push(pair.word2);
-      }
+  for (const packId of packIds) {
+    for (const row of rows[packId] ?? []) {
+      words.push(row.word_a);
+      if (row.word_b) words.push(row.word_b);
     }
   }
   for (let i = words.length - 1; i > 0; i--) {
@@ -44,8 +43,8 @@ function buildWordPool(packIds: string[]): string[] {
   return words;
 }
 
-function pickThree(pool: string[], fallback: string[]): { options: [string, string, string]; remaining: string[] } {
-  let p = pool.length >= 3 ? pool : [...pool, ...buildWordPool(fallback)];
+function pickThree(pool: string[], fallback: string[], rows: Record<string, WordRow[]>): { options: [string, string, string]; remaining: string[] } {
+  let p = pool.length >= 3 ? pool : [...pool, ...buildWordPool(fallback, rows)];
   // degenerate guard: if pack is tiny, cycle words rather than crash
   while (p.length < 3) p = [...p, ...p];
   const options: [string, string, string] = [p[0]!, p[1]!, p[2]!];
@@ -81,6 +80,36 @@ export default function PictionaryPage() {
     }
   });
 
+  // ── Supabase word cache ──────────────────────────────────────────────────────
+  const dbRowsRef = useRef<Record<string, WordRow[]>>({});
+  const [wordsLoading, setWordsLoading] = useState(true);
+  const [wordsError, setWordsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setWordsLoading(true);
+    getPacks("pictionary")
+      .then(async (packs) => {
+        const entries = await Promise.all(
+          packs.map(async (pack) => {
+            const rows = await getWords(pack.id);
+            return [pack.id, rows] as [string, WordRow[]];
+          })
+        );
+        if (!cancelled) {
+          dbRowsRef.current = Object.fromEntries(entries);
+          setWordsLoading(false);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setWordsError((err as Error).message ?? "Failed to load word packs");
+          setWordsLoading(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     if (state.phase === "setup") {
       sessionStorage.removeItem(SESSION_KEY);
@@ -90,9 +119,9 @@ export default function PictionaryPage() {
   }, [state]);
 
   const handleStart = useCallback((teams: Team[], timerDuration: number, selectedPackIds: string[]) => {
-    const pool = buildWordPool(selectedPackIds);
+    const pool = buildWordPool(selectedPackIds, dbRowsRef.current);
     if (pool.length === 0) return; // guard: no words available — matches DC behaviour
-    const { options, remaining } = pickThree(pool, selectedPackIds);
+    const { options, remaining } = pickThree(pool, selectedPackIds, dbRowsRef.current);
     setState({
       phase: "word-reveal",
       teams,
@@ -131,7 +160,7 @@ export default function PictionaryPage() {
       const updatedTeams = s.teams.map((team, i) =>
         i === nextTeamIdx ? { ...team, drawerIdx: nextDrawerIdx } : team
       );
-      const { options, remaining } = pickThree(s.wordPool, s.selectedPackIds);
+      const { options, remaining } = pickThree(s.wordPool, s.selectedPackIds, dbRowsRef.current);
       return {
         ...s,
         phase: "word-reveal",
@@ -156,9 +185,9 @@ export default function PictionaryPage() {
       // If there are teams, keep them and restart with fresh scores and a new word pool.
       // This means the same group can play again without re-entering names.
       if (s.teams.length === 0) return defaultState;
-      const pool = buildWordPool(s.selectedPackIds);
+      const pool = buildWordPool(s.selectedPackIds, dbRowsRef.current);
       if (pool.length === 0) return defaultState;
-      const { options, remaining } = pickThree(pool, s.selectedPackIds);
+      const { options, remaining } = pickThree(pool, s.selectedPackIds, dbRowsRef.current);
       return {
         ...defaultState,
         phase: "word-reveal",
@@ -180,7 +209,20 @@ export default function PictionaryPage() {
   const currentDrawer = currentTeam?.players[currentTeam.drawerIdx] ?? "Drawer";
   const color = teamColor(currentTeamIdx);
 
-  if (phase === "setup") return <SetupScreen onStart={handleStart} />;
+  if (phase === "setup") {
+    if (wordsLoading) return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh", fontSize: 15, color: "#888" }}>
+        Loading word packs…
+      </div>
+    );
+    if (wordsError) return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100dvh", gap: 12 }}>
+        <div style={{ fontSize: 15, color: "#CC3333" }}>Failed to load word packs</div>
+        <div style={{ fontSize: 13, color: "#888" }}>{wordsError}</div>
+      </div>
+    );
+    return <SetupScreen onStart={handleStart} />;
+  }
 
   if (phase === "word-reveal" && currentTeam) {
     return (
