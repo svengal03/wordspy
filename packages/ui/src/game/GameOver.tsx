@@ -11,9 +11,10 @@ interface Props {
   phases: string[];
   appName?: string;
   onPlayAgain: () => void;
+  onHome?: () => void;
 }
 
-export function GameOver({ teams, teamColors, phases, appName, onPlayAgain }: Props) {
+export function GameOver({ teams, teamColors, phases, appName, onPlayAgain, onHome }: Props) {
   const sorted = [...teams].sort((a, b) => b.score - a.score);
   if (sorted.length === 0) return null;
   const topScore = sorted[0]!.score;
@@ -75,9 +76,11 @@ export function GameOver({ teams, teamColors, phases, appName, onPlayAgain }: Pr
           </div>
 
           <div style={{ display: "flex", gap: 10 }}>
-            <Btn variant="ghost" fullWidth onClick={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} style={{ padding: "16px" }}>
-              ← PlayHub
-            </Btn>
+            {onHome && (
+              <Btn variant="ghost" fullWidth onClick={onHome} style={{ padding: "16px" }}>
+                ← PlayHub
+              </Btn>
+            )}
             <Btn fullWidth onClick={onPlayAgain} style={{ padding: "16px" }}>
               Play Again →
             </Btn>

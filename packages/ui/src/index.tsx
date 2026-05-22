@@ -5,15 +5,17 @@ import { motion } from "framer-motion";
 export { tokens } from "./tokens";
 export { Modal } from "./Modal";
 export { CategoryPicker } from "./CategoryPicker";
+export { RulesModal } from "./RulesModal";
+export { useGoHome } from "./hooks/useGoHome";
+export { fadeUp, fadeIn, stagger } from "./animations";
 
 import { tokens } from "./tokens";
 
 // ─── PlayHubLogo ──────────────────────────────────────────────────────────────
-export function PlayHubLogo({ appName }: { appName?: string }) {
-  const homeUrl = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app";
+export function PlayHubLogo({ appName, href = "/" }: { appName?: string; href?: string }) {
   return (
     <div style={{ display: "inline-flex", alignItems: "center" }}>
-      <a href={homeUrl} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+      <a href={href} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
         <span style={{ fontSize: 14, color: "#AAA", fontWeight: 500, marginRight: 6 }}>←</span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 2.5, marginRight: 5 }}>
           <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#CC785C" }} />

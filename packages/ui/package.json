@@ -8,7 +8,8 @@
     ".": "./src/index.tsx",
     "./tokens": "./src/tokens.ts",
     "./modal": "./src/Modal.tsx",
-    "./game": "./src/game/index.tsx"
+    "./game": "./src/game/index.tsx",
+    "./globals.css": "./src/globals.css"
   },
   "peerDependencies": {
     "framer-motion": ">=11",
