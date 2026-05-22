@@ -6,6 +6,7 @@ const game = GAME_BY_SLUG["wavelength"];
 export const metadata: Metadata = {
   title: `${game.name} — PlayHub`,
   description: game.description,
+  icons: { icon: "/favicons/favicon-wavelength.svg" },
 };
 
 export const viewport: Viewport = {

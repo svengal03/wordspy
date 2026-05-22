@@ -6,6 +6,7 @@ const game = GAME_BY_SLUG["mafia"];
 export const metadata: Metadata = {
   title: `${game.name} — PlayHub`,
   description: game.description,
+  icons: { icon: "/favicons/favicon-mafia.svg" },
 };
 
 export const viewport: Viewport = {
