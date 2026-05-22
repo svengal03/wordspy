@@ -27,4 +27,8 @@ export const tokens = {
   blueBg: "#EFF6FF",
   purple: "#7C3AED",
   purpleBg: "#F5F3FF",
+  iconBg: "#F5F0ED",
+  inputBg: "#FAFAFA",
+  avatarBg: "#F0EDE9",
+  divider: "rgba(0,0,0,0.08)",
 };

@@ -3,8 +3,6 @@
   "globalEnv": [
     "PUSHER_APP_ID",
     "PUSHER_SECRET",
-    "PUSHER_KEY",
-    "PUSHER_CLUSTER",
     "NEXT_PUBLIC_PUSHER_KEY",
     "NEXT_PUBLIC_PUSHER_CLUSTER"
   ],
