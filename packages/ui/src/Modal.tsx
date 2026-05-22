@@ -37,6 +37,7 @@ export function Modal({ open, onClose, children }: ModalProps) {
             onClick={(e) => e.stopPropagation()}
             style={{
               maxWidth: "min(400px, calc(100vw - 40px))", width: "100%",
+              maxHeight: "calc(100dvh - 40px)", overflowY: "auto",
               background: tokens.white, borderRadius: 20,
               border: `1.5px solid ${tokens.border}`,
               boxShadow: "0 16px 48px rgba(0,0,0,0.18)",

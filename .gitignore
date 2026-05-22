@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+claude/
 /.pnp
 .pnp.js
 package-lock.json
@@ -49,3 +50,5 @@ Thumbs.db
 next-env.d.ts
 *.env
 *.turbo
+*.claude
+*.log

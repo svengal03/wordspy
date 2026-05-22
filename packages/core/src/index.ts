@@ -4,3 +4,4 @@ export { WORD_PACKS } from "./wordPacks";
 export { getRandomPair, getPackById } from "./wordPackUtils";
 export type { Difficulty } from "./gameConstants";
 export { DIFFICULTY_LABEL, DIFFICULTY_COLOR, TIMER_OPTIONS, TEAM_PALETTE_PICTIONARY, TEAM_PALETTE_DUMBCHARADES } from "./gameConstants";
+export { MAFIA_ROLE_META, WAVELENGTH_TEAM_META, WAVELENGTH_ZONE_COLORS } from "./roleMeta";

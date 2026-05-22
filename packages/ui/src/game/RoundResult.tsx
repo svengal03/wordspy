@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { Btn, Card, OptionsMenu, Screen, TopBar, tokens } from "../index";
 import { PhaseTrail } from "../index";
 import type { Difficulty } from "@playhub/core";
@@ -23,9 +24,10 @@ interface Props {
 }
 
 export function RoundResult({ correct, word, difficulty, teams, teamColors, phases, appName, actingTeamName, actingTeamIdx, onNext, onEndGame, onNewGame }: Props) {
+  const router = useRouter();
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
-      <TopBar appName={appName} right={<OptionsMenu onNewGame={onNewGame} onExit={() => { window.location.href = process.env.NEXT_PUBLIC_HOME_URL ?? "https://playhub-home.vercel.app"; }} />} />
+      <TopBar appName={appName} right={<OptionsMenu onNewGame={onNewGame} onExit={() => router.push("/")} />} />
       <PhaseTrail phases={phases} current="Results" accentColor={teamColors[actingTeamIdx]} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>
