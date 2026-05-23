@@ -1,24 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateRoomCode, createInitialGameState, castVote } from "../../lib/gameEngine";
 import { DEFAULT_CONFIG } from "../../lib/types";
-import type { GameState } from "../../lib/types";
+import { createRoom, getRoom, insertGameState } from "@/lib/db/rooms";
+import { updateState, getStateByCode } from "@/lib/db/gamestate";
 
-// In-memory room store (sufficient for party game sessions)
-const rooms: Record<string, GameState> = {};
-
-// Clean up idle rooms older than 4 hours, or any room older than 24 hours
-setInterval(() => {
-  const fourHoursAgo = Date.now() - 4 * 60 * 60 * 1000;
-  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-  Object.keys(rooms).forEach((code) => {
-    const room = rooms[code];
-    const isIdle = room.phase === "summary" || room.phase === "lobby";
-    if ((isIdle && room.createdAt < fourHoursAgo) || room.createdAt < oneDayAgo) {
-      delete rooms[code];
-    }
-  });
-}, 30 * 60 * 1000);
-
+// ─── POST /wordspy/api/rooms ──────────────────────────────────────────────────
+// Actions: create | get | update | remove-player | cast-vote
 export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let body: any;
@@ -27,59 +14,83 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
+
   const { action, roomCode, gameState } = body;
 
+  // ── create ──────────────────────────────────────────────────────────────────
   if (action === "create") {
     const code = generateRoomCode();
     const state = createInitialGameState(code, DEFAULT_CONFIG);
-    rooms[code] = state;
+    const room = await createRoom(code, "wordspy", DEFAULT_CONFIG as unknown as Record<string, unknown>);
+    await insertGameState(room.id, state);
     return NextResponse.json({ roomCode: code, gameState: state });
   }
 
+  // ── get ─────────────────────────────────────────────────────────────────────
   if (action === "get") {
-    const state = rooms[roomCode];
-    if (!state) {
+    const row = await getStateByCode(roomCode);
+    if (!row) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
-    return NextResponse.json({ gameState: state });
+    return NextResponse.json({ gameState: row.payload });
   }
 
+  // ── update ──────────────────────────────────────────────────────────────────
   if (action === "update") {
-    if (!rooms[roomCode]) {
+    const room = await getRoom(roomCode);
+    if (!room) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
-    rooms[roomCode] = gameState;
+    await updateState(room.id, gameState);
     return NextResponse.json({ ok: true });
   }
 
+  // ── remove-player ────────────────────────────────────────────────────────────
   if (action === "remove-player") {
-    const state = rooms[roomCode];
-    if (!state) return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    const row = await getStateByCode(roomCode);
+    if (!row) return NextResponse.json({ error: "Room not found" }, { status: 404 });
+
     const { playerId } = body;
+    const state = row.payload;
     const removedPlayer = state.players.find((p) => p.id === playerId);
     let remaining = state.players.filter((p) => p.id !== playerId);
     if (removedPlayer?.isHost && remaining.length > 0) {
-      remaining = remaining.map((p, i) => i === 0 ? { ...p, isHost: true } : p);
+      const newHostIdx = remaining.findIndex((p) => !p.isEliminated);
+      const idx = newHostIdx >= 0 ? newHostIdx : 0;
+      remaining = remaining.map((p, i) => (i === idx ? { ...p, isHost: true } : p));
     }
     const updated = { ...state, players: remaining };
-    rooms[roomCode] = updated;
+    const room = await getRoom(roomCode);
+    if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    await updateState(room.id, updated);
     return NextResponse.json({ gameState: updated });
   }
 
-  // Atomically apply a single vote server-side to prevent race conditions
+  // ── cast-vote (atomic server-side) ──────────────────────────────────────────
   if (action === "cast-vote") {
-    const state = rooms[roomCode];
-    if (!state) {
+    const row = await getStateByCode(roomCode);
+    if (!row) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
     const { voterId, targetId } = body;
+    if (!voterId || !targetId) {
+      return NextResponse.json({ error: "Missing voterId or targetId" }, { status: 400 });
+    }
+    const state = row.payload;
     const voter = state.players.find((p) => p.id === voterId);
-    if (voter?.hasVoted) {
-      // Idempotent: already voted, return current state
-      return NextResponse.json({ gameState: state });
+    if (!voter || voter.isEliminated) {
+      return NextResponse.json({ error: "Invalid voter" }, { status: 400 });
+    }
+    if (voter.hasVoted) {
+      return NextResponse.json({ gameState: state }); // idempotent
+    }
+    const target = state.players.find((p) => p.id === targetId);
+    if (!target || target.isEliminated) {
+      return NextResponse.json({ error: "Invalid target" }, { status: 400 });
     }
     const updated = castVote(state, voterId, targetId, false);
-    rooms[roomCode] = updated;
+    const room = await getRoom(roomCode);
+    if (room) await updateState(room.id, updated);
     return NextResponse.json({ gameState: updated });
   }
 

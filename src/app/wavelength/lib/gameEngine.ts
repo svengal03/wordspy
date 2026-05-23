@@ -4,6 +4,7 @@ import {
   OpposingBet, ScoreZone, RoundResult, SpectrumCard,
 } from "./types";
 import { drawCard } from "./spectrumCards";
+import { shuffle } from "@/lib/arrayUtils";
 
 export const ZONE_POINTS: Record<ScoreZone, number> = {
   bullseye: 4,
@@ -20,14 +21,6 @@ function makeTeam(id: TeamId): Team {
   return { id, score: 0, psychicIndex: 0 };
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
 
 export function assignTeamsRandomly(players: Player[]): Player[] {
   const shuffled = shuffle(players);
@@ -49,9 +42,9 @@ function getCurrentPsychic(players: Player[], teams: [Team, Team], teamId: TeamI
   return teamPlayers[team.psychicIndex % teamPlayers.length].id;
 }
 
-export function startGame(players: Player[], config: GameConfig): Partial<GameState> {
+export async function startGame(players: Player[], config: GameConfig): Promise<Partial<GameState>> {
   const teams: [Team, Team] = [makeTeam("A"), makeTeam("B")];
-  const card = drawCard(config.packId, []);
+  const card = await drawCard(config.packId, []);
   const psychicId = getCurrentPsychic(players, teams, "A");
   return {
     phase: "clue",
@@ -142,7 +135,7 @@ export function resolveReveal(state: GameState): Partial<GameState> {
   };
 }
 
-export function nextRound(state: GameState): Partial<GameState> {
+export async function nextRound(state: GameState): Promise<Partial<GameState>> {
   const nextTeamId: TeamId = state.currentTeamId === "A" ? "B" : "A";
 
   const newTeams: [Team, Team] = state.teams.map((t) => {
@@ -153,7 +146,7 @@ export function nextRound(state: GameState): Partial<GameState> {
     return t;
   }) as [Team, Team];
 
-  const card = drawCard(state.config.packId, state.usedCardIds);
+  const card = await drawCard(state.config.packId, state.usedCardIds);
   const psychicId = getCurrentPsychic(state.players, newTeams, nextTeamId);
   const newUsed = state.usedCardIds.includes(card.id) ? state.usedCardIds : [...state.usedCardIds, card.id];
 

@@ -43,9 +43,9 @@ export default function RevealScreen() {
   const target = result.targetPosition;
   const needle = result.needlePosition;
 
-  function handleNext() {
+  async function handleNext() {
     if (game.winner) return;
-    set(nextRound(game));
+    set(await nextRound(game));
   }
 
   return (

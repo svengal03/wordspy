@@ -3,57 +3,23 @@ import { useState, useCallback, useEffect } from "react";
 import { SetupScreen } from "./components/SetupScreen";
 import { WordReveal } from "./components/WordReveal";
 import { DrawingCanvas } from "./components/DrawingCanvas";
+import { RulesModal } from "./components/RulesModal";
 import { RoundResult } from "@playhub/ui/game";
 import { GameOver } from "@playhub/ui/game";
-import { useGoHome } from "@playhub/ui";
-import { WORD_PACKS, TEAM_PALETTE_PICTIONARY as TEAM_PALETTE } from "@playhub/core";
+import { useGoHome, GameLobbyScreen, tokens } from "@playhub/ui";
+import { TEAM_PALETTE_PICTIONARY as TEAM_PALETTE } from "@playhub/core";
 import type { GameState, Team, Difficulty } from "./lib/types";
+import { calcScore } from "@/lib/scoringUtils";
+import { buildWordPool, pickThree } from "@/lib/wordPoolUtils";
+import { useWordPackCache } from "@/hooks/useWordPackCache";
 
 function teamColor(idx: number) {
   return TEAM_PALETTE[idx % TEAM_PALETTE.length]!;
 }
 
-function calcScore(timeLeft: number, timerDuration: number, difficulty: Difficulty): number {
-  if (difficulty === "easy") return 1;
-  const frac = timeLeft / timerDuration;
-  if (difficulty === "medium") {
-    if (frac >= 0.66) return 3;
-    if (frac >= 0.33) return 2;
-    return 1;
-  }
-  // hard: bigger range, higher floor
-  if (frac >= 0.66) return 5;
-  if (frac >= 0.33) return 3;
-  return 2;
-}
-
-function buildWordPool(packIds: string[]): string[] {
-  const words: string[] = [];
-  for (const pack of WORD_PACKS) {
-    if (packIds.includes(pack.id)) {
-      for (const pair of pack.pairs) {
-        words.push(pair.word1);
-        words.push(pair.word2);
-      }
-    }
-  }
-  for (let i = words.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [words[i], words[j]] = [words[j]!, words[i]!];
-  }
-  return words;
-}
-
-function pickThree(pool: string[], fallback: string[]): { options: [string, string, string]; remaining: string[] } {
-  let p = pool.length >= 3 ? pool : [...pool, ...buildWordPool(fallback)];
-  // degenerate guard: if pack is tiny, cycle words rather than crash
-  while (p.length < 3) p = [...p, ...p];
-  const options: [string, string, string] = [p[0]!, p[1]!, p[2]!];
-  return { options, remaining: p.slice(3) };
-}
-
 const defaultState: GameState = {
-  phase: "setup",
+  phase: "lobby",
+  hostName: "",
   teams: [],
   currentTeamIdx: 0,
   timerDuration: 60,
@@ -81,8 +47,10 @@ export default function PictionaryPage() {
     }
   });
 
+  const { dbRowsRef, loading: wordsLoading, error: wordsError } = useWordPackCache("pictionary");
+
   useEffect(() => {
-    if (state.phase === "setup") {
+    if (state.phase === "lobby" || state.phase === "setup") {
       sessionStorage.removeItem(SESSION_KEY);
     } else {
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
@@ -90,11 +58,12 @@ export default function PictionaryPage() {
   }, [state]);
 
   const handleStart = useCallback((teams: Team[], timerDuration: number, selectedPackIds: string[]) => {
-    const pool = buildWordPool(selectedPackIds);
-    if (pool.length === 0) return; // guard: no words available — matches DC behaviour
-    const { options, remaining } = pickThree(pool, selectedPackIds);
-    setState({
+    const pool = buildWordPool(selectedPackIds, dbRowsRef.current, true);
+    if (pool.length === 0) return;
+    const { options, remaining } = pickThree(pool, selectedPackIds, dbRowsRef.current, true);
+    setState((s) => ({
       phase: "word-reveal",
+      hostName: s.hostName,
       teams,
       currentTeamIdx: 0,
       timerDuration,
@@ -106,7 +75,7 @@ export default function PictionaryPage() {
       roundNumber: 1,
       currentDifficulty: "medium",
       lastDifficulty: null,
-    });
+    }));
   }, []);
 
   const handleDrawingStart = useCallback((word: string, difficulty: Difficulty) => {
@@ -131,7 +100,7 @@ export default function PictionaryPage() {
       const updatedTeams = s.teams.map((team, i) =>
         i === nextTeamIdx ? { ...team, drawerIdx: nextDrawerIdx } : team
       );
-      const { options, remaining } = pickThree(s.wordPool, s.selectedPackIds);
+      const { options, remaining } = pickThree(s.wordPool, s.selectedPackIds, dbRowsRef.current, true);
       return {
         ...s,
         phase: "word-reveal",
@@ -152,25 +121,7 @@ export default function PictionaryPage() {
   }, []);
 
   const handleNewGame = useCallback(() => {
-    setState((s) => {
-      // If there are teams, keep them and restart with fresh scores and a new word pool.
-      // This means the same group can play again without re-entering names.
-      if (s.teams.length === 0) return defaultState;
-      const pool = buildWordPool(s.selectedPackIds);
-      if (pool.length === 0) return defaultState;
-      const { options, remaining } = pickThree(pool, s.selectedPackIds);
-      return {
-        ...defaultState,
-        phase: "word-reveal",
-        teams: s.teams.map((t) => ({ ...t, score: 0, drawerIdx: 0 })),
-        currentTeamIdx: 0,
-        timerDuration: s.timerDuration,
-        selectedPackIds: s.selectedPackIds,
-        wordOptions: options,
-        wordPool: remaining,
-        roundNumber: 1,
-      };
-    });
+    setState((s) => ({ ...defaultState, phase: "setup", hostName: s.hostName }));
   }, []);
 
   const handleSkip = useCallback(() => handleRoundEnd(false), [handleRoundEnd]);
@@ -180,7 +131,33 @@ export default function PictionaryPage() {
   const currentDrawer = currentTeam?.players[currentTeam.drawerIdx] ?? "Drawer";
   const color = teamColor(currentTeamIdx);
 
-  if (phase === "setup") return <SetupScreen onStart={handleStart} />;
+  if (phase === "lobby") {
+    return (
+      <GameLobbyScreen
+        appName="Pictionary"
+        tagline={<>Draw it. Guess it.<br /><span style={{ color: tokens.coral }}>Pure pictionary.</span></>}
+        description="Shapes, stick figures, chaos. No words, no letters."
+        onSubmit={(name) => setState((s) => ({ ...s, phase: "setup", hostName: name }))}
+        onExit={goHome}
+        rulesModal={({ isOpen, onClose }) => <RulesModal isOpen={isOpen} onClose={onClose} />}
+      />
+    );
+  }
+
+  if (phase === "setup") {
+    if (wordsLoading) return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh", fontSize: 15, color: "#888" }}>
+        Loading word packs…
+      </div>
+    );
+    if (wordsError) return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100dvh", gap: 12 }}>
+        <div style={{ fontSize: 15, color: "#CC3333" }}>Failed to load word packs</div>
+        <div style={{ fontSize: 13, color: "#888" }}>{wordsError}</div>
+      </div>
+    );
+    return <SetupScreen onStart={handleStart} onNewGame={handleNewGame} hostName={state.hostName} />;
+  }
 
   if (phase === "word-reveal" && currentTeam) {
     return (

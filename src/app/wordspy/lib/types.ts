@@ -66,28 +66,10 @@ export interface GameState {
   createdAt: number;
 }
 
-// ─── Game Event Types (Pusher) ───────────────────────────────────────────────
-export type GameEventType =
-  | "player-joined"
-  | "player-left"
-  | "game-state-update"
-  | "clue-submitted"
-  | "vote-cast"
-  | "ghost-guess"
-  | "chat-message"
-  | "phase-change"
-  | "host-action";
-
-export interface GameEvent {
-  type: GameEventType;
-  payload: unknown;
-  senderId: string;
-  timestamp: number;
-}
 
 // ─── Default Config ───────────────────────────────────────────────────────────
 export const DEFAULT_CONFIG: GameConfig = {
-  packId: "bollywood",
+  packId: "",
   playerCount: 5,
   undercoverCount: 1,
   ghostCount: 1,

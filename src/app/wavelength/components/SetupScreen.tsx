@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Screen, TopBar, Card, Btn, Toggle, NavBtn, tokens, OptionsMenu, PlayerNameInput, useGoHome } from "@playhub/ui";
 import { WAVELENGTH_TEAM_META } from "@playhub/core";
@@ -19,6 +19,12 @@ export default function SetupScreen() {
   const [config, setConfig] = useState<GameConfig>({ ...game.config });
   const [error, setError] = useState("");
   const [showRules, setShowRules] = useState(false);
+
+  // ── Supabase pack list ────────────────────────────────────────────────────
+  const [packOptions, setPackOptions] = useState<Awaited<ReturnType<typeof getWavelengthPacks>>>([]);
+  useEffect(() => {
+    getWavelengthPacks().then(setPackOptions).catch(console.error);
+  }, []);
 
   function addPlayer() {
     const name = input.trim();
@@ -51,8 +57,6 @@ export default function SetupScreen() {
 
     set({ phase: "team-assign", players, config });
   }
-
-  const packOptions = getWavelengthPacks();
 
   return (
     <Screen>

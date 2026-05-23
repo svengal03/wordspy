@@ -1,4 +1,5 @@
 export type Phase =
+  | "lobby"
   | "setup"
   | "word-reveal"
   | "drawing"
@@ -17,6 +18,7 @@ export type { Difficulty };
 
 export interface GameState {
   phase: Phase;
+  hostName: string;
   teams: Team[];
   currentTeamIdx: number;
   timerDuration: number;

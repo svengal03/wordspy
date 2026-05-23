@@ -27,9 +27,9 @@ export default function TeamAssignScreen() {
     return teamA.length >= 2 && teamB.length >= 2;
   }
 
-  function handleStart() {
+  async function handleStart() {
     if (!canStart()) return;
-    const newState = startGame(players, game.config);
+    const newState = await startGame(players, game.config);
     set(newState);
   }
 

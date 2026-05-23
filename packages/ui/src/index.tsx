@@ -420,6 +420,71 @@ export function PhaseTrail({ phases, current, accentColor = tokens.coral }: { ph
   );
 }
 
+// ─── GameLobbyScreen ─────────────────────────────────────────────────────────
+export function GameLobbyScreen({
+  appName,
+  tagline,
+  description,
+  onSubmit,
+  onExit,
+  rulesModal,
+}: {
+  appName: string;
+  tagline: ReactNode;
+  description: string;
+  onSubmit: (name: string) => void;
+  onExit: () => void;
+  rulesModal?: (props: { isOpen: boolean; onClose: () => void }) => ReactNode;
+}) {
+  const [name, setName] = useState("");
+  const [showRules, setShowRules] = useState(false);
+
+  function submit() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    onSubmit(trimmed);
+  }
+
+  return (
+    <Screen>
+      <TopBar
+        appName={appName}
+        right={
+          <div style={{ display: "flex", gap: 8 }}>
+            {rulesModal && <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>}
+            <NavBtn onClick={onExit}>Exit</NavBtn>
+          </div>
+        }
+      />
+      {rulesModal?.({ isOpen: showRules, onClose: () => setShowRules(false) })}
+      <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ paddingTop: 8 }}>
+          <div style={{ fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.2, lineHeight: 1.1, marginBottom: 10 }}>
+            {tagline}
+          </div>
+          <div style={{ fontSize: 14, color: tokens.grey2, lineHeight: 1.6 }}>{description}</div>
+        </div>
+        <Card>
+          <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
+            Your Name
+          </div>
+          <PlayerNameInput
+            value={name}
+            onChange={setName}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+            placeholder="e.g. Rahul, Priya…"
+            autoFocus
+            style={{ fontSize: 15, padding: "12px 14px" }}
+          />
+        </Card>
+        <Btn fullWidth onClick={submit} disabled={!name.trim()} style={{ padding: "15px 24px", fontSize: 16 }}>
+          Set Up Game →
+        </Btn>
+      </div>
+    </Screen>
+  );
+}
+
 // ─── RevealProgressDots ───────────────────────────────────────────────────────
 export function RevealProgressDots({
   total,

@@ -2,8 +2,8 @@
 import { useEffect, useCallback, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGameStore } from "../../lib/store";
-import { usePusherRoom } from "../../lib/usePusher";
-import { GameState, ChatMessage, GameEvent } from "../../lib/types";
+import { useSupabaseRoom } from "../../lib/useSupabaseRoom";
+import { GameState, ChatMessage } from "../../lib/types";
 import {
   startGame, submitClue, processGhostGuess,
   nextRound, eliminatePlayer,
@@ -23,47 +23,27 @@ export default function RoomPage() {
   const roomCode = params.id as string;
   const router = useRouter();
   const [roomError, setRoomError] = useState<string | null>(null);
+  // Supabase room UUID — needed for the Realtime subscription
+  const [roomId, setRoomId] = useState<string | null>(null);
 
   const {
     localPlayer, gameState, setGameState,
     setRoomCode, setLocalPlayer, config, reset,
   } = useGameStore();
 
-  async function pushState(state: GameState) {
+  // ── Supabase Realtime subscription ──────────────────────────────────────────
+  // Replaces Pusher: the hook listens for postgres_changes on game_state
+  // and calls setGameState whenever another player pushes a state update.
+  const { pushState } = useSupabaseRoom(roomId, setGameState);
+
+  // ── pushState wrapper ────────────────────────────────────────────────────────
+  // Optimistically updates local state first then persists to Supabase.
+  async function push(state: GameState) {
     const prev = gameState;
     setGameState(state);
-    try {
-      const res = await fetch("/wordspy/api/rooms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update", roomCode, gameState: state }),
-      });
-      if (!res.ok && prev) setGameState(prev);
-    } catch {
-      if (prev) setGameState(prev);
-    }
+    const ok = await pushState(roomCode, state);
+    if (!ok && prev) setGameState(prev);
   }
-
-  const handleEvent = useCallback((event: GameEvent) => {
-    switch (event.type) {
-      case "game-state-update":
-        setGameState(event.payload as GameState);
-        break;
-      case "player-joined": {
-        fetch("/wordspy/api/rooms", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get", roomCode }),
-        }).then(r => r.json()).then(data => {
-          if (data.gameState) setGameState(data.gameState);
-        });
-        break;
-      }
-    }
-  }, [setGameState]);
-
-  const playerId = localPlayer?.id ?? "anon";
-  const { publish } = usePusherRoom(roomCode, handleEvent, playerId);
 
   useEffect(() => {
     if (!roomCode) return;
@@ -71,18 +51,16 @@ export default function RoomPage() {
 
     (async () => {
       try {
-      const res = await fetch("/wordspy/api/rooms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "get", roomCode }),
-      });
-      if (!res.ok) {
-        setRoomError("Room not found — the session may have ended. Taking you home…");
-        setTimeout(() => router.push("/wordspy"), 3000);
-        return;
-      }
-      const data = await res.json();
-      const state = data.gameState as GameState;
+        // Fetch state via new GET endpoint and capture the Supabase room UUID
+        const res = await fetch(`/wordspy/api/rooms/${roomCode}/state`);
+        if (!res.ok) {
+          setRoomError("Room not found — the session may have ended. Taking you home…");
+          setTimeout(() => router.push("/wordspy"), 3000);
+          return;
+        }
+        const data = await res.json();
+        const state = data.gameState as GameState;
+        setRoomId(data.roomId);   // store UUID for Supabase Realtime subscription
 
       if (localPlayer) {
         const alreadyIn = state.players.find((p) => p.id === localPlayer.id);
@@ -102,8 +80,7 @@ export default function RoomPage() {
             setGameState(state);
           } else {
             const updated = { ...state, players: [...state.players, localPlayer] };
-            await pushState(updated);
-            await publish("player-joined", localPlayer);
+            await push(updated);
           }
         } else {
           setGameState(state);
@@ -121,52 +98,51 @@ export default function RoomPage() {
   async function handleStart() {
     if (!gameState) return;
     const started = startGame({ ...gameState, config });
-    await pushState(started);
-    await publish("game-state-update", started);
+    await push(started);
   }
 
   async function handleUpdateConfig(newConfig: typeof config) {
     if (!gameState) return;
     const updated = { ...gameState, config: newConfig };
-    await pushState(updated);
-    await publish("game-state-update", updated);
+    await push(updated);
   }
 
   async function handleClue(clue: string) {
     if (!gameState || !localPlayer) return;
     const result = submitClue(gameState, localPlayer.id, clue);
     if (result.error) return result.error;
-    await pushState(result.state);
-    await publish("game-state-update", result.state);
+    await push(result.state);
   }
 
   async function handleVote(targetId: string) {
     if (!gameState || !localPlayer) return;
-    // Server applies vote atomically to prevent race conditions from simultaneous votes
-    const res = await fetch("/wordspy/api/rooms", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "cast-vote", roomCode, voterId: localPlayer.id, targetId }),
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    const updated = data.gameState as GameState;
-    setGameState(updated);
-    await publish("game-state-update", updated);
+    try {
+      // Server applies vote atomically to prevent race conditions from simultaneous votes
+      const res = await fetch("/wordspy/api/rooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cast-vote", roomCode, voterId: localPlayer.id, targetId }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.error) return;
+      setGameState(data.gameState as GameState);
+      // Supabase Realtime already broadcasts to others via the server-side updateState()
+    } catch {
+      // network error — vote not registered, user can retry
+    }
   }
 
   async function handleGhostGuess(guess: string) {
     if (!gameState) return;
     const updated = processGhostGuess(gameState, guess);
-    await pushState(updated);
-    await publish("game-state-update", updated);
+    await push(updated);
   }
 
   async function handleContinue() {
     if (!gameState) return;
     const updated = nextRound(gameState);
-    await pushState(updated);
-    await publish("game-state-update", updated);
+    await push(updated);
   }
 
   async function handleChat(text: string) {
@@ -180,8 +156,7 @@ export default function RoomPage() {
       type: "message",
     };
     const updated = { ...gameState, chat: [...gameState.chat, msg] };
-    await pushState(updated);
-    await publish("game-state-update", updated);
+    await push(updated);
   }
 
   async function handleRemovePlayer(playerId: string) {
@@ -193,9 +168,8 @@ export default function RoomPage() {
     });
     if (!res.ok) return;
     const data = await res.json();
-    const updated = data.gameState as GameState;
-    setGameState(updated);
-    await publish("game-state-update", updated);
+    setGameState(data.gameState as GameState);
+    // Supabase Realtime broadcasts the update to other players
   }
 
   async function handleLeave() {
@@ -227,8 +201,7 @@ export default function RoomPage() {
       isTiebreaker: false,
       chat: [],
     };
-    await pushState(freshState);
-    await publish("game-state-update", freshState);
+    await push(freshState);
   }
 
   const isKicked = gameState && localPlayer &&
@@ -283,8 +256,7 @@ export default function RoomPage() {
         onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
         onDone={async () => {
           const updated = { ...gameState, phase: "clue" as const };
-          await pushState(updated);
-          await publish("game-state-update", updated);
+          await push(updated);
         }}
       />
     );
@@ -302,8 +274,7 @@ export default function RoomPage() {
         onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
         onStartVoting={async () => {
           const updated = { ...gameState, phase: "vote" as const };
-          await pushState(updated);
-          await publish("game-state-update", updated);
+          await push(updated);
         }}
       />
     );
@@ -320,8 +291,7 @@ export default function RoomPage() {
           onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
           onContinue={async () => {
             const updated = nextRound(gameState);
-            await pushState(updated);
-            await publish("game-state-update", updated);
+            await push(updated);
           }}
         />
         <div style={{ padding: "0 20px 32px", maxWidth: 480, margin: "0 auto" }}>
@@ -333,6 +303,10 @@ export default function RoomPage() {
 
   if (phase === "host-pick") {
     const activePlayers = gameState.players.filter((p) => !p.isEliminated);
+    if (activePlayers.length === 0) {
+      push({ ...gameState, phase: "summary", winner: "civilians" });
+      return null;
+    }
     const maxVotes = Math.max(...activePlayers.map((p) => p.votes));
     const tiedPlayers = activePlayers.filter((p) => p.votes === maxVotes);
     const isHost = localPlayer.isHost;
@@ -362,8 +336,7 @@ export default function RoomPage() {
               onClick={async () => {
                 if (!isHost) return;
                 const updated = eliminatePlayer(gameState, p.id);
-                await pushState(updated);
-                await publish("game-state-update", updated);
+                await push(updated);
               }}
               style={{
                 display: "flex", alignItems: "center", gap: 14, padding: "16px 18px",

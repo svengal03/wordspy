@@ -10,6 +10,7 @@ import { TIMER_OPTIONS, TEAM_PALETTE_PICTIONARY as TEAM_PALETTE } from "@playhub
 interface Props {
   onStart: (teams: Team[], timerDuration: number, selectedPackIds: string[]) => void;
   onNewGame?: () => void;
+  hostName?: string;
 }
 
 interface TeamDraft {
@@ -21,7 +22,7 @@ function makeTeam(idx: number): TeamDraft {
   return { name: `Team ${idx + 1}`, players: [""] };
 }
 
-export function SetupScreen({ onStart, onNewGame }: Props) {
+export function SetupScreen({ onStart, onNewGame, hostName }: Props) {
   const goHome = useGoHome();
   const [teams, setTeams] = useState<TeamDraft[]>([makeTeam(0), makeTeam(1)]);
   const [timerDuration, setTimerDuration] = useState(60);
@@ -98,7 +99,12 @@ export function SetupScreen({ onStart, onNewGame }: Props) {
       } />
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ paddingTop: 8, fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.2, lineHeight: 1.15, marginBottom: 10 }}>
+        {hostName && (
+          <div style={{ paddingTop: 8, fontSize: 13, color: tokens.grey2, fontWeight: 500 }}>
+            Hi {hostName}, let&apos;s set up your game.
+          </div>
+        )}
+        <div style={{ paddingTop: hostName ? 4 : 8, fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.2, lineHeight: 1.15, marginBottom: 10 }}>
           Draw it. Guess it. Pure<br />
           <span style={{ color: tokens.coral }}>pictionary</span>.
         </div>

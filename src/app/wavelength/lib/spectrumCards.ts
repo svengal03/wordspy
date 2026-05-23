@@ -1,26 +1,25 @@
-import { WORD_PACKS } from "@playhub/core";
+import { getPacks, getWords } from "@/lib/db/wordpacks";
 import { SpectrumCard } from "./types";
 
 export type { SpectrumCard };
 
-export function getWavelengthPacks() {
-  return WORD_PACKS.filter((p) => p.games.includes("wavelength"));
+export async function getWavelengthPacks() {
+  return getPacks("wavelength");
 }
 
-export function getSpectrumPack(packId: string): SpectrumCard[] {
-  const pack =
-    WORD_PACKS.find((p) => p.id === packId && p.games.includes("wavelength")) ??
-    WORD_PACKS.find((p) => p.id === "wavelength-general")!;
-  return pack.pairs.map((pair, i) => ({
-    id: `${pack.id}-${i}`,
-    left: pair.word1,
-    right: pair.word2,
+export async function getSpectrumPack(packId: string): Promise<SpectrumCard[]> {
+  const rows = await getWords(packId);
+  return rows.map((row, i) => ({
+    id: `${packId}-${i}`,
+    left: row.word_a,
+    right: row.word_b ?? row.word_a,
   }));
 }
 
-export function drawCard(packId: string, usedCardIds: string[]): SpectrumCard {
-  const cards = getSpectrumPack(packId);
+export async function drawCard(packId: string, usedCardIds: string[]): Promise<SpectrumCard> {
+  const cards = await getSpectrumPack(packId);
+  if (cards.length === 0) throw new Error(`Wavelength pack "${packId}" has no cards.`);
   const available = cards.filter((c) => !usedCardIds.includes(c.id));
   const pool = available.length > 0 ? available : cards;
-  return pool[Math.floor(Math.random() * pool.length)];
+  return pool[Math.floor(Math.random() * pool.length)]!;
 }

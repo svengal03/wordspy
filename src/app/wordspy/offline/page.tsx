@@ -9,9 +9,9 @@ import {
 import { GameState, GameConfig } from "../lib/types";
 import { tokens, Btn, Card, SectionLabel, Toggle, OptionsMenu, Screen, TopBar, NavBtn, PlayHubLogo } from "@playhub/ui";
 import RulesModal from "../components/RulesModal";
-import { WORD_PACKS } from "../lib/wordPacks";
 import { motion } from "framer-motion";
 import { useGoHome } from "@playhub/ui";
+import { packEmoji, type WordPackRow, type WordRow } from "@/lib/db/wordpacks";
 
 import RoleReveal from "../components/RoleReveal";
 import CluePhase from "../components/CluePhase";
@@ -31,6 +31,36 @@ export default function OfflinePage() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [showRoundStart, setShowRoundStart] = useState(false);
+
+  // ── Supabase word packs (read-only, no realtime needed) ────────────────────
+  const [packs, setPacks] = useState<WordPackRow[]>([]);
+  const [packWords, setPackWords] = useState<WordRow[]>([]);
+  const [packsLoading, setPacksLoading] = useState(true);
+  const allWordsRef = React.useRef<Record<string, WordRow[]>>({});
+
+  useEffect(() => {
+    fetch("/api/packs?game=wordspy")
+      .then((r) => r.json())
+      .then(({ packs: rows, words }: { packs: WordPackRow[]; words: Record<string, WordRow[]> }) => {
+        allWordsRef.current = words;
+        setPacks(rows);
+        if (rows.length > 0 && !rows.find((r: WordPackRow) => r.id === config.packId)) {
+          setConfig({ packId: rows[0].id });
+          setPackWords(words[rows[0].id] ?? []);
+        } else if (config.packId) {
+          setPackWords(words[config.packId] ?? []);
+        }
+      })
+      .catch(() => { /* keep packs empty, UI shows no pack buttons */ })
+      .finally(() => setPacksLoading(false));
+  }, []);
+
+  // Derive words from cache whenever selected pack changes
+  useEffect(() => {
+    if (!config.packId) return;
+    const cached = allWordsRef.current[config.packId];
+    if (cached) setPackWords(cached);
+  }, [config.packId]);
 
   function handleLeave() {
     if (!window.confirm("Exit game?")) return;
@@ -100,7 +130,12 @@ export default function OfflinePage() {
     };
 
     const handleStart = () => {
-      const started = startGame({ ...gameState, config });
+      // Pick a random word pair from the DB-fetched words
+      const pairs = packWords.filter((w) => w.word_b !== null);
+      if (pairs.length === 0) return; // no words loaded — button should be disabled but guard anyway
+      const rawPair = pairs[Math.floor(Math.random() * pairs.length)];
+      const wordPair = { word1: rawPair.word_a, word2: rawPair.word_b! };
+      const started = startGame({ ...gameState, config }, wordPair);
       setGameState(started);
       setRevealIndex(0);
     };
@@ -212,8 +247,8 @@ export default function OfflinePage() {
                       <div style={{ fontSize: 12, color: tokens.grey3 }}>Gets no word — must bluff blindly</div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <button style={ghosts <= 1 ? disabledStyle : stepperStyle} disabled={ghosts <= 1}
-                        onClick={() => updateConfig({ ghostCount: Math.max(1, ghosts - 1) })}>−</button>
+                      <button style={ghosts <= 0 ? disabledStyle : stepperStyle} disabled={ghosts <= 0}
+                        onClick={() => updateConfig({ ghostCount: Math.max(0, ghosts - 1) })}>−</button>
                       <span style={{ fontSize: 16, fontWeight: 700, minWidth: 20, textAlign: "center", color: tokens.black }}>{ghosts}</span>
                       <button style={!canAddGhost ? disabledStyle : stepperStyle} disabled={!canAddGhost}
                         onClick={() => updateConfig({ ghostCount: ghosts + 1 })}>+</button>
@@ -224,21 +259,25 @@ export default function OfflinePage() {
             })()}
           </Card>
 
-          {/* Word Pack */}
+          {/* Word Pack — fetched from Supabase (read-only) */}
           <Card>
             <SectionLabel>Word Pack</SectionLabel>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {WORD_PACKS.map((pack) => (
-                <button key={pack.id} onClick={() => updateConfig({ packId: pack.id })} style={{
-                  padding: "7px 12px", borderRadius: 10, fontSize: 13, fontWeight: 500,
-                  border: `1.5px solid ${config.packId === pack.id ? tokens.coral : tokens.border}`,
-                  background: config.packId === pack.id ? tokens.coralBg : "transparent",
-                  color: config.packId === pack.id ? tokens.coral : tokens.grey1, cursor: "pointer",
-                }}>
-                  {pack.emoji} {pack.name}
-                </button>
-              ))}
-            </div>
+            {packsLoading ? (
+              <div style={{ fontSize: 13, color: tokens.grey3 }}>Loading packs…</div>
+            ) : (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {packs.map((pack) => (
+                  <button key={pack.id} onClick={() => updateConfig({ packId: pack.id })} style={{
+                    padding: "7px 12px", borderRadius: 10, fontSize: 13, fontWeight: 500,
+                    border: `1.5px solid ${config.packId === pack.id ? tokens.coral : tokens.border}`,
+                    background: config.packId === pack.id ? tokens.coralBg : "transparent",
+                    color: config.packId === pack.id ? tokens.coral : tokens.grey1, cursor: "pointer",
+                  }}>
+                    {packEmoji(pack.name)} {pack.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </Card>
 
           {/* Options */}
@@ -264,8 +303,12 @@ export default function OfflinePage() {
             </div>
           </Card>
 
-          <Btn fullWidth onClick={handleStart} disabled={gameState.players.length < 3} style={{ padding: "16px", fontSize: 16 }}>
-            {gameState.players.length < 3 ? `Need ${3 - gameState.players.length} more player(s)` : "Start Game →"}
+          <Btn fullWidth onClick={handleStart} disabled={gameState.players.length < 3 || packWords.filter(w => w.word_b !== null).length === 0} style={{ padding: "16px", fontSize: 16 }}>
+            {gameState.players.length < 3
+              ? `Need ${3 - gameState.players.length} more player(s)`
+              : packWords.filter(w => w.word_b !== null).length === 0
+              ? "Loading words…"
+              : "Start Game →"}
           </Btn>
         </div>
       </Screen>
@@ -354,7 +397,9 @@ export default function OfflinePage() {
 
   // ─── Clue phase ───────────────────────────────────────────────────────────
   if (gameState.phase === "clue" || gameState.phase === "discussion") {
-    const currentPlayer = gameState.players[gameState.currentCluePlayerIndex];
+    const currentPlayer = gameState.players[gameState.currentCluePlayerIndex]
+      ?? gameState.players.find((p) => !p.isEliminated);
+    if (!currentPlayer) return null;
     const handleClue = (clue: string) => {
       const result = submitClue(gameState, currentPlayer.id, clue);
       if (result.error) return result.error;
@@ -379,7 +424,9 @@ export default function OfflinePage() {
   // ─── Vote phase ───────────────────────────────────────────────────────────
   if (gameState.phase === "vote") {
     const activePlayers = gameState.players.filter((p) => !p.isEliminated);
-    const currentVoter = activePlayers[gameState.currentVoterIndex];
+    const safeVoterIdx = Math.min(Math.max(0, gameState.currentVoterIndex), activePlayers.length - 1);
+    const currentVoter = activePlayers[safeVoterIdx];
+    if (!currentVoter) return null;
     const handleVote = (targetId: string) => {
       setGameState(castVote(gameState, currentVoter.id, targetId, true));
     };
