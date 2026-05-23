@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CategoryPicker, PlayerNameInput, useGoHome } from "@playhub/ui";
+import { Avatar, CategoryPicker, PlayerNameInput, useGoHome } from "@playhub/ui";
 import { Btn, Card, NavBtn, OptionsMenu, Screen, TopBar, SectionLabel, tokens } from "@playhub/ui";
 import { RulesModal } from "./RulesModal";
 import type { Team } from "../lib/types";
@@ -144,15 +144,8 @@ export function SetupScreen({ onStart, onNewGame, hostName }: Props) {
                   <AnimatePresence>
                     {team.players.map((p, pi) => (
                       <motion.div key={pi} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }}
-                        style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <div style={{
-                          width: 28, height: 28, borderRadius: 7,
-                          background: accent(ti) + "20", color: accent(ti),
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 11, fontWeight: 700, flexShrink: 0,
-                        }}>
-                          {p.slice(0, 2).toUpperCase() || String(pi + 1)}
-                        </div>
+                        style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                        <Avatar name={p || `P${pi + 1}`} size={36} color={accent(ti)} />
                         <PlayerNameInput
                           value={p}
                           onChange={(val) => updatePlayer(ti, pi, val)}

@@ -7,7 +7,7 @@ import { Player, NightSubPhase } from "../lib/types";
 import { getLiving, resolveNight, eliminatePlayer, checkWin } from "../lib/gameEngine";
 import RulesModal from "./RulesModal";
 
-const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote"];
+const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote", "Results"];
 
 export default function NightScreen() {
   const { game, set, reset, restartGame } = useGame();

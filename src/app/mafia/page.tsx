@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Btn, Card, NavBtn, Toggle, tokens, PlayHubLogo, OptionsMenu, PlayerNameInput, useGoHome } from "@playhub/ui";
+import { Btn, Card, NavBtn, Toggle, tokens, TopBar, OptionsMenu, PlayerNameInput, useGoHome } from "@playhub/ui";
 import { useGame } from "./lib/store";
 import { createPlayer, assignRoles, getMafiaCount } from "./lib/gameEngine";
 import { DEFAULT_CONFIG, GameConfig } from "./lib/types";
@@ -115,20 +115,15 @@ function SetupScreen() {
         fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
         display: "flex", flexDirection: "column",
       }}>
-        {/* Sticky Navbar */}
-      <div style={{
-        position: "sticky", top: 0, zIndex: 50,
-        padding: "14px 20px",
-        background: "#FAFAF8",
-        borderBottom: "0.5px solid rgba(0,0,0,0.08)",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-      }}>
-        <PlayHubLogo appName="Mafia" />
-        <div style={{ display: "flex", gap: 8 }}>
-          <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
-          <OptionsMenu onExit={goHome} />
-        </div>
-      </div>
+        <TopBar
+        appName="Mafia"
+        right={
+          <div style={{ display: "flex", gap: 8 }}>
+            <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+            <OptionsMenu onExit={goHome} />
+          </div>
+        }
+      />
 
       <div style={{ flex: 1, maxWidth: 480, margin: "0 auto", width: "100%", padding: "0 24px 40px", boxSizing: "border-box" }}>
 
@@ -204,20 +199,15 @@ function SetupScreen() {
       fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
       paddingBottom: 40,
     }}>
-      {/* Header */}
-      <div style={{
-        position: "sticky", top: 0, zIndex: 50,
-        padding: "14px 20px",
-        background: "#FAFAF8",
-        borderBottom: "0.5px solid rgba(0,0,0,0.08)",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-      }}>
-        <PlayHubLogo appName="Mafia" />
-        <div style={{ display: "flex", gap: 8 }}>
-          <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
-          <OptionsMenu onNewGame={resetSetup} onExit={goHome} />
-        </div>
-      </div>
+      <TopBar
+        appName="Mafia"
+        right={
+          <div style={{ display: "flex", gap: 8 }}>
+            <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+            <OptionsMenu onNewGame={resetSetup} onExit={goHome} />
+          </div>
+        }
+      />
 
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
 

@@ -7,7 +7,7 @@ import { getLiving } from "../lib/gameEngine";
 import { RoleBadge } from "./ui";
 import RulesModal from "./RulesModal";
 
-const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote"];
+const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote", "Results"];
 
 export default function DayScreen() {
   const { game, set, reset, restartGame } = useGame();

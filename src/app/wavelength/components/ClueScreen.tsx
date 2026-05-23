@@ -31,7 +31,12 @@ export default function ClueScreen() {
       <Screen>
         <TopBar
           appName="Wavelength"
-          right={<OptionsMenu onNewGame={restartGame} onExit={goHome} />}
+          right={
+            <div style={{ display: "flex", gap: 8 }}>
+              <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+              <OptionsMenu onNewGame={restartGame} onExit={goHome} />
+            </div>
+          }
         />
         <RoundBar round={game.round} sub={`${teamMeta.label} — Psychic's turn`} current="Clue" accentColor={teamMeta.color} />
         <div style={{ padding: "32px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
