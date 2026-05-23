@@ -2,11 +2,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { GameState, Player } from "../types";
-import { Card, Btn, tokens, TopBar, Screen, Badge, NavBtn, PhaseTrail, OptionsMenu } from "@playhub/ui";
-import { useGoHome } from "@playhub/ui";
+import { Card, Btn, tokens, TopBar, Screen, Badge, NavBtn, PhaseTrail, OptionsMenu, useGoHome } from "@playhub/ui";
 import RulesModal from "./RulesModal";
-
-const PHASES = ["Word Reveal", "Clue", "Discussion", "Vote", "Results"];
+import { WORDSPY_PHASES } from "../engine";
 
 interface Props {
   gameState: GameState;
@@ -45,7 +43,7 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
           </div>
         }
       />
-      <PhaseTrail phases={PHASES} current="Results" accentColor={tokens.coral} />
+      <PhaseTrail phases={WORDSPY_PHASES} current="Results" accentColor={tokens.coral} />
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 

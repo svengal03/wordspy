@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { GAMES } from "@playhub/config";
-import { tokens } from "@playhub/ui";
+import { tokens, Btn } from "@playhub/ui";
 
 export default function HomePage() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function HomePage() {
       <main
         style={{
           minHeight: "100dvh",
-          background: "#FAFAF8",
+          background: tokens.bg,
           fontFamily: "'DM Sans', sans-serif",
           padding: "32px 20px 32px",
           maxWidth: 520,
@@ -44,16 +44,16 @@ export default function HomePage() {
       >
         {/* Header */}
         <header style={{ marginBottom: 32 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", marginBottom: 6 }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 2.5, marginRight: 6 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 3, marginBottom: 6 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 2.5, marginRight: 5 }}>
               <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: tokens.coral }} />
               <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: tokens.coral, opacity: 0.55 }} />
               <span style={{ display: "inline-block", width: 4, height: 4, borderRadius: "50%", background: tokens.coral, opacity: 0.25 }} />
             </span>
-            <span style={{ fontSize: 28, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", lineHeight: 1 }}>play</span>
-            <span style={{ fontSize: 28, fontWeight: 800, color: tokens.coral, letterSpacing: "-0.02em", lineHeight: 1 }}>hub</span>
+            <span style={{ fontSize: 28, fontWeight: 800, color: tokens.black, letterSpacing: -0.6, lineHeight: 1 }}>play</span>
+            <span style={{ fontSize: 28, fontWeight: 800, color: tokens.coral, letterSpacing: -0.6, lineHeight: 1 }}>hub</span>
           </div>
-          <p style={{ margin: "0", fontSize: 14, color: "#999", fontWeight: 400 }}>
+          <p style={{ margin: "0", fontSize: 14, color: tokens.grey2, fontWeight: 400 }}>
             Party games for groups
           </p>
         </header>
@@ -70,21 +70,21 @@ export default function HomePage() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                background: "#fff",
-                border: "1.5px solid #E8E5E1",
-                borderRadius: 20,
+                background: tokens.white,
+                border: `1.5px solid ${tokens.border}`,
+                borderRadius: tokens.radius.xl,
                 padding: "20px 16px",
                 textDecoration: "none",
                 transition: "box-shadow 0.15s ease, border-color 0.15s ease",
                 boxShadow: hoveredGame === game.name ? "0 4px 16px rgba(0,0,0,0.10)" : "none",
-                borderColor: hoveredGame === game.name ? "#D4CFC9" : "#E8E5E1",
+                borderColor: hoveredGame === game.name ? tokens.grey4 : tokens.border,
                 boxSizing: "border-box",
               }}
             >
               {/* Emoji icon */}
               <div style={{
                 width: 52, height: 52, borderRadius: 14,
-                background: "#FFF8F5", border: `1.5px solid ${tokens.coral}20`,
+                background: tokens.coralBg, border: `1.5px solid ${tokens.coral}20`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 26, marginBottom: 14, flexShrink: 0,
               }}>
@@ -92,13 +92,13 @@ export default function HomePage() {
               </div>
 
               {/* Name */}
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", marginBottom: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: tokens.black, letterSpacing: -0.3, marginBottom: 4 }}>
                 <span>{game.split[0]}</span>
                 <span style={{ color: tokens.coral }}>{game.split[1]}</span>
               </div>
 
               {/* Description */}
-              <p style={{ margin: "0 0 14px", fontSize: 13, color: "#777", lineHeight: 1.45, fontWeight: 400, flex: 1 }}>
+              <p style={{ margin: "0 0 14px", fontSize: 13, color: tokens.grey2, lineHeight: 1.45, fontWeight: 400, flex: 1 }}>
                 {game.description}
               </p>
 
@@ -106,8 +106,8 @@ export default function HomePage() {
               <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                 <span style={{
                   fontSize: 11, fontWeight: 700, color: tokens.coral,
-                  background: "#FAECE7", border: `1px solid ${tokens.coral}40`,
-                  borderRadius: 6, padding: "3px 8px", letterSpacing: "0.04em",
+                  background: tokens.accentBg, border: `1px solid ${tokens.coral}40`,
+                  borderRadius: tokens.radius.sm, padding: "3px 8px", letterSpacing: "0.04em",
                   textTransform: "uppercase",
                 }}>
                   {game.players}
@@ -115,9 +115,9 @@ export default function HomePage() {
                 <button
                   onClick={(e) => openModal(game.name, e)}
                   style={{
-                    fontSize: 11, fontWeight: 700, color: "#888",
-                    background: "#F5F4F2", border: "1px solid #E8E5E1",
-                    borderRadius: 6, padding: "3px 8px", letterSpacing: "0.04em",
+                    fontSize: 11, fontWeight: 700, color: tokens.grey2,
+                    background: tokens.inputBg, border: `1px solid ${tokens.border}`,
+                    borderRadius: tokens.radius.sm, padding: "3px 8px", letterSpacing: "0.04em",
                     textTransform: "uppercase", cursor: "pointer",
                     fontFamily: "inherit",
                   }}
@@ -134,10 +134,10 @@ export default function HomePage() {
           marginTop: 32,
           paddingTop: 20,
           paddingBottom: "max(20px, env(safe-area-inset-bottom))",
-          borderTop: "1px solid #E8E5E1",
+          borderTop: `1px solid ${tokens.border}`,
           textAlign: "center",
         }}>
-          <div style={{ fontSize: 13, color: "#888", fontWeight: 500 }}>
+          <div style={{ fontSize: 13, color: tokens.grey2, fontWeight: 500 }}>
             Made in haste, play with a straight face. © R3GUn
           </div>
         </footer>
@@ -157,7 +157,7 @@ export default function HomePage() {
               position: "fixed",
               inset: 0,
               background: "rgba(0,0,0,0.45)",
-              zIndex: 100,
+              zIndex: tokens.zIndex.modal,
               display: "flex",
               alignItems: "flex-end",
               justifyContent: "center",
@@ -177,7 +177,7 @@ export default function HomePage() {
                 width: "100%",
                 maxWidth: 520,
                 maxHeight: "82dvh",
-                background: "#fff",
+                background: tokens.white,
                 borderRadius: "24px 24px 0 0",
                 display: "flex",
                 flexDirection: "column",
@@ -187,14 +187,14 @@ export default function HomePage() {
             >
               {/* Drag handle */}
               <div style={{ display: "flex", justifyContent: "center", paddingTop: 12, paddingBottom: 4, flexShrink: 0 }}>
-                <div style={{ width: 36, height: 4, borderRadius: 2, background: "#E0DDD9" }} />
+                <div style={{ width: 36, height: 4, borderRadius: 2, background: tokens.grey4 }} />
               </div>
 
               {/* Modal header */}
               <div style={{
                 display: "flex", alignItems: "center", gap: 12,
                 padding: "12px 20px 16px", flexShrink: 0,
-                borderBottom: "1px solid #F0EDE9",
+                borderBottom: `1px solid ${tokens.border}`,
               }}>
                 <div style={{
                   width: 46, height: 46, borderRadius: 13,
@@ -206,20 +206,20 @@ export default function HomePage() {
                   {activeGame.emoji}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div id="sheet-title" style={{ fontSize: 17, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+                  <div id="sheet-title" style={{ fontSize: 17, fontWeight: 800, color: tokens.black, letterSpacing: -0.3, lineHeight: 1.2 }}>
                     <span>{activeGame.split[0]}</span>
                     <span style={{ color: activeGame.themeColor }}>{activeGame.split[1]}</span>
                   </div>
-                  <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>How to play</div>
+                  <div style={{ fontSize: 12, color: tokens.grey3, marginTop: 2 }}>How to play</div>
                 </div>
                 <button
                   onClick={closeModal}
                   aria-label="Close"
                   style={{
-                    background: "#F5F4F2", border: "none",
-                    borderRadius: 8, width: 32, height: 32, cursor: "pointer",
+                    background: tokens.inputBg, border: "none",
+                    borderRadius: tokens.radius.sm, width: 32, height: 32, cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 16, color: "#888", flexShrink: 0,
+                    fontSize: 16, color: tokens.grey2, flexShrink: 0,
                   }}
                 >
                   ✕
@@ -235,7 +235,7 @@ export default function HomePage() {
                 {activeGame.steps.map((step, i) => (
                   <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                     <div style={{
-                      width: 24, height: 24, borderRadius: 8,
+                      width: 24, height: 24, borderRadius: tokens.radius.sm,
                       background: `${activeGame.themeColor}18`,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 12, fontWeight: 800, color: activeGame.themeColor,
@@ -243,7 +243,7 @@ export default function HomePage() {
                     }}>
                       {i + 1}
                     </div>
-                    <p style={{ margin: 0, fontSize: 14, color: "#444", lineHeight: 1.55, paddingTop: 2 }}>
+                    <p style={{ margin: 0, fontSize: 14, color: tokens.grey1, lineHeight: 1.55, paddingTop: 2 }}>
                       {step}
                     </p>
                   </div>
@@ -255,26 +255,16 @@ export default function HomePage() {
                 padding: "16px 20px",
                 paddingBottom: "max(20px, env(safe-area-inset-bottom))",
                 flexShrink: 0,
-                borderTop: "1px solid #F0EDE9",
+                borderTop: `1px solid ${tokens.border}`,
               }}>
-                <button
+                <Btn
+                  fullWidth
                   onClick={navigateToGame}
-                  style={{
-                    width: "100%",
-                    padding: "14px 20px",
-                    background: activeGame.themeColor,
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 14,
-                    fontSize: 15,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    letterSpacing: "-0.01em",
-                  }}
+                  color={activeGame.themeColor}
+                  style={{ padding: "16px", fontSize: 15 }}
                 >
                   Play {activeGame.split[0]}{activeGame.split[1]} →
-                </button>
+                </Btn>
               </div>
             </motion.div>
           </motion.div>

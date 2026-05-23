@@ -2,6 +2,8 @@ import { nanoid } from "nanoid";
 import { Player, MafiaRole, GameState, GameConfig, NightResult } from "./types";
 import { shuffle } from "@/lib/array";
 
+export const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote", "Results"] as const;
+
 export function createPlayer(name: string): Player {
   return { id: nanoid(6), name, role: null, isEliminated: false, hasSeenRole: false };
 }

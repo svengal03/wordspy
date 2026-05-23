@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { tokens, OptionsMenu, TopBar, NavBtn, useGoHome } from "@playhub/ui";
+import { tokens, Screen, Btn, OptionsMenu, TopBar, NavBtn, useGoHome } from "@playhub/ui";
 import { RulesModal } from "./RulesModal";
 import { PhaseTrail } from "@playhub/ui";
 
@@ -47,11 +47,7 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
   const timerColor = timerPct > 0.4 ? tokens.green : timerPct > 0.2 ? "#F59E0B" : tokens.red;
 
   return (
-    <div style={{
-      minHeight: "100dvh", display: "flex", flexDirection: "column",
-      fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
-      background: tokens.bg,
-    }}>
+    <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
         appName="Dumb Charades"
         right={
@@ -131,25 +127,20 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
 
       {/* Actions */}
       <div style={{ padding: "0 20px 32px", display: "flex", flexDirection: "column", gap: 10 }}>
-        <button
+        <Btn
+          fullWidth
+          variant="success"
           onClick={() => onCorrect(timeLeft)}
-          style={{
-            width: "100%", padding: "18px 0", borderRadius: 14, border: "none",
-            background: tokens.green, color: "#fff", fontSize: 16, fontWeight: 700,
-            cursor: "pointer", fontFamily: "inherit",
-          }}
-        >Correct ✓</button>
-        <button
+          style={{ padding: "16px", fontSize: 16 }}
+        >Correct ✓</Btn>
+        <Btn
+          fullWidth
+          variant="ghost"
           onClick={() => { if (!fired.current) { fired.current = true; onSkip(); } }}
-          style={{
-            width: "100%", padding: "14px 0", borderRadius: 14,
-            border: `1.5px solid ${tokens.border}`, background: tokens.white,
-            color: tokens.grey2, fontSize: 14, fontWeight: 600,
-            cursor: "pointer", fontFamily: "inherit",
-          }}
-        >Skip →</button>
+          style={{ padding: "16px", fontSize: 16 }}
+        >Skip →</Btn>
       </div>
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
-    </div>
+    </Screen>
   );
 }

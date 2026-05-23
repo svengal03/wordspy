@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Btn, Card, NavBtn, Toggle, tokens, TopBar, OptionsMenu, PlayerNameInput, useGoHome } from "@playhub/ui";
+import { Btn, Card, NavBtn, Toggle, tokens, TopBar, Screen, Avatar, ErrorBox, OptionsMenu, PlayerNameInput, useGoHome } from "@playhub/ui";
 import { useGame } from "@/games/mafia/store";
 import { createPlayer, assignRoles, getMafiaCount } from "@/games/mafia/engine";
 import { DEFAULT_CONFIG, GameConfig } from "@/games/mafia/types";
@@ -110,11 +110,7 @@ function SetupScreen() {
   // ── Name entry step (like wordspy) ──────────────────────────────────────────
   if (!hostConfirmed) {
     return (
-      <div style={{
-        minHeight: "100dvh", background: tokens.bg,
-        fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
-        display: "flex", flexDirection: "column",
-      }}>
+      <Screen style={{ display: "flex", flexDirection: "column" }}>
         <TopBar
           appName="Mafia"
           right={
@@ -152,12 +148,7 @@ function SetupScreen() {
               />
             </Card>
 
-            {error && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                style={{ background: tokens.redBg, border: `1.5px solid #FECACA`, borderRadius: 12, padding: "12px 16px", color: tokens.red, fontSize: 14, marginBottom: 14 }}>
-                {error}
-              </motion.div>
-            )}
+            {error && <ErrorBox>{error}</ErrorBox>}
 
             <Btn fullWidth onClick={confirmHost} style={{ padding: "15px 24px", fontSize: 16 }}>
               Set Up Game →
@@ -189,16 +180,12 @@ function SetupScreen() {
           </motion.div>
         </div>
         <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
-      </div>
+      </Screen>
     );
   }
 
   return (
-    <div style={{
-      minHeight: "100dvh", background: tokens.bg,
-      fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
-      paddingBottom: 40,
-    }}>
+    <Screen style={{ paddingBottom: 40 }}>
       <TopBar
         appName="Mafia"
         right={
@@ -220,11 +207,7 @@ function SetupScreen() {
 
             {/* Host row (irremovable) */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, paddingBottom: 8, borderBottom: `1px solid ${tokens.border}` }}>
-              <div style={{
-                width: 30, height: 30, borderRadius: 8, background: tokens.redBg,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 13, fontWeight: 700, color: tokens.red, flexShrink: 0,
-              }}>{hostName.slice(0, 2).toUpperCase()}</div>
+              <Avatar name={hostName} size={30} color={tokens.red} />
               <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: tokens.black }}>{hostName}</div>
               <span style={{ fontSize: 11, color: tokens.red, fontWeight: 700 }}>HOST</span>
             </div>
@@ -239,11 +222,7 @@ function SetupScreen() {
                       initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }}
                       style={{ display: "flex", alignItems: "center", gap: 10 }}
                     >
-                      <div style={{
-                        width: 30, height: 30, borderRadius: 8, background: "#F0EDE9",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 11, fontWeight: 700, color: tokens.grey2, flexShrink: 0,
-                      }}>{name.slice(0, 2).toUpperCase()}</div>
+                      <Avatar name={name} size={30} />
                       <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: tokens.black }}>{name}</div>
                       <button
                         onClick={() => removePlayer(i)}
@@ -429,6 +408,6 @@ function SetupScreen() {
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
-    </div>
+    </Screen>
   );
 }

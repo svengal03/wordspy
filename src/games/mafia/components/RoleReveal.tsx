@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Btn, Card, tokens, Screen, TopBar, NavBtn, OptionsMenu, RevealCover, PhaseTrail, RevealProgressDots, useGoHome } from "@playhub/ui";
+import { Btn, Card, tokens, Screen, TopBar, NavBtn, OptionsMenu, RevealCover, PhaseTrail, useGoHome } from "@playhub/ui";
 import RulesModal from "./RulesModal";
 import { MAFIA_ROLE_META } from "@playhub/core";
 import { useGame } from "../store";
 import { MafiaRole } from "../types";
-import { getMafiaTeammates } from "../engine";
+import { getMafiaTeammates, MAFIA_PHASES } from "../engine";
 
 const ROLE_DESC: Record<MafiaRole, string> = {
   mafia: "Stay hidden. Each night, pick a Villager to eliminate. Win when your numbers match the Villagers.",
@@ -15,8 +15,6 @@ const ROLE_DESC: Record<MafiaRole, string> = {
   police: "Each night, secretly investigate one player. You'll learn if they are Mafia or not.",
   god: "You are the moderator. You do not play — you run the game. Keep the phone during night. Announce eliminations. Stay neutral.",
 };
-
-const PHASES = ["Role Reveal", "Night", "Day", "Vote", "Results"];
 
 export default function RoleReveal() {
   const { game, set, reset, restartGame } = useGame();
@@ -52,19 +50,13 @@ export default function RoleReveal() {
         appName="Mafia"
         right={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <RevealProgressDots
-              total={players.length}
-              current={revealIndex}
-              accentColor={tokens.coral}
-              doneColor={tokens.green}
-            />
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
             <OptionsMenu onNewGame={restartGame} onExit={goHome} />
           </div>
         }
       />
 
-      <PhaseTrail phases={PHASES} current="Role Reveal" accentColor={tokens.coral} />
+      <PhaseTrail phases={MAFIA_PHASES} current="Role Reveal" accentColor={tokens.coral} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 20px" }}>
         <div style={{ width: "100%", maxWidth: 440 }}>

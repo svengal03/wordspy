@@ -3,6 +3,8 @@ import { getRandomPair } from "./wordPacks";
 import { nanoid } from "nanoid";
 import { shuffle } from "@/lib/array";
 
+export const WORDSPY_PHASES = ["Word Reveal", "Clue", "Discussion", "Vote", "Results"] as const;
+
 // ─── Room Code Generator ──────────────────────────────────────────────────────
 export function generateRoomCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

@@ -5,8 +5,7 @@ import { GameState, Player } from "../types";
 import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen, OptionsMenu, NavBtn, PhaseTrail } from "@playhub/ui";
 import RulesModal from "./RulesModal";
 import ChatPanel from "./ChatPanel";
-
-const PHASES = ["Word Reveal", "Clue", "Discussion", "Vote", "Results"];
+import { WORDSPY_PHASES } from "../engine";
 
 interface Props {
   gameState: GameState;
@@ -95,7 +94,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
     return (
       <Screen>
         {topBar}
-        <PhaseTrail phases={PHASES} current={gameState.phase === "discussion" ? "Discussion" : "Clue"} accentColor={tokens.coral} />
+        <PhaseTrail phases={WORDSPY_PHASES} current={gameState.phase === "discussion" ? "Discussion" : "Clue"} accentColor={tokens.coral} />
         <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
         <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 
@@ -104,7 +103,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
             style={{
               background: "none", border: "none", cursor: "pointer",
               fontSize: 13, fontWeight: 600, color: tokens.grey2,
-              padding: "4px 0", fontFamily: "inherit", textAlign: "left", width: "fit-content",
+              padding: "8px 0 24px", fontFamily: "inherit", textAlign: "left", width: "fit-content",
             }}
           >
             ← Back
@@ -139,9 +138,9 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
               />
               {clueError && (
                 <div style={{
-                  marginTop: 10, padding: "10px 14px", borderRadius: 10,
-                  background: "#FFF0EE", border: `1.5px solid ${tokens.coralBorder}`,
-                  fontSize: 13, fontWeight: 600, color: tokens.coral,
+                  marginTop: 10, padding: "10px 14px", borderRadius: tokens.radius.md,
+                  background: tokens.redBg, border: `1.5px solid #FECACA`,
+                  fontSize: 13, fontWeight: 500, color: tokens.red,
                 }}>
                   {clueError}
                 </div>
@@ -179,7 +178,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
   return (
     <Screen>
       {topBar}
-      <PhaseTrail phases={PHASES} current={gameState.phase === "discussion" ? "Discussion" : "Clue"} accentColor={tokens.coral} />
+      <PhaseTrail phases={WORDSPY_PHASES} current={gameState.phase === "discussion" ? "Discussion" : "Clue"} accentColor={tokens.coral} />
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
 
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
@@ -187,8 +186,8 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
         {/* Spectator banner for eliminated players */}
         {myPlayer?.isEliminated && (
           <div style={{
-            padding: "12px 16px", borderRadius: 12,
-            background: "#F5F5F5", border: "1.5px solid #E0E0E0",
+            padding: "12px 16px", borderRadius: tokens.radius.lg,
+            background: tokens.inputBg, border: `1.5px solid ${tokens.border}`,
             textAlign: "center", fontSize: 13, color: tokens.grey2, fontWeight: 500,
           }}>
             You've been eliminated — watching as spectator

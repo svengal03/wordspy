@@ -77,8 +77,8 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
               style={{ marginBottom: 20, width: "100%", textAlign: "left" }}
             >
               <div style={{
-                background: tokens.white, border: `1.5px solid ${tokens.border}`,
-                borderRadius: 16, padding: "18px 20px",
+                background: tokens.card, border: `1.5px solid ${tokens.border}`,
+                borderRadius: tokens.radius.xl, padding: "18px 20px",
                 boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
               }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>
@@ -97,9 +97,9 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
                   placeholder="Type your guess…"
                   autoFocus
                   style={{
-                    width: "100%", padding: "12px 14px", borderRadius: 10,
+                    width: "100%", padding: "12px 14px", borderRadius: tokens.radius.md,
                     border: `1.5px solid ${tokens.coral}`, fontSize: 15, fontFamily: "inherit",
-                    background: "#fff", outline: "none", boxSizing: "border-box",
+                    background: tokens.white, outline: "none", boxSizing: "border-box",
                     marginBottom: 12,
                   }}
                 />

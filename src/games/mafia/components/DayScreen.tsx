@@ -3,11 +3,9 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, Btn, tokens, Avatar, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { useGame } from "../store";
-import { getLiving } from "../engine";
+import { getLiving, MAFIA_PHASES } from "../engine";
 import { RoleBadge } from "./ui";
 import RulesModal from "./RulesModal";
-
-const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote", "Results"];
 
 export default function DayScreen() {
   const { game, set, reset, restartGame } = useGame();
@@ -148,11 +146,11 @@ export default function DayScreen() {
           </Card>
         )}
 
-        <Btn fullWidth variant="danger" onClick={goToVote} style={{ padding: "14px", fontSize: 15 }}>
+        <Btn fullWidth variant="danger" onClick={goToVote} style={{ padding: "16px", fontSize: 16 }}>
           Eliminate a Player →
         </Btn>
 
-        <Btn fullWidth variant="secondary" onClick={startNight} style={{ padding: "14px", fontSize: 15 }}>
+        <Btn fullWidth variant="secondary" onClick={startNight} style={{ padding: "16px", fontSize: 16 }}>
           Start Night
         </Btn>
       </div>

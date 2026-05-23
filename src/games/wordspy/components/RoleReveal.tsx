@@ -2,8 +2,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GameState, Player } from "../types";
-import { Btn, tokens, NavBtn, OptionsMenu, Screen, TopBar, RevealCover, PhaseTrail, RevealProgressDots } from "@playhub/ui";
+import { Btn, tokens, NavBtn, OptionsMenu, Screen, TopBar, RevealCover, PhaseTrail } from "@playhub/ui";
 import RulesModal from "./RulesModal";
+import { WORDSPY_PHASES } from "../engine";
 
 interface Props {
   gameState: GameState;
@@ -39,8 +40,6 @@ const roleInfo = {
   },
 };
 
-const PHASES = ["Word Reveal", "Clue", "Discussion", "Vote", "Results"];
-
 export default function RoleReveal({ gameState, localPlayer, isOffline, revealIndex, onDone, onLeave, onNewGame }: Props) {
   const [revealed, setRevealed] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
@@ -58,14 +57,6 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
         appName="Wordspy"
         right={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {isOffline && (
-              <RevealProgressDots
-                total={players.length}
-                current={revealIndex}
-                accentColor={tokens.coral}
-                doneColor={tokens.green}
-              />
-            )}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
             {onLeave && (
               <OptionsMenu onExit={onLeave} onNewGame={onNewGame} />
@@ -74,7 +65,7 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
         }
       />
 
-      <PhaseTrail phases={PHASES} current="Word Reveal" accentColor={tokens.coral} />
+      <PhaseTrail phases={WORDSPY_PHASES} current="Word Reveal" accentColor={tokens.coral} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 20px" }}>
         <AnimatePresence mode="wait">

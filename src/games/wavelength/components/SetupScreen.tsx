@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Screen, TopBar, Card, Btn, Toggle, NavBtn, tokens, PlayerNameInput, useGoHome } from "@playhub/ui";
+import { Screen, TopBar, Card, Btn, Toggle, NavBtn, OptionsMenu, tokens, PlayerNameInput, useGoHome } from "@playhub/ui";
 import { WAVELENGTH_TEAM_META } from "@playhub/core";
 import { useGame } from "../store";
 import { createPlayer, assignTeamsRandomly } from "../engine";
@@ -66,7 +66,7 @@ export default function SetupScreen() {
         right={
           <div style={{ display: "flex", gap: 8 }}>
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
-            <NavBtn onClick={goHome}>Exit</NavBtn>
+            <OptionsMenu onNewGame={() => set({ phase: "lobby" })} onExit={goHome} />
           </div>
         }
       />

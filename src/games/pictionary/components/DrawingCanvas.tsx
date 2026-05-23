@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useEffect, useState, useCallback } from "react";
-import { PhaseTrail, OptionsMenu, TopBar, NavBtn, useGoHome } from "@playhub/ui";
+import { PhaseTrail, OptionsMenu, TopBar, NavBtn, tokens, useGoHome } from "@playhub/ui";
 import { RulesModal } from "./RulesModal";
 
 const PIC_PHASES = ["Word Reveal", "Drawing", "Results"];
@@ -16,7 +16,7 @@ interface Props {
   onNewGame: () => void;
 }
 
-const COLORS = ["#1A1A1A", "#E84040", "#4A6CF7", "#2BB34A", "#F59E0B", "#9333EA", "#FFFFFF"];
+const COLORS = [tokens.black, tokens.red, "#4A6CF7", tokens.green, "#F59E0B", tokens.purple, tokens.white];
 const SIZES = [3, 6, 12];
 
 export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, teamColor, onCorrect, onSkip, onNewGame }: Props) {
@@ -141,7 +141,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
 
   const timerPct = timerDuration > 0 ? timeLeft / timerDuration : 0;
   const timerState = timerPct > 0.4 ? "ok" : timerPct > 0.2 ? "warn" : "danger";
-  const timerColor = timerState === "ok" ? "#2BB34A" : timerState === "warn" ? "#F59E0B" : "#E84040";
+  const timerColor = timerState === "ok" ? tokens.green : timerState === "warn" ? "#F59E0B" : tokens.red;
   const timerIcon = timerState === "ok" ? null : timerState === "warn" ? "⚠" : "!";
 
   return (
@@ -151,7 +151,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
         flexDirection: "column",
         height: "100dvh",
         fontFamily: "'DM Sans', sans-serif",
-        background: "#FAFAF8",
+        background: tokens.bg,
         overflow: "hidden",
         paddingLeft: "env(safe-area-inset-left, 0px)",
         paddingRight: "env(safe-area-inset-right, 0px)",
@@ -194,8 +194,8 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
         borderBottom: `1px solid ${teamColor}20`,
         display: "flex", alignItems: "center", gap: 8, flexShrink: 0,
       }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A1A" }}>{drawerName} is drawing</span>
-        {difficulty && <><span style={{ fontSize: 11, color: "#CCC" }}>·</span><span style={{ fontSize: 11, fontWeight: 700, color: teamColor, letterSpacing: 0.5, textTransform: "uppercase" as const }}>{difficulty}</span></>}
+        <span style={{ fontSize: 13, fontWeight: 600, color: tokens.black }}>{drawerName} is drawing</span>
+        {difficulty && <><span style={{ fontSize: 11, color: tokens.grey4 }}>·</span><span style={{ fontSize: 11, fontWeight: 700, color: teamColor, letterSpacing: 0.5, textTransform: "uppercase" as const }}>{difficulty}</span></>}
       </div>
 
       <PhaseTrail phases={PIC_PHASES} current="Drawing" accentColor={teamColor} />
@@ -204,7 +204,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
         <div
           style={{
             background: teamColor,
-            color: "#fff",
+            color: tokens.white,
             textAlign: "center",
             padding: "8px 16px",
             fontSize: 14,
@@ -217,7 +217,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
       )}
 
       {/* Timer bar */}
-      <div style={{ height: 3, background: "#F0F0F0", flexShrink: 0 }}>
+      <div style={{ height: 3, background: tokens.border, flexShrink: 0 }}>
         <div
           style={{
             height: "100%",
@@ -238,7 +238,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
             width: "100%",
             height: "100%",
             display: "block",
-            background: "#fff",
+            background: tokens.white,
             cursor: eraser ? "cell" : "crosshair",
             touchAction: "none",
           }}
@@ -253,7 +253,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
       {/* Toolbar */}
       <div
         style={{
-          background: "#fff",
+          background: tokens.white,
           borderTop: "1px solid #F0F0F0",
           padding: "10px 12px",
           display: "flex",
@@ -269,13 +269,13 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
               <button
                 key={c}
                 onClick={() => { setColor(c); setEraser(false); }}
-                aria-label={`Color: ${c === "#1A1A1A" ? "Black" : c === "#E84040" ? "Red" : c === "#4A6CF7" ? "Blue" : c === "#2BB34A" ? "Green" : c === "#F59E0B" ? "Yellow" : c === "#9333EA" ? "Purple" : "White"}`}
+                aria-label={`Color: ${c === tokens.black ? "Black" : c === tokens.red ? "Red" : c === "#4A6CF7" ? "Blue" : c === tokens.green ? "Green" : c === "#F59E0B" ? "Yellow" : c === tokens.purple ? "Purple" : "White"}`}
                 aria-pressed={color === c && !eraser}
                 style={{
                   width: 26, height: 26, borderRadius: "50%", background: c,
-                  border: color === c && !eraser ? "2.5px solid #1A1A1A" : "2px solid transparent",
+                  border: color === c && !eraser ? `2.5px solid ${tokens.black}` : "2px solid transparent",
                   cursor: "pointer",
-                  outline: color === c && !eraser ? "2px solid #fff" : undefined,
+                  outline: color === c && !eraser ? `2px solid ${tokens.white}` : undefined,
                   outlineOffset: "-4px",
                   flexShrink: 0,
                 }}
@@ -292,7 +292,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
                 style={{
                   width: s * 2.5 + 10, height: s * 2.5 + 10,
                   borderRadius: "50%",
-                  background: size === s ? "#1A1A1A" : "#E8E5E1",
+                  background: size === s ? tokens.black : tokens.border,
                   border: "none", cursor: "pointer",
                   minWidth: 18, minHeight: 18, flexShrink: 0,
                 }}
@@ -307,23 +307,23 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
             onClick={() => setEraser((e) => !e)}
             style={{
               flex: 1, padding: "5px 0", borderRadius: 8, fontFamily: "inherit",
-              border: `1.5px solid ${eraser ? "#E84040" : "#F0F0F0"}`,
-              background: eraser ? "#FFF0F0" : "transparent",
-              fontSize: 12, fontWeight: 600, color: eraser ? "#E84040" : "#888",
+              border: `1.5px solid ${eraser ? tokens.red : tokens.border}`,
+              background: eraser ? tokens.redBg : "transparent",
+              fontSize: 12, fontWeight: 600, color: eraser ? tokens.red : tokens.grey2,
               cursor: "pointer",
             }}
           >{eraser ? "✏️ Pen" : "⬜ Erase"}</button>
           <button
             onClick={handleUndo}
-            style={{ flex: 1, padding: "5px 0", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
+            style={{ flex: 1, padding: "5px 0", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: tokens.grey2, cursor: "pointer", fontFamily: "inherit" }}
           >Undo</button>
           <button
             onClick={handleRedo}
-            style={{ flex: 1, padding: "5px 0", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
+            style={{ flex: 1, padding: "5px 0", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: tokens.grey2, cursor: "pointer", fontFamily: "inherit" }}
           >Redo</button>
           <button
             onClick={handleClear}
-            style={{ flex: 1, padding: "5px 0", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "inherit" }}
+            style={{ flex: 1, padding: "5px 0", borderRadius: 8, border: "1.5px solid #F0F0F0", background: "transparent", fontSize: 12, color: tokens.grey2, cursor: "pointer", fontFamily: "inherit" }}
           >Clear</button>
         </div>
 
@@ -334,13 +334,14 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
             style={{
               flex: 1,
               padding: "12px 0",
-              borderRadius: 12,
-              border: "1.5px solid #E8E5E1",
-              background: "#fff",
-              color: "#888",
+              borderRadius: tokens.radius.lg,
+              border: `1.5px solid ${tokens.border}`,
+              background: tokens.white,
+              color: tokens.grey2,
               fontSize: 14,
               fontWeight: 600,
               cursor: "pointer",
+              fontFamily: "inherit",
             }}
           >
             Skip →
@@ -350,13 +351,14 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
             style={{
               flex: 2,
               padding: "12px 0",
-              borderRadius: 12,
+              borderRadius: tokens.radius.lg,
               border: "none",
-              background: "#2BB34A",
-              color: "#fff",
+              background: tokens.green,
+              color: tokens.white,
               fontSize: 14,
               fontWeight: 700,
               cursor: "pointer",
+              fontFamily: "inherit",
             }}
           >
             Correct ✓

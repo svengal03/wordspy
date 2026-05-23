@@ -1,13 +1,11 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Btn, Card, tokens, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
+import { Btn, Card, Avatar, tokens, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { useGame } from "../store";
 import { Player, NightSubPhase } from "../types";
-import { getLiving, resolveNight, eliminatePlayer, checkWin } from "../engine";
+import { getLiving, resolveNight, eliminatePlayer, checkWin, MAFIA_PHASES } from "../engine";
 import RulesModal from "./RulesModal";
-
-const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote", "Results"];
 
 export default function NightScreen() {
   const { game, set, reset, restartGame } = useGame();
@@ -153,7 +151,7 @@ export default function NightScreen() {
                 <div style={{ fontSize: 14, color: tokens.grey2, lineHeight: 1.6, marginBottom: 20 }}>
                   Everyone closes their eyes.
                 </div>
-                <Btn fullWidth onClick={() => goToSubPhase("mafia-wake")} style={{ padding: "14px" }}>
+                <Btn fullWidth onClick={() => goToSubPhase("mafia-wake")} style={{ padding: "16px", fontSize: 16 }}>
                   Wake the Mafia
                 </Btn>
               </Card>
@@ -187,17 +185,13 @@ export default function NightScreen() {
                         cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s",
                       }}
                     >
-                      <div style={{
-                        width: 36, height: 36, borderRadius: 10, background: "#F0EDE9",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 13, fontWeight: 700, color: tokens.grey2,
-                      }}>{p.name.slice(0, 2).toUpperCase()}</div>
+                      <Avatar name={p.name} size={36} active={selectedId === p.id} />
                       <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black, flex: 1 }}>{p.name}</div>
                       {selectedId === p.id && <span style={{ fontSize: 16, color: info.color }}>✓</span>}
                     </button>
                   ))}
                 </div>
-                <Btn fullWidth onClick={confirmSelection} disabled={!selectedId} style={{ padding: "14px" }}>
+                <Btn fullWidth onClick={confirmSelection} disabled={!selectedId} style={{ padding: "16px", fontSize: 16 }}>
                   Confirm →
                 </Btn>
               </Card>
@@ -223,7 +217,7 @@ export default function NightScreen() {
                     Remember this. Don't tell anyone.
                   </div>
                 </div>
-                <Btn fullWidth onClick={continueAfterPolice} style={{ padding: "14px" }}>
+                <Btn fullWidth onClick={continueAfterPolice} style={{ padding: "16px", fontSize: 16 }}>
                   Continue →
                 </Btn>
               </Card>

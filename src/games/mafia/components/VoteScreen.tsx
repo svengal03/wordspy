@@ -3,10 +3,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, Btn, tokens, Avatar, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { useGame } from "../store";
-import { getLiving, eliminatePlayer, checkWin } from "../engine";
+import { getLiving, eliminatePlayer, checkWin, MAFIA_PHASES } from "../engine";
 import RulesModal from "./RulesModal";
-
-const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote", "Results"];
 
 export default function VoteScreen() {
   const { game, set, reset, restartGame } = useGame();
@@ -118,10 +116,10 @@ export default function VoteScreen() {
 
         {/* Actions */}
         <div style={{ display: "flex", gap: 10 }}>
-          <Btn variant="ghost" fullWidth onClick={cancel} style={{ padding: "14px" }}>
+          <Btn variant="ghost" fullWidth onClick={cancel} style={{ padding: "16px", fontSize: 16 }}>
             Skip Round
           </Btn>
-          <Btn variant="danger" fullWidth onClick={confirm} disabled={!selectedId} style={{ padding: "14px" }}>
+          <Btn variant="danger" fullWidth onClick={confirm} disabled={!selectedId} style={{ padding: "16px", fontSize: 16 }}>
             Eliminate →
           </Btn>
         </div>

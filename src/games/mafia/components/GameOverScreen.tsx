@@ -4,10 +4,9 @@ import { motion } from "framer-motion";
 import { Card, Btn, tokens, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { MAFIA_ROLE_META } from "@playhub/core";
 import { useGame } from "../store";
+import { MAFIA_PHASES } from "../engine";
 import { RoleBadge } from "./ui";
 import RulesModal from "./RulesModal";
-
-const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote", "Results"];
 
 interface Props {
   onPlayAgain: () => void;
@@ -130,9 +129,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}
           style={{ display: "flex", gap: 10 }}>
-          <Btn variant="ghost" fullWidth onClick={goHome} style={{ padding: "16px", fontSize: 16 }}>
-            ← PlayHub
-          </Btn>
+          <Btn variant="ghost" fullWidth onClick={goHome} style={{ padding: "16px", fontSize: 16 }}>← PlayHub</Btn>
           <Btn fullWidth onClick={onPlayAgain} style={{ padding: "16px", fontSize: 16 }}>
             Play Again →
           </Btn>

@@ -4,8 +4,7 @@ import { motion } from "framer-motion";
 import { GameState, Player } from "../types";
 import { Card, Btn, Avatar, tokens, SectionLabel, InfoBox, TopBar, Screen, OptionsMenu, NavBtn, PhaseTrail } from "@playhub/ui";
 import RulesModal from "./RulesModal";
-
-const PHASES = ["Word Reveal", "Clue", "Discussion", "Vote", "Results"];
+import { WORDSPY_PHASES } from "../engine";
 
 interface Props {
   gameState: GameState;
@@ -58,7 +57,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
           sub="Safe round — no elimination this round"
           right={topBarRight}
         />
-        <PhaseTrail phases={PHASES} current="Vote" accentColor={tokens.coral} />
+        <PhaseTrail phases={WORDSPY_PHASES} current="Vote" accentColor={tokens.coral} />
         <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
         <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
           <InfoBox
@@ -85,7 +84,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
         sub={gameState.isTiebreaker ? "⚖️ Tiebreaker — tied players re-clued, vote again!" : "Who do you think is Undercover or Mr. Phantom?"}
         right={topBarRight}
       />
-      <PhaseTrail phases={PHASES} current="Vote" accentColor={tokens.coral} />
+      <PhaseTrail phases={WORDSPY_PHASES} current="Vote" accentColor={tokens.coral} />
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14, maxWidth: 480, margin: "0 auto" }}>
 
@@ -120,7 +119,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
               <div style={{ fontSize: 13, color: tokens.grey2 }}>
                 {totalVotes} of {activePlayers.length} player{activePlayers.length > 1 ? "s" : ""} {totalVotes === 1 ? "has" : "have"} voted
               </div>
-              <div style={{ height: 6, background: "#E0E0E0", borderRadius: 3, marginTop: 8 }}>
+              <div style={{ height: 6, background: tokens.border, borderRadius: 3, marginTop: 8 }}>
                 <div style={{
                   height: "100%", borderRadius: 3, background: tokens.coral,
                   width: `${(totalVotes / activePlayers.length) * 100}%`,
@@ -198,7 +197,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
                 <div style={{ fontSize: 13, color: tokens.grey2 }}>
                   {totalVotes} of {activePlayers.length} player{activePlayers.length > 1 ? "s" : ""} {totalVotes === 1 ? "has" : "have"} voted
                 </div>
-                <div style={{ height: 6, background: "#E0E0E0", borderRadius: 3, marginTop: 8 }}>
+                <div style={{ height: 6, background: tokens.border, borderRadius: 3, marginTop: 8 }}>
                   <div style={{
                     height: "100%", borderRadius: 3, background: tokens.coral,
                     width: `${(totalVotes / activePlayers.length) * 100}%`,

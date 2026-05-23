@@ -257,6 +257,24 @@ export function TopBar({ title, sub, right, appName }: { title?: string; sub?: s
   );
 }
 
+// ─── ErrorBox ─────────────────────────────────────────────────────────────────
+export function ErrorBox({ children }: { children: ReactNode }) {
+  if (!children) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      style={{
+        background: tokens.redBg, border: `1.5px solid #FECACA`,
+        borderRadius: tokens.radius.lg, padding: "12px 16px",
+        color: tokens.red, fontSize: 14, fontWeight: 500,
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 // ─── InfoBox ──────────────────────────────────────────────────────────────────
 export function InfoBox({ icon, title, body, color = tokens.coral }: { icon: string; title: string; body: string; color?: string }) {
   return (

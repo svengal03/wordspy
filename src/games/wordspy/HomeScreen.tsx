@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Btn, Card, TopBar, NavBtn, tokens, PlayerNameInput, useGoHome } from "@playhub/ui";
+import { Btn, Card, TopBar, NavBtn, Screen, ErrorBox, tokens, PlayerNameInput, useGoHome } from "@playhub/ui";
 import RulesModal from "@/games/wordspy/components/RulesModal";
 import { useGameStore } from "@/games/wordspy/store";
 import { createPlayer } from "@/games/wordspy/engine";
@@ -105,12 +105,7 @@ export function WordspyHome() {
   }
 
   return (
-    <div style={{
-      minHeight: "100dvh", background: tokens.bg,
-      fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
-      display: "flex", flexDirection: "column",
-      overflowY: "auto",
-    }}>
+    <Screen style={{ display: "flex", flexDirection: "column", overflowY: "auto" }}>
       <TopBar
         appName="Wordspy"
         right={
@@ -178,7 +173,7 @@ export function WordspyHome() {
               style={{
                 background: "none", border: "none", cursor: "pointer",
                 fontSize: 13, fontWeight: 600, color: tokens.grey2,
-                padding: "12px 16px 24px 0", fontFamily: "inherit",
+                padding: "8px 0 24px", fontFamily: "inherit",
               }}
             >
               ← Back
@@ -220,12 +215,7 @@ export function WordspyHome() {
               />
             </Card>
 
-            {error && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                style={{ background: tokens.redBg, border: `1.5px solid #FECACA`, borderRadius: 12, padding: "12px 16px", color: tokens.red, fontSize: 14, marginBottom: 14 }}>
-                {error}
-              </motion.div>
-            )}
+            {error && <ErrorBox>{error}</ErrorBox>}
 
             <Btn
               fullWidth
@@ -252,6 +242,6 @@ export function WordspyHome() {
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
-    </div>
+    </Screen>
   );
 }
