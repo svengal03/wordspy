@@ -4,7 +4,7 @@ import "@playhub/ui/globals.css";
 export const metadata: Metadata = {
   title: "PlayHub",
   description: "Party games for groups.",
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/favicons/favicon-home.svg" },
   openGraph: {
     title: "PlayHub",
     description: "Party games for groups.",
