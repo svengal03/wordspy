@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body style={{ margin: 0, padding: 0, background: "#FAFAF8", fontFamily: "'DM Sans', sans-serif" }}>
+      <body suppressHydrationWarning style={{ margin: 0, padding: 0, background: "#FAFAF8", fontFamily: "'DM Sans', sans-serif" }}>
         {children}
       </body>
     </html>

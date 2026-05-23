@@ -116,17 +116,21 @@ export default function RoomPage() {
 
   async function handleVote(targetId: string) {
     if (!gameState || !localPlayer) return;
-    // Server applies vote atomically to prevent race conditions from simultaneous votes
-    const res = await fetch("/wordspy/api/rooms", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "cast-vote", roomCode, voterId: localPlayer.id, targetId }),
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    const updated = data.gameState as GameState;
-    setGameState(updated);
-    // Supabase Realtime already broadcasts to others via the server-side updateState()
+    try {
+      // Server applies vote atomically to prevent race conditions from simultaneous votes
+      const res = await fetch("/wordspy/api/rooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cast-vote", roomCode, voterId: localPlayer.id, targetId }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.error) return;
+      setGameState(data.gameState as GameState);
+      // Supabase Realtime already broadcasts to others via the server-side updateState()
+    } catch {
+      // network error — vote not registered, user can retry
+    }
   }
 
   async function handleGhostGuess(guess: string) {
@@ -299,6 +303,10 @@ export default function RoomPage() {
 
   if (phase === "host-pick") {
     const activePlayers = gameState.players.filter((p) => !p.isEliminated);
+    if (activePlayers.length === 0) {
+      push({ ...gameState, phase: "summary", winner: "civilians" });
+      return null;
+    }
     const maxVotes = Math.max(...activePlayers.map((p) => p.votes));
     const tiedPlayers = activePlayers.filter((p) => p.votes === maxVotes);
     const isHost = localPlayer.isHost;

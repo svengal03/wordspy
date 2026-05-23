@@ -11,7 +11,7 @@ import { tokens, Btn, Card, SectionLabel, Toggle, OptionsMenu, Screen, TopBar, N
 import RulesModal from "../components/RulesModal";
 import { motion } from "framer-motion";
 import { useGoHome } from "@playhub/ui";
-import { getPacks, getWords, type WordPackRow, type WordRow } from "@/lib/db/wordpacks";
+import { packEmoji, type WordPackRow, type WordRow } from "@/lib/db/wordpacks";
 
 import RoleReveal from "../components/RoleReveal";
 import CluePhase from "../components/CluePhase";
@@ -36,23 +36,30 @@ export default function OfflinePage() {
   const [packs, setPacks] = useState<WordPackRow[]>([]);
   const [packWords, setPackWords] = useState<WordRow[]>([]);
   const [packsLoading, setPacksLoading] = useState(true);
+  const allWordsRef = React.useRef<Record<string, WordRow[]>>({});
 
   useEffect(() => {
-    getPacks("wordspy")
-      .then((rows) => {
+    fetch("/api/packs?game=wordspy")
+      .then((r) => r.json())
+      .then(({ packs: rows, words }: { packs: WordPackRow[]; words: Record<string, WordRow[]> }) => {
+        allWordsRef.current = words;
         setPacks(rows);
-        // Pre-select the first pack if config hasn't been set yet
-        if (rows.length > 0 && !rows.find((r) => r.id === config.packId)) {
+        if (rows.length > 0 && !rows.find((r: WordPackRow) => r.id === config.packId)) {
           setConfig({ packId: rows[0].id });
+          setPackWords(words[rows[0].id] ?? []);
+        } else if (config.packId) {
+          setPackWords(words[config.packId] ?? []);
         }
       })
+      .catch(() => { /* keep packs empty, UI shows no pack buttons */ })
       .finally(() => setPacksLoading(false));
   }, []);
 
-  // Fetch words whenever the selected pack changes
+  // Derive words from cache whenever selected pack changes
   useEffect(() => {
     if (!config.packId) return;
-    getWords(config.packId).then(setPackWords);
+    const cached = allWordsRef.current[config.packId];
+    if (cached) setPackWords(cached);
   }, [config.packId]);
 
   function handleLeave() {
@@ -125,12 +132,9 @@ export default function OfflinePage() {
     const handleStart = () => {
       // Pick a random word pair from the DB-fetched words
       const pairs = packWords.filter((w) => w.word_b !== null);
-      const rawPair = pairs.length > 0
-        ? pairs[Math.floor(Math.random() * pairs.length)]
-        : undefined;
-      const wordPair = rawPair
-        ? { word1: rawPair.word_a, word2: rawPair.word_b! }
-        : undefined;
+      if (pairs.length === 0) return; // no words loaded — button should be disabled but guard anyway
+      const rawPair = pairs[Math.floor(Math.random() * pairs.length)];
+      const wordPair = { word1: rawPair.word_a, word2: rawPair.word_b! };
       const started = startGame({ ...gameState, config }, wordPair);
       setGameState(started);
       setRevealIndex(0);
@@ -243,8 +247,8 @@ export default function OfflinePage() {
                       <div style={{ fontSize: 12, color: tokens.grey3 }}>Gets no word — must bluff blindly</div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <button style={ghosts <= 1 ? disabledStyle : stepperStyle} disabled={ghosts <= 1}
-                        onClick={() => updateConfig({ ghostCount: Math.max(1, ghosts - 1) })}>−</button>
+                      <button style={ghosts <= 0 ? disabledStyle : stepperStyle} disabled={ghosts <= 0}
+                        onClick={() => updateConfig({ ghostCount: Math.max(0, ghosts - 1) })}>−</button>
                       <span style={{ fontSize: 16, fontWeight: 700, minWidth: 20, textAlign: "center", color: tokens.black }}>{ghosts}</span>
                       <button style={!canAddGhost ? disabledStyle : stepperStyle} disabled={!canAddGhost}
                         onClick={() => updateConfig({ ghostCount: ghosts + 1 })}>+</button>
@@ -269,7 +273,7 @@ export default function OfflinePage() {
                     background: config.packId === pack.id ? tokens.coralBg : "transparent",
                     color: config.packId === pack.id ? tokens.coral : tokens.grey1, cursor: "pointer",
                   }}>
-                    {pack.emoji} {pack.name}
+                    {packEmoji(pack.name)} {pack.name}
                   </button>
                 ))}
               </div>
@@ -299,8 +303,12 @@ export default function OfflinePage() {
             </div>
           </Card>
 
-          <Btn fullWidth onClick={handleStart} disabled={gameState.players.length < 3} style={{ padding: "16px", fontSize: 16 }}>
-            {gameState.players.length < 3 ? `Need ${3 - gameState.players.length} more player(s)` : "Start Game →"}
+          <Btn fullWidth onClick={handleStart} disabled={gameState.players.length < 3 || packWords.filter(w => w.word_b !== null).length === 0} style={{ padding: "16px", fontSize: 16 }}>
+            {gameState.players.length < 3
+              ? `Need ${3 - gameState.players.length} more player(s)`
+              : packWords.filter(w => w.word_b !== null).length === 0
+              ? "Loading words…"
+              : "Start Game →"}
           </Btn>
         </div>
       </Screen>
@@ -389,7 +397,9 @@ export default function OfflinePage() {
 
   // ─── Clue phase ───────────────────────────────────────────────────────────
   if (gameState.phase === "clue" || gameState.phase === "discussion") {
-    const currentPlayer = gameState.players[gameState.currentCluePlayerIndex];
+    const currentPlayer = gameState.players[gameState.currentCluePlayerIndex]
+      ?? gameState.players.find((p) => !p.isEliminated);
+    if (!currentPlayer) return null;
     const handleClue = (clue: string) => {
       const result = submitClue(gameState, currentPlayer.id, clue);
       if (result.error) return result.error;
@@ -414,7 +424,9 @@ export default function OfflinePage() {
   // ─── Vote phase ───────────────────────────────────────────────────────────
   if (gameState.phase === "vote") {
     const activePlayers = gameState.players.filter((p) => !p.isEliminated);
-    const currentVoter = activePlayers[gameState.currentVoterIndex];
+    const safeVoterIdx = Math.min(Math.max(0, gameState.currentVoterIndex), activePlayers.length - 1);
+    const currentVoter = activePlayers[safeVoterIdx];
+    if (!currentVoter) return null;
     const handleVote = (targetId: string) => {
       setGameState(castVote(gameState, currentVoter.id, targetId, true));
     };

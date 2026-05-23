@@ -55,11 +55,14 @@ export async function POST(req: NextRequest) {
     const removedPlayer = state.players.find((p) => p.id === playerId);
     let remaining = state.players.filter((p) => p.id !== playerId);
     if (removedPlayer?.isHost && remaining.length > 0) {
-      remaining = remaining.map((p, i) => (i === 0 ? { ...p, isHost: true } : p));
+      const newHostIdx = remaining.findIndex((p) => !p.isEliminated);
+      const idx = newHostIdx >= 0 ? newHostIdx : 0;
+      remaining = remaining.map((p, i) => (i === idx ? { ...p, isHost: true } : p));
     }
     const updated = { ...state, players: remaining };
     const room = await getRoom(roomCode);
-    if (room) await updateState(room.id, updated);
+    if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    await updateState(room.id, updated);
     return NextResponse.json({ gameState: updated });
   }
 
@@ -70,10 +73,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
     const { voterId, targetId } = body;
+    if (!voterId || !targetId) {
+      return NextResponse.json({ error: "Missing voterId or targetId" }, { status: 400 });
+    }
     const state = row.payload;
     const voter = state.players.find((p) => p.id === voterId);
-    if (voter?.hasVoted) {
+    if (!voter || voter.isEliminated) {
+      return NextResponse.json({ error: "Invalid voter" }, { status: 400 });
+    }
+    if (voter.hasVoted) {
       return NextResponse.json({ gameState: state }); // idempotent
+    }
+    const target = state.players.find((p) => p.id === targetId);
+    if (!target || target.isEliminated) {
+      return NextResponse.json({ error: "Invalid target" }, { status: 400 });
     }
     const updated = castVote(state, voterId, targetId, false);
     const room = await getRoom(roomCode);

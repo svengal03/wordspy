@@ -33,14 +33,9 @@ export async function updateState(
   state: GameState
 ): Promise<void> {
   const db = createServerClient();
-  const { error } = await db
-    .from("game_state")
-    .update({
-      phase: state.phase,
-      round: state.round,
-      payload: state,
-      // updated_at is handled by the DB trigger
-    })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (db.from("game_state") as any)
+    .update({ phase: state.phase, round: state.round, payload: state })
     .eq("room_id", roomId);
 
   if (error) throw new Error(`updateState: ${error.message}`);

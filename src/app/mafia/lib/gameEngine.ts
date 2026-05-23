@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { Player, MafiaRole, GameState, GameConfig, NightResult } from "./types";
+import { shuffle } from "@/lib/arrayUtils";
 
 export function createPlayer(name: string): Player {
   return { id: nanoid(6), name, role: null, isEliminated: false, hasSeenRole: false };
@@ -20,15 +21,11 @@ export function assignRoles(players: Player[], config: GameConfig): Player[] {
   if (config.policeEnabled) playingRoles.push("police");
   if (config.doctorEnabled) playingRoles.push("doctor");
   while (playingRoles.length < playingCount) playingRoles.push("villager");
-  // Fisher-Yates shuffle — only playing roles, god stays fixed
-  for (let i = playingRoles.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [playingRoles[i], playingRoles[j]] = [playingRoles[j], playingRoles[i]];
-  }
   // First player is always god; rest get shuffled playing roles
+  const shuffledRoles = shuffle(playingRoles);
   return players.map((p, i) => ({
     ...p,
-    role: i === 0 ? "god" : playingRoles[i - 1],
+    role: i === 0 ? "god" : shuffledRoles[i - 1],
     hasSeenRole: false,
   }));
 }

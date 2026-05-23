@@ -21,6 +21,38 @@ export interface WordRow {
   created_at: string;
 }
 
+// ─── Pack emoji map (emojis not stored in DB, resolved here) ─────────────────
+const PACK_EMOJI: Record<string, string> = {
+  "Animals": "🐾",
+  "Bollywood": "🎬",
+  "Bollywood Actors": "🎭",
+  "Bollywood Movies": "🎬",
+  "Bollywood Songs": "🎵",
+  "Cricket": "🏏",
+  "Desi Relationships": "💕",
+  "Desi Street Food": "🍜",
+  "English TV Shows": "📺",
+  "General": "🎯",
+  "Hollywood": "🎬",
+  "Indian Music Artists": "🎤",
+  "Indian Places": "🗺️",
+  "Indian Politics": "🏛️",
+  "Indian Web Series": "📱",
+  "Music": "🎵",
+  "Personalities": "👤",
+  "Professions": "💼",
+  "School & College": "🎓",
+  "South Food": "🍛",
+  "South Indian Food": "🍛",
+  "Tech & Startups": "💻",
+  "Tollywood Movies": "🎬",
+  "Tollywood Songs": "🎵",
+};
+
+export function packEmoji(name: string): string {
+  return PACK_EMOJI[name] ?? "🃏";
+}
+
 // ─── getPacks ─────────────────────────────────────────────────────────────────
 // Fetch all active packs for a specific game.
 // Safe to call from the browser (uses anon key + RLS public read).
@@ -47,6 +79,24 @@ export async function getWords(packId: string): Promise<WordRow[]> {
 
   if (error) throw new Error(`getWords: ${error.message}`);
   return (data ?? []) as WordRow[];
+}
+
+// ─── Server-side in-memory cache ─────────────────────────────────────────────
+// Populated on first API request per game; warm workers serve subsequent users
+// from memory with zero DB round-trips.
+const _gameCache = new Map<string, { packs: WordPackRow[]; words: Record<string, WordRow[]> }>();
+
+export async function getPacksWithWords(
+  game: string
+): Promise<{ packs: WordPackRow[]; words: Record<string, WordRow[]> }> {
+  if (_gameCache.has(game)) return _gameCache.get(game)!;
+  const packs = await getPacks(game);
+  const wordEntries = await Promise.all(
+    packs.map(async (p) => [p.id, await getWords(p.id)] as [string, WordRow[]])
+  );
+  const result = { packs, words: Object.fromEntries(wordEntries) };
+  _gameCache.set(game, result);
+  return result;
 }
 
 // ─── getRandomPairFromPack ────────────────────────────────────────────────────

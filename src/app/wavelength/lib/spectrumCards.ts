@@ -18,7 +18,8 @@ export async function getSpectrumPack(packId: string): Promise<SpectrumCard[]> {
 
 export async function drawCard(packId: string, usedCardIds: string[]): Promise<SpectrumCard> {
   const cards = await getSpectrumPack(packId);
+  if (cards.length === 0) throw new Error(`Wavelength pack "${packId}" has no cards.`);
   const available = cards.filter((c) => !usedCardIds.includes(c.id));
   const pool = available.length > 0 ? available : cards;
-  return pool[Math.floor(Math.random() * pool.length)];
+  return pool[Math.floor(Math.random() * pool.length)]!;
 }

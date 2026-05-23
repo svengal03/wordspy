@@ -137,18 +137,12 @@ export default function HomeScreen() {
             </motion.div>
 
             <motion.div {...fadeUp(0.15)} style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
-              <div>
-                <Btn fullWidth disabled onClick={() => { setMode("create"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
-                  Create Room
-                </Btn>
-                <div style={{ textAlign: "center", fontSize: 12, color: tokens.grey4, marginTop: 5 }}>Coming soon</div>
-              </div>
-              <div>
-                <Btn fullWidth variant="ghost" disabled onClick={() => { setMode("join"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
-                  Join with Code
-                </Btn>
-                <div style={{ textAlign: "center", fontSize: 12, color: tokens.grey4, marginTop: 5 }}>Coming soon</div>
-              </div>
+              <Btn fullWidth onClick={() => { setMode("create"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
+                Create Room
+              </Btn>
+              <Btn fullWidth variant="ghost" onClick={() => { setMode("join"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
+                Join with Code
+              </Btn>
               <Btn fullWidth variant="secondary" onClick={() => { setMode("offline"); setError(""); }} style={{ padding: "15px 24px", fontSize: 16 }}>
                 Play Offline
               </Btn>

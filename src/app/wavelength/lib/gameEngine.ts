@@ -4,6 +4,7 @@ import {
   OpposingBet, ScoreZone, RoundResult, SpectrumCard,
 } from "./types";
 import { drawCard } from "./spectrumCards";
+import { shuffle } from "@/lib/arrayUtils";
 
 export const ZONE_POINTS: Record<ScoreZone, number> = {
   bullseye: 4,
@@ -20,14 +21,6 @@ function makeTeam(id: TeamId): Team {
   return { id, score: 0, psychicIndex: 0 };
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
 
 export function assignTeamsRandomly(players: Player[]): Player[] {
   const shuffled = shuffle(players);

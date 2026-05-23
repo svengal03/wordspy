@@ -1,6 +1,7 @@
 import { GameState, Player, Role, GameConfig } from "./types";
 import { getRandomPair } from "./wordPacks";
 import { nanoid } from "nanoid";
+import { shuffle } from "@/lib/arrayUtils";
 
 // ─── Room Code Generator ──────────────────────────────────────────────────────
 export function generateRoomCode(): string {
@@ -34,22 +35,13 @@ export function assignRoles(
     ...Array(civilians).fill("civilian"),
   ];
 
-  // Shuffle roles
-  for (let i = roles.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [roles[i], roles[j]] = [roles[j], roles[i]];
-  }
-
-  // Shuffle players so role assignment isn't biased by join order
-  const shuffledPlayers = [...players];
-  for (let i = shuffledPlayers.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffledPlayers[i], shuffledPlayers[j]] = [shuffledPlayers[j], shuffledPlayers[i]];
-  }
+  // Shuffle roles and players so assignment isn't biased by join order
+  const shuffledRoles = shuffle(roles);
+  const shuffledPlayers = shuffle(players);
 
   const assignedPlayers = shuffledPlayers.map((player, i) => ({
     ...player,
-    role: roles[i],
+    role: shuffledRoles[i],
     word:
       roles[i] === "civilian"
         ? wordPair.civilian
