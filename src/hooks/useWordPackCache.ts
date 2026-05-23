@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
-import type { WordRow } from "@/lib/db/wordpacks";
+import type { WordRow } from "@/server/db/wordpacks";
 import { WORD_PACKS } from "@playhub/core";
-import { fetchGameWordPacks } from "@/lib/api/packs";
+import { fetchGameWordPacks } from "@/lib/api";
 
 export function useWordPackCache(game: string): {
   dbRowsRef: MutableRefObject<Record<string, WordRow[]>>;

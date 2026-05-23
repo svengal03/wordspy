@@ -31,4 +31,8 @@ export const tokens = {
   inputBg: "#FAFAFA",
   avatarBg: "#F0EDE9",
   divider: "rgba(0,0,0,0.08)",
+
+  space: { 1: 4, 2: 8, 3: 12, 4: 16, 5: 24, 6: 32, 7: 48 } as const,
+  radius: { sm: 6, md: 10, lg: 14, xl: 20, full: 9999 } as const,
+  zIndex: { topbar: 50, dropdown: 100, backdrop: 150, modal: 200 } as const,
 };

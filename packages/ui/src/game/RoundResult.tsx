@@ -40,9 +40,19 @@ export function RoundResult({ correct, word, difficulty, teams, teamColors, phas
               border: `1.5px solid ${correct ? "#BBF7D0" : tokens.border}`,
             }}>
               <div style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
                 fontSize: 22, fontWeight: 800, letterSpacing: -0.3, marginBottom: 6,
                 color: correct ? tokens.green : tokens.black,
               }}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+                    background: correct ? tokens.green : tokens.grey4,
+                    color: "#fff", fontSize: 14, fontWeight: 700,
+                  }}
+                >{correct ? "✓" : "—"}</span>
                 {correct ? "Correct!" : "Skipped"}
               </div>
               {correct && actingTeamName && (

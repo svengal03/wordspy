@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPacksWithWords } from "@/lib/db/wordpacks";
+import { getPacksWithWords } from "@/server/db/wordpacks";
 
 export async function GET(req: NextRequest) {
   const game = req.nextUrl.searchParams.get("game");

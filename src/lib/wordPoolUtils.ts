@@ -1,4 +1,4 @@
-import type { WordRow } from "@/lib/db/wordpacks";
+import type { WordRow } from "@/server/db/wordpacks";
 
 export function buildWordPool(
   packIds: string[],
