@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useEffect, useState, useCallback } from "react";
-import { PhaseTrail, OptionsMenu, PlayHubLogo, NavBtn, useGoHome } from "@playhub/ui";
+import { PhaseTrail, OptionsMenu, TopBar, NavBtn, useGoHome } from "@playhub/ui";
 import { RulesModal } from "./RulesModal";
 
 const PIC_PHASES = ["Word Reveal", "Drawing", "Results"];
@@ -155,38 +155,29 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
         paddingRight: "env(safe-area-inset-right, 0px)",
       }}
     >
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "14px 20px",
-          background: "#FAFAF8",
-          borderBottom: "0.5px solid rgba(0,0,0,0.08)",
-          flexShrink: 0,
-        }}
-      >
-        <PlayHubLogo appName="Pictionary" />
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
-          <button
-            onClick={() => setWordVisible((v) => !v)}
-            style={{
-              padding: "5px 12px", borderRadius: 8,
-              border: `1.5px solid ${teamColor}`, background: "transparent",
-              color: teamColor, fontSize: 12, fontWeight: 600, cursor: "pointer",
-              fontFamily: "inherit",
-            }}
-          >{wordVisible ? "Hide" : "Peek"}</button>
-          <div style={{
-            fontSize: 20, fontWeight: 800, color: timerColor,
-            background: timerColor + "15", padding: "5px 10px", borderRadius: 8,
-            fontVariantNumeric: "tabular-nums",
-          }}>{timeLeft}</div>
-          <OptionsMenu onNewGame={onNewGame} onExit={goHome} />
-        </div>
-      </div>
+      <TopBar
+        appName="Pictionary"
+        right={
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+            <button
+              onClick={() => setWordVisible((v) => !v)}
+              style={{
+                padding: "5px 12px", borderRadius: 8,
+                border: `1.5px solid ${teamColor}`, background: "transparent",
+                color: teamColor, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >{wordVisible ? "Hide" : "Peek"}</button>
+            <div style={{
+              fontSize: 20, fontWeight: 800, color: timerColor,
+              background: timerColor + "15", padding: "5px 10px", borderRadius: 8,
+              fontVariantNumeric: "tabular-nums",
+            }}>{timeLeft}</div>
+            <OptionsMenu onNewGame={onNewGame} onExit={goHome} />
+          </div>
+        }
+      />
 
       {/* Drawer info */}
       <div style={{

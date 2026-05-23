@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, Btn, tokens, Screen, TopBar, NavBtn, OptionsMenu, useGoHome } from "@playhub/ui";
+import { Card, Btn, tokens, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { MAFIA_ROLE_META } from "@playhub/core";
 import { useGame } from "../lib/store";
 import { RoleBadge } from "./ui";
 import RulesModal from "./RulesModal";
+
+const MAFIA_PHASES = ["Role Reveal", "Night", "Day", "Vote", "Results"];
 
 interface Props {
   onPlayAgain: () => void;
@@ -28,6 +30,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
           </div>
         }
       />
+      <PhaseTrail phases={MAFIA_PHASES} current="Results" accentColor={tokens.coral} />
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto" }}>
 
         {/* Winner banner */}

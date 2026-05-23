@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { tokens, OptionsMenu, PlayHubLogo, NavBtn, useGoHome } from "@playhub/ui";
+import { tokens, OptionsMenu, TopBar, NavBtn, useGoHome } from "@playhub/ui";
 import { RulesModal } from "./RulesModal";
 import { PhaseTrail } from "@playhub/ui";
 
@@ -52,32 +52,29 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
       fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
       background: tokens.bg,
     }}>
-      {/* TopBar */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "14px 20px", background: "#FAFAF8", borderBottom: "0.5px solid rgba(0,0,0,0.08)",
-        position: "sticky", top: 0, zIndex: 10,
-      }}>
-        <PlayHubLogo appName="Dumb Charades" />
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
-          <OptionsMenu onNewGame={onNewGame} onExit={goHome} />
-          <button
-            onClick={() => setWordVisible((v) => !v)}
-            style={{
-              padding: "5px 12px", borderRadius: 8,
-              border: `1.5px solid ${teamColor}`, background: "transparent",
-              color: teamColor, fontSize: 12, fontWeight: 600, cursor: "pointer",
-              fontFamily: "inherit",
-            }}
-          >{wordVisible ? "Hide" : "Peek"}</button>
-          <div style={{
-            fontSize: 22, fontWeight: 800, color: timerColor,
-            background: timerColor + "15", padding: "5px 12px", borderRadius: 8,
-            fontVariantNumeric: "tabular-nums",
-          }}>{timeLeft}</div>
-        </div>
-      </div>
+      <TopBar
+        appName="Dumb Charades"
+        right={
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+            <button
+              onClick={() => setWordVisible((v) => !v)}
+              style={{
+                padding: "5px 12px", borderRadius: 8,
+                border: `1.5px solid ${teamColor}`, background: "transparent",
+                color: teamColor, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >{wordVisible ? "Hide" : "Peek"}</button>
+            <div style={{
+              fontSize: 22, fontWeight: 800, color: timerColor,
+              background: timerColor + "15", padding: "5px 12px", borderRadius: 8,
+              fontVariantNumeric: "tabular-nums",
+            }}>{timeLeft}</div>
+            <OptionsMenu onNewGame={onNewGame} onExit={goHome} />
+          </div>
+        }
+      />
 
       <PhaseTrail phases={DC_PHASES} current="Acting" accentColor={teamColor} />
 

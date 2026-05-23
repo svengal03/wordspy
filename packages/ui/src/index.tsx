@@ -167,14 +167,15 @@ export function Toggle({ value, onChange }: { value: boolean; onChange: (v: bool
 }
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
-export function Avatar({ name, size = 40, active, eliminated }: { name: string; size?: number; active?: boolean; eliminated?: boolean }) {
+export function Avatar({ name, size = 40, active, eliminated, color }: { name: string; size?: number; active?: boolean; eliminated?: boolean; color?: string }) {
+  const bg = active ? tokens.coral : eliminated ? "#F5F5F5" : color ? color + "20" : "#F0EDE9";
+  const fg = active ? "#fff" : eliminated ? tokens.grey4 : color ?? tokens.grey2;
   return (
     <div style={{
       width: size, height: size, borderRadius: size * 0.28,
-      background: active ? tokens.coral : eliminated ? "#F5F5F5" : "#F0EDE9",
+      background: bg,
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.32, fontWeight: 700,
-      color: active ? "#fff" : eliminated ? tokens.grey4 : tokens.grey2,
+      fontSize: size * 0.32, fontWeight: 700, color: fg,
       flexShrink: 0, opacity: eliminated ? 0.5 : 1,
       border: active ? `2px solid ${tokens.coralLight}` : "2px solid transparent",
     }}>

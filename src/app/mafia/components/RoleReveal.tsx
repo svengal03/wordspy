@@ -16,7 +16,7 @@ const ROLE_DESC: Record<MafiaRole, string> = {
   god: "You are the moderator. You do not play — you run the game. Keep the phone during night. Announce eliminations. Stay neutral.",
 };
 
-const PHASES = ["Role Reveal", "Night", "Day", "Vote"];
+const PHASES = ["Role Reveal", "Night", "Day", "Vote", "Results"];
 
 export default function RoleReveal() {
   const { game, set, reset, restartGame } = useGame();
