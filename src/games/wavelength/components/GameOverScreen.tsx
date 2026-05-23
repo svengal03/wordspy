@@ -95,7 +95,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
                         </span>
                       </div>
                       <div style={{ fontSize: 13, color: tokens.black, fontWeight: 600 }}>
-                        "{r.clue}" — {r.cardLeft} ↔ {r.cardRight}
+                        &ldquo;{r.clue}&rdquo; — {r.cardLeft} ↔ {r.cardRight}
                       </div>
                     </div>
                   );

@@ -1,13 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card, Btn, tokens, Avatar, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { useGame } from "../store";
 import { getLiving, eliminatePlayer, checkWin, MAFIA_PHASES } from "../engine";
 import RulesModal from "./RulesModal";
 
 export default function VoteScreen() {
-  const { game, set, reset, restartGame } = useGame();
+  const { game, set, restartGame } = useGame();
   const goHome = useGoHome();
   const { players, round, config } = game;
   const living = getLiving(players).filter((p) => p.role !== "god");

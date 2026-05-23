@@ -143,7 +143,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
           <>
             <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}`, textAlign: "center" }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: tokens.coral }}>
-                {localPlayer.name}'s turn
+                {localPlayer.name}&apos;s turn
               </div>
             </Card>
 

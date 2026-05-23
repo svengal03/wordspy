@@ -26,7 +26,7 @@ interface WavelengthTeamSlot {
 }
 
 export function WavelengthGame() {
-  const { game, set, reset, restartGame } = useGame();
+  const { game, set, restartGame } = useGame();
   const goHome = useGoHome();
 
   if (game.phase === "lobby") {

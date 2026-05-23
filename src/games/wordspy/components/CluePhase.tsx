@@ -190,7 +190,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
             background: tokens.inputBg, border: `1.5px solid ${tokens.border}`,
             textAlign: "center", fontSize: 13, color: tokens.grey2, fontWeight: 500,
           }}>
-            You've been eliminated — watching as spectator
+            You&apos;ve been eliminated — watching as spectator
           </div>
         )}
 
@@ -216,7 +216,7 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{p.name}{p.id === localPlayer.id ? " (you)" : ""}</div>
                     {p.clue ? (
-                      <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 1 }}>"{p.clue}"</div>
+                      <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 1 }}>&ldquo;{p.clue}&rdquo;</div>
                     ) : isActive ? (
                       <div style={{ fontSize: 12, color: tokens.coral, fontWeight: 600 }}>Giving clue…</div>
                     ) : (

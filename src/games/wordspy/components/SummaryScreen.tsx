@@ -91,7 +91,6 @@ export default function SummaryScreen({ gameState, localPlayer, onPlayAgain }: P
             <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
               {sortedPlayers.map((p, i) => {
                 const isMe = p.id === localPlayer.id;
-                const roleColor = p.role === "civilian" ? tokens.green : p.role === "undercover" ? tokens.coral : tokens.yellow;
                 const roleEmoji = p.role === "civilian" ? "🎭" : p.role === "undercover" ? "🕵️" : "👻";
                 return (
                   <div key={p.id} style={{

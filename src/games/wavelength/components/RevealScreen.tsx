@@ -17,7 +17,7 @@ const ZONE_LABELS: Record<string, string> = {
 };
 
 export default function RevealScreen() {
-  const { game, set, reset, restartGame } = useGame();
+  const { game, set, restartGame } = useGame();
   const goHome = useGoHome();
   const resolvedRef = useRef(false);
   const [showRules, setShowRules] = useState(false);
@@ -104,8 +104,8 @@ export default function RevealScreen() {
         {/* Clue recap */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <Card>
-            <SectionLabel marginBottom={6}>{result.psychicName}'s Clue</SectionLabel>
-            <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black }}>"{result.clue}"</div>
+            <SectionLabel marginBottom={6}>{result.psychicName}&apos;s Clue</SectionLabel>
+            <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black }}>&ldquo;{result.clue}&rdquo;</div>
           </Card>
         </motion.div>
 

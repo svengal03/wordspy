@@ -20,6 +20,7 @@ export function createServerClient() {
   if (!serviceRoleKey) {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set — server client unavailable");
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
     _serverClient = createClient<any>(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false },
   });

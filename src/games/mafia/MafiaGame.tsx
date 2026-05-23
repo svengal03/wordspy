@@ -13,7 +13,7 @@ import GameOverScreen from "@/games/mafia/components/GameOverScreen";
 import RulesModal from "@/games/mafia/components/RulesModal";
 
 export function MafiaGame() {
-  const { game, reset, restartGame } = useGame();
+  const { game, restartGame } = useGame();
 
   // ─── Phase switcher ───────────────────────────────────────────────────────
   if (game.phase === "role-reveal") return <RoleReveal />;

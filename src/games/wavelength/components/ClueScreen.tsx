@@ -10,7 +10,7 @@ import RulesModal from "./RulesModal";
 import SpectrumDial from "./SpectrumDial";
 
 export default function ClueScreen() {
-  const { game, set, reset, restartGame } = useGame();
+  const { game, set, restartGame } = useGame();
   const goHome = useGoHome();
   const [revealed, setRevealed] = useState(false);
   const [spun, setSpun] = useState(false);

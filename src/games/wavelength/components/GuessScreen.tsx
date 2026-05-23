@@ -10,7 +10,7 @@ import RulesModal from "./RulesModal";
 import SpectrumDial from "./SpectrumDial";
 
 export default function GuessScreen() {
-  const { game, set, reset, restartGame } = useGame();
+  const { game, set, restartGame } = useGame();
   const goHome = useGoHome();
   const [needle, setNeedle] = useState(50);
   const [showRules, setShowRules] = useState(false);
@@ -95,9 +95,9 @@ export default function GuessScreen() {
         {/* Clue callout */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <Card style={{ background: teamMeta.bg, border: `1.5px solid ${teamMeta.color}30` }}>
-            <SectionLabel color={teamMeta.color} marginBottom={6}>{psychic?.name}'s Clue</SectionLabel>
+            <SectionLabel color={teamMeta.color} marginBottom={6}>{psychic?.name}&apos;s Clue</SectionLabel>
             <div style={{ fontSize: 28, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>
-              "{game.clue}"
+              &ldquo;{game.clue}&rdquo;
             </div>
           </Card>
         </motion.div>

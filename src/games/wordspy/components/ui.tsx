@@ -1,5 +1,4 @@
 "use client";
-import { ReactNode } from "react";
 import { tokens, Badge } from "@playhub/ui";
 
 export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGameStore } from "@/games/wordspy/store";
 import { useSupabaseRoom } from "@/games/wordspy/useRoom";

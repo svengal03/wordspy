@@ -8,7 +8,7 @@ import { getLiving, resolveNight, eliminatePlayer, checkWin, MAFIA_PHASES } from
 import RulesModal from "./RulesModal";
 
 export default function NightScreen() {
-  const { game, set, reset, restartGame } = useGame();
+  const { game, set, restartGame } = useGame();
   const goHome = useGoHome();
   const { players, nightSubPhase, nightActions, config, round } = game;
   const living = getLiving(players);
@@ -30,7 +30,7 @@ export default function NightScreen() {
     if (sub === "police-wake") {
       const t = players.find((p) => p.id === selectedId);
       if (t) setPoliceResult({ name: t.name, isMafia: t.role === "mafia" });
-      set({ nightActions: { ...nightActions, policeTarget: selectedId } } as any);
+      set({ nightActions: { ...nightActions, policeTarget: selectedId } });
       return; // show result, wait for continue
     }
 
@@ -40,7 +40,7 @@ export default function NightScreen() {
         ...(sub === "mafia-wake" ? { mafiaTarget: selectedId } : {}),
         ...(sub === "doctor-wake" ? { doctorTarget: selectedId } : {}),
       },
-    } as any);
+    });
 
     advanceAfterRole(sub);
     setSelectedId(null);
@@ -109,7 +109,6 @@ export default function NightScreen() {
 
   const info = phaseInfo[nightSubPhase];
 
-  const doctor = players.find((p) => p.role === "doctor");
   const targets: Player[] = (() => {
     if (nightSubPhase === "mafia-wake") return playingLiving.filter((p) => p.role !== "mafia");
     if (nightSubPhase === "doctor-wake") return getDoctorTargets();
@@ -214,7 +213,7 @@ export default function NightScreen() {
                     {policeResult.name} is {policeResult.isMafia ? "MAFIA" : "NOT Mafia"}
                   </div>
                   <div style={{ fontSize: 12, color: tokens.grey2, marginTop: 4 }}>
-                    Remember this. Don't tell anyone.
+                    Remember this. Don&apos;t tell anyone.
                   </div>
                 </div>
                 <Btn fullWidth onClick={continueAfterPolice} style={{ padding: "16px", fontSize: 16 }}>

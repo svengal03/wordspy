@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Btn, Card, TopBar, NavBtn, Screen, ErrorBox, tokens, PlayerNameInput, useGoHome } from "@playhub/ui";
 import RulesModal from "@/games/wordspy/components/RulesModal";
@@ -235,9 +236,9 @@ export function WordspyHome() {
 
       <div style={{ textAlign: "center", padding: "16px 24px", color: tokens.grey4, fontSize: 12 }}>
         Part of{" "}
-        <a href="/" style={{ color: tokens.grey3, fontWeight: 600, textDecoration: "none" }}>
+        <Link href="/" style={{ color: tokens.grey3, fontWeight: 600, textDecoration: "none" }}>
           PlayHub
-        </a>{" "}
+        </Link>{" "}
         · All games, one place
       </div>
 

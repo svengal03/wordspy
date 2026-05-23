@@ -8,7 +8,7 @@ import { RoleBadge } from "./ui";
 import RulesModal from "./RulesModal";
 
 export default function DayScreen() {
-  const { game, set, reset, restartGame } = useGame();
+  const { game, set, restartGame } = useGame();
   const goHome = useGoHome();
   const { players, lastNightResult, round, config } = game;
   const living = getLiving(players);

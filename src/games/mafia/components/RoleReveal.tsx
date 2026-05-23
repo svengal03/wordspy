@@ -17,7 +17,7 @@ const ROLE_DESC: Record<MafiaRole, string> = {
 };
 
 export default function RoleReveal() {
-  const { game, set, reset, restartGame } = useGame();
+  const { game, set, restartGame } = useGame();
   const goHome = useGoHome();
   const { players, revealIndex } = game;
   const [revealed, setRevealed] = useState(false);

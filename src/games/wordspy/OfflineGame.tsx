@@ -6,8 +6,8 @@ import {
   startGame, submitClue, castVote, processGhostGuess,
   nextRound, createInitialGameState, createPlayer, eliminatePlayer,
 } from "@/games/wordspy/engine";
-import { GameState, GameConfig } from "@/games/wordspy/types";
-import { tokens, Btn, Card, SectionLabel, Toggle, OptionsMenu, Screen, TopBar, NavBtn, PlayHubLogo } from "@playhub/ui";
+import { GameConfig } from "@/games/wordspy/types";
+import { tokens, Btn, Card, SectionLabel, Toggle, OptionsMenu, Screen, TopBar, NavBtn } from "@playhub/ui";
 import RulesModal from "@/games/wordspy/components/RulesModal";
 import { motion } from "framer-motion";
 import { useGoHome } from "@playhub/ui";

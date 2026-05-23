@@ -85,7 +85,7 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
                   Last Chance
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: tokens.black, marginBottom: 4 }}>
-                  Guess the civilians' word
+                  Guess the civilians&apos; word
                 </div>
                 <div style={{ fontSize: 13, color: tokens.grey2, marginBottom: 14 }}>
                   Guess correctly and you win as Mr. Phantom!

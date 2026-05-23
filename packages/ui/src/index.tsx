@@ -684,7 +684,7 @@ export function RevealCover({
 }
 
 // ─── PhaseTrail ───────────────────────────────────────────────────────────────
-export function PhaseTrail({ phases, current, accentColor = tokens.coral }: { phases: string[]; current: string; accentColor?: string }) {
+export function PhaseTrail({ phases, current, accentColor = tokens.coral }: { phases: readonly string[]; current: string; accentColor?: string }) {
   return (
     <div style={{
       display: "flex", alignItems: "center", justifyContent: "center",

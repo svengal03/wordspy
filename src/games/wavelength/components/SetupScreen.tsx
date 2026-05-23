@@ -2,10 +2,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Screen, TopBar, Card, Btn, Toggle, NavBtn, OptionsMenu, tokens, PlayerNameInput, useGoHome } from "@playhub/ui";
-import { WAVELENGTH_TEAM_META } from "@playhub/core";
 import { useGame } from "../store";
 import { createPlayer, assignTeamsRandomly } from "../engine";
-import { DEFAULT_CONFIG, GameConfig, Player, TeamId } from "../types";
+import { GameConfig, Player } from "../types";
 import { getWavelengthPacks } from "../spectrumCards";
 import { SectionLabel } from "./ui";
 import RulesModal from "./RulesModal";

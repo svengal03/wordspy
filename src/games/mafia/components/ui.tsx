@@ -1,5 +1,5 @@
 "use client";
-import { Badge, tokens } from "@playhub/ui";
+import { Badge } from "@playhub/ui";
 import { MAFIA_ROLE_META } from "@playhub/core";
 
 export function RoleBadge({ role }: { role: "mafia" | "villager" | "doctor" | "police" | "god" }) {

@@ -166,7 +166,7 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
                   onClick={() => setAcknowledged(true)}
                   style={{ padding: "16px", fontSize: 16 }}
                 >
-                  Got it — I'm ready ✓
+                  Got it — I&apos;m ready ✓
                 </Btn>
               )}
 

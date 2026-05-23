@@ -11,7 +11,7 @@ import RulesModal from "./RulesModal";
 import SpectrumDial from "./SpectrumDial";
 
 export default function OpposingBetScreen() {
-  const { game, set, reset, restartGame } = useGame();
+  const { game, set, restartGame } = useGame();
   const goHome = useGoHome();
   const [bet, setBet] = useState<OpposingBet | null>(null);
   const [showRules, setShowRules] = useState(false);
@@ -98,9 +98,9 @@ export default function OpposingBetScreen() {
         {/* Clue callout */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <Card style={{ background: psychicMeta.bg, border: `1.5px solid ${psychicMeta.color}30` }}>
-            <SectionLabel color={psychicMeta.color} marginBottom={6}>{psychicMeta.label}'s Clue</SectionLabel>
+            <SectionLabel color={psychicMeta.color} marginBottom={6}>{psychicMeta.label}&apos;s Clue</SectionLabel>
             <div style={{ fontSize: 24, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>
-              "{game.clue}"
+              &ldquo;{game.clue}&rdquo;
             </div>
           </Card>
         </motion.div>
@@ -108,7 +108,7 @@ export default function OpposingBetScreen() {
         {/* Guessing team's needle snapshot */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <Card>
-            <SectionLabel marginBottom={12}>{psychicMeta.label}'s guess</SectionLabel>
+            <SectionLabel marginBottom={12}>{psychicMeta.label}&apos;s guess</SectionLabel>
             <SpectrumDial
               left={card?.left ?? ""}
               right={card?.right ?? ""}
