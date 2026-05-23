@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { GAMES } from "@playhub/config";
-
-const CORAL = "#CC785C";
+import { tokens } from "@playhub/ui";
 
 export default function HomePage() {
   const router = useRouter();
@@ -47,12 +46,12 @@ export default function HomePage() {
         <header style={{ marginBottom: 32 }}>
           <div style={{ display: "inline-flex", alignItems: "center", marginBottom: 6 }}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 2.5, marginRight: 6 }}>
-              <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: CORAL }} />
-              <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: CORAL, opacity: 0.55 }} />
-              <span style={{ display: "inline-block", width: 4, height: 4, borderRadius: "50%", background: CORAL, opacity: 0.25 }} />
+              <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: tokens.coral }} />
+              <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: tokens.coral, opacity: 0.55 }} />
+              <span style={{ display: "inline-block", width: 4, height: 4, borderRadius: "50%", background: tokens.coral, opacity: 0.25 }} />
             </span>
             <span style={{ fontSize: 28, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", lineHeight: 1 }}>play</span>
-            <span style={{ fontSize: 28, fontWeight: 800, color: CORAL, letterSpacing: "-0.02em", lineHeight: 1 }}>hub</span>
+            <span style={{ fontSize: 28, fontWeight: 800, color: tokens.coral, letterSpacing: "-0.02em", lineHeight: 1 }}>hub</span>
           </div>
           <p style={{ margin: "0", fontSize: 14, color: "#999", fontWeight: 400 }}>
             Party games for groups
@@ -85,7 +84,7 @@ export default function HomePage() {
               {/* Emoji icon */}
               <div style={{
                 width: 52, height: 52, borderRadius: 14,
-                background: "#FFF8F5", border: `1.5px solid ${CORAL}20`,
+                background: "#FFF8F5", border: `1.5px solid ${tokens.coral}20`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 26, marginBottom: 14, flexShrink: 0,
               }}>
@@ -95,7 +94,7 @@ export default function HomePage() {
               {/* Name */}
               <div style={{ fontSize: 14, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", marginBottom: 4 }}>
                 <span>{game.split[0]}</span>
-                <span style={{ color: CORAL }}>{game.split[1]}</span>
+                <span style={{ color: tokens.coral }}>{game.split[1]}</span>
               </div>
 
               {/* Description */}
@@ -106,8 +105,8 @@ export default function HomePage() {
               {/* Footer badges */}
               <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                 <span style={{
-                  fontSize: 11, fontWeight: 700, color: CORAL,
-                  background: "#FAECE7", border: `1px solid ${CORAL}40`,
+                  fontSize: 11, fontWeight: 700, color: tokens.coral,
+                  background: "#FAECE7", border: `1px solid ${tokens.coral}40`,
                   borderRadius: 6, padding: "3px 8px", letterSpacing: "0.04em",
                   textTransform: "uppercase",
                 }}>
@@ -166,6 +165,9 @@ export default function HomePage() {
           >
             <motion.div
               key="sheet"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="sheet-title"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -204,7 +206,7 @@ export default function HomePage() {
                   {activeGame.emoji}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 17, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+                  <div id="sheet-title" style={{ fontSize: 17, fontWeight: 800, color: "#1A1A1A", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
                     <span>{activeGame.split[0]}</span>
                     <span style={{ color: activeGame.themeColor }}>{activeGame.split[1]}</span>
                   </div>
@@ -212,6 +214,7 @@ export default function HomePage() {
                 </div>
                 <button
                   onClick={closeModal}
+                  aria-label="Close"
                   style={{
                     background: "#F5F4F2", border: "none",
                     borderRadius: 8, width: 32, height: 32, cursor: "pointer",

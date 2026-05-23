@@ -1,0 +1,1 @@
+export { PictionaryGame } from "./PictionaryGame";

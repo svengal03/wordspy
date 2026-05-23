@@ -22,6 +22,46 @@ button, input, textarea {
   font-family: inherit;
 }
 
+a {
+  color: inherit;
+}
+
+/* Focus rings — keyboard users only */
+:focus-visible {
+  outline: 2px solid #CC785C;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+[role="switch"]:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #CC785C;
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #CC785C;
+  outline-offset: 0;
+  border-color: #CC785C !important;
+}
+
+/* Suppress focus ring on mouse clicks */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 4px;
 }

@@ -8,6 +8,12 @@ export const fadeIn = {
   animate: { opacity: 1 },
 };
 
+// Safe for prefers-reduced-motion: no y movement
+export const fadeUpReduced = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+};
+
 export const stagger = (i: number, step = 0.05) => ({
   transition: { delay: i * step },
 });
