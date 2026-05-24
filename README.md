@@ -1,6 +1,6 @@
 # PlayHub
 
-Turborepo monorepo hosting independent offline party-game apps. Each app is a standalone Next.js project. No accounts, no sign-up — pass the phone and play.
+Turborepo monorepo hosting all party games as a single Next.js app. No accounts, no sign-up — pass the phone and play.
 
 ---
 
@@ -8,10 +8,11 @@ Turborepo monorepo hosting independent offline party-game apps. Each app is a st
 
 | App | Description | Players | Mode |
 |---|---|---|---|
-| 🕵️ **Wordspy** | Social deduction word game — find allies, expose infiltrators | 3–10 | Online + Offline |
-| 🔫 **Mafia** | Hidden Mafia vs the town — night kills, day votes | 5–15 | Offline |
+| 🕵️ **Wordspy** | Social deduction word game — find allies, expose infiltrators | 4–10 | Online + Offline |
+| 🔪 **Mafia** | Hidden Mafia vs the town — night kills, day votes | 5–15 | Offline |
 | 🎨 **Pictionary** | Draw it, guess it — team competition with difficulty tiers | 4+ | Offline |
 | 🎬 **Dumb Charades** | Act it out silently — Bollywood and more | 4+ | Offline |
+| 〰️ **Wavelength** | Two teams, one spectrum dial — guide your team to the target | 4–12 | Offline |
 
 ---
 
@@ -23,45 +24,27 @@ Turborepo monorepo hosting independent offline party-game apps. Each app is a st
 npm install
 ```
 
-### Run all apps
+### Run
 
 ```bash
 npm run dev
 ```
 
-Apps start on separate ports:
+App starts at `localhost:3000`.
 
-| App | Port |
-|---|---|
-| home | 3000 |
-| wordspy | 3001 |
-| mafia | 3002 |
-| pictionary | 3003 |
-| dumbcharades | 3004 |
+### Environment
 
-### Environment — Wordspy online mode only
+All offline games work with no env vars. Wordspy's online (multi-device) mode and Wavelength's spectrum packs require Supabase.
 
-Wordspy's online (multi-device) mode requires Pusher. Offline mode works without any env vars.
-
-Create `apps/wordspy/.env.local`:
+Create `src/.env.local`:
 
 ```
-NEXT_PUBLIC_PUSHER_KEY=your_pusher_key
-NEXT_PUBLIC_PUSHER_CLUSTER=mt1
-PUSHER_APP_ID=your_pusher_app_id
-PUSHER_SECRET=your_pusher_secret
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 ```
 
-Get credentials at [pusher.com](https://pusher.com) — create an app, copy Key / Cluster / App ID / Secret.
-
-Home app links — create `apps/home/.env.local`:
-
-```
-NEXT_PUBLIC_WORDSPY_URL=http://localhost:3001
-NEXT_PUBLIC_MAFIA_URL=http://localhost:3002
-NEXT_PUBLIC_PICTIONARY_URL=http://localhost:3003
-NEXT_PUBLIC_DUMBCHARADES_URL=http://localhost:3004
-```
+Get these from your Supabase project → Settings → API. Apply the schema from `database/schema.sql` and RLS policies from `database/rls.sql`.
 
 ---
 
@@ -69,25 +52,37 @@ NEXT_PUBLIC_DUMBCHARADES_URL=http://localhost:3004
 
 ```
 playhub/
-├── apps/
-│   ├── home/           ← Game hub — links to all apps
-│   ├── wordspy/        ← Online + offline social deduction
-│   ├── mafia/          ← Offline role-play
-│   ├── pictionary/     ← Offline drawing game
-│   └── dumbcharades/   ← Offline acting game
+├── src/                    ← Single Next.js app — all games live here
+│   ├── app/
+│   │   ├── page.tsx        ← PlayHub home (reads from @playhub/config)
+│   │   ├── layout.tsx
+│   │   ├── template.tsx
+│   │   ├── {game}/         ← One route per game (/wordspy, /mafia, etc.)
+│   │   │   ├── page.tsx    ← Thin wrapper: renders <{Game}Game />
+│   │   │   └── layout.tsx  ← Sets title + favicon per game
+│   │   └── api/            ← API routes (Wordspy online mode)
+│   ├── games/
+│   │   ├── {game}/         ← All logic + UI for one game
+│   │   │   ├── types.ts
+│   │   │   ├── engine.ts   ← Pure game-logic functions
+│   │   │   ├── store.ts    ← Zustand store
+│   │   │   ├── {Game}Game.tsx
+│   │   │   ├── index.ts
+│   │   │   └── components/
+│   │   └── shared/         ← Cross-game screens
+│   ├── lib/                ← Supabase client, scoring utils, etc.
+│   ├── hooks/
+│   └── public/favicons/    ← Per-game favicons
 ├── packages/
-│   ├── core/           ← Word packs, difficulty constants, team palettes
-│   └── ui/             ← Shared components: RevealCover, CategoryPicker, PlayerNameInput
-├── docs/
-│   ├── ARCHITECTURE.md ← App structure standards
-│   ├── GAMEPLAY.md     ← All games overview + doc index
-│   ├── NEW_GAME.md     ← End-to-end guide for adding a new game
-│   └── gameplay/       ← Per-game design docs
-│       ├── WORDSPY.md
-│       ├── MAFIA.md
-│       ├── PICTIONARY.md
-│       └── DUMBCHARADES.md
-└── AUDIT.md            ← Known duplication issues to fix
+│   ├── config/             ← @playhub/config — GAMES registry (home screen)
+│   ├── core/               ← @playhub/core — types, word packs, constants
+│   └── ui/                 ← @playhub/ui — RevealCover, CategoryPicker, PlayerNameInput, Btn
+├── database/               ← Supabase schema, RLS policies, seed data
+└── docs/
+    ├── ARCHITECTURE.md
+    ├── GAMEPLAY.md
+    ├── NEW_GAME.md
+    └── gameplay/           ← Per-game design docs
 ```
 
 ---
@@ -98,11 +93,12 @@ playhub/
 |---|---|
 | Framework | Next.js 15 (App Router) |
 | Monorepo | Turborepo + npm workspaces |
-| State | Zustand (Mafia, Wordspy) · useState (Pictionary, Dumb Charades) |
-| Realtime | Pusher — Wordspy online mode only |
+| State | Zustand (Mafia, Wordspy, Wavelength) · useState (Pictionary, Dumb Charades) |
+| Realtime | Supabase Realtime — Wordspy online mode only |
+| Database | Supabase Postgres — Wordspy rooms + Wavelength word packs |
 | Animations | Framer Motion |
 | Font | DM Sans |
-| Deployment | Vercel — each app deployed independently |
+| Deployment | Vercel — single project |
 
 ---
 
@@ -112,16 +108,16 @@ Read `docs/NEW_GAME.md` for the full end-to-end flow. Short version:
 
 1. Describe the game to Claude Code — rules, players, phases
 2. Claude writes `docs/gameplay/{GAME}.md` — review and confirm it
-3. Claude scaffolds the full app from `apps/mafia` and implements all files
-4. Claude registers the game in `apps/home` and updates the docs
+3. Claude scaffolds the full app from `src/games/mafia` and implements all files
+4. Claude registers the game in `packages/config/src/games.ts` and updates the docs
 
 ---
 
 ## Deploy
 
-Each app deploys independently to Vercel. The home app reads game URLs from environment variables — set `NEXT_PUBLIC_{GAME}_URL` to each app's production URL.
+Single Vercel project — all games ship together. Set the Supabase env vars in the Vercel project settings.
 
-Wordspy's online mode uses an in-memory room store. For multi-instance production deployments, replace with Redis (Upstash).
+Wordspy's online mode uses Supabase Realtime. For multi-region Supabase deployments, rooms expire after 4 hours via a scheduled Supabase function — see `database/schema.sql`.
 
 ---
 

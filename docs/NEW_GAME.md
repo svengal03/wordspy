@@ -245,5 +245,5 @@ Use these as calibration for expected depth and implementation quality.
 | Mafia | `docs/gameplay/MAFIA.md` | `src/games/mafia/` | Simplest offline — start here |
 | Pictionary | `docs/gameplay/PICTIONARY.md` | `src/games/pictionary/` | Team-based with canvas |
 | Dumb Charades | `docs/gameplay/DUMBCHARADES.md` | `src/games/dumbcharades/` | Team-based, no canvas |
-| Wavelength | _(in progress)_ | `src/games/wavelength/` | Spectrum-based, offline |
+| Wavelength | `docs/gameplay/WAVELENGTH.md` | `src/games/wavelength/` | Spectrum-based, offline |
 | Wordspy | `docs/gameplay/WORDSPY.md` | `src/games/wordspy/` | Online + offline, Supabase |

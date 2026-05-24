@@ -76,17 +76,17 @@ Team-based silent acting and guessing for **4+ players** (2–6 teams). Identica
 
 ---
 
-### Wavelength _(in progress)_
+### Wavelength — [Full design doc](gameplay/WAVELENGTH.md)
 
-Spectrum-based team game. One player gives a clue to guide their team to a hidden target on a spectrum dial. Opposing teams score by guessing which side of the target is correct.
+Spectrum-based team game for **4–12 players**. One player (the Psychic) sees a hidden target on a spectrum dial and gives a one-word clue. Their team drags the needle to their best guess. The opposing team earns a bonus point by betting which side of the needle the target is on.
 
 | | |
 |---|---|
-| **Teams** | 2 |
-| **Win** | First team to reach the target score |
-| **Phases** | Setup → Clue → Guess → Score → Game Over |
+| **Teams** | 2 (A and B) |
+| **Win** | First team to reach the target score (default 10 pts) |
+| **Phases** | Lobby → Setup → Team Assign → Clue → Guess → Opposing Bet → Reveal → Game Over |
 | **Mode** | Offline only |
-| **Players** | 4+ |
+| **Players** | 4–12 |
 
 ---
 
@@ -133,6 +133,7 @@ Point values are defined as constants in `@playhub/core`.
 | [gameplay/MAFIA.md](gameplay/MAFIA.md) | Mafia rules, phases, config, state types | Mafia |
 | [gameplay/PICTIONARY.md](gameplay/PICTIONARY.md) | Pictionary rules, phases, config, state types | Pictionary |
 | [gameplay/DUMBCHARADES.md](gameplay/DUMBCHARADES.md) | Dumb Charades rules, phases, config, state types | Dumb Charades |
+| [gameplay/WAVELENGTH.md](gameplay/WAVELENGTH.md) | Wavelength rules, phases, config, state types | Wavelength |
 | [NEW_GAME.md](NEW_GAME.md) | End-to-end instruction for adding a new game | New game process |
 
 ---

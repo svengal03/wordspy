@@ -102,7 +102,7 @@ Offline mode: same game logic, state lives in Zustand on device, no network call
 | `mafia` | Offline only | Zustand | None | 5–15 |
 | `pictionary` | Offline only | useState | None | 4+ (teams) |
 | `dumbcharades` | Offline only | useState | None | 4+ (teams) |
-| `wavelength` | Offline only | Zustand | None | 4+ (teams) |
+| `wavelength` | Offline only | Zustand | None | 4–12 (2 teams) |
 
 ---
 
