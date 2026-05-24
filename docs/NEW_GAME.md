@@ -97,16 +97,24 @@ Do not proceed to Step 2 until the gameplay doc is complete and reviewed.
 
 ## Step 2 — Scaffold the Game Module
 
-Copy the Mafia game as the base — it is the simplest offline pass-phone game.
+Do not copy any existing game. Create all files from scratch following the structure below. Use the existing games as reading references only — derive every file's content from the gameplay doc written in Step 1.
 
-```powershell
-# From the repo root
-Copy-Item -Recurse src\games\mafia src\games\{game-name}
+**Canonical folder structure** (every offline game uses this layout):
+
+```
+src/games/{game-name}/
+  types.ts
+  engine.ts
+  store.ts
+  {Game}Game.tsx
+  index.ts
+  components/
+    ui.tsx
+    RulesModal.tsx
+    {Phase}Screen.tsx   ← one per phase from your gameplay doc
 ```
 
-Rename files inside the new folder:
-- `MafiaGame.tsx` → `{Game}Game.tsx`
-- Update the component name and imports inside the file
+Games with a team setup phase also use `src/games/shared/` components — read `src/games/shared/index.ts` to see what's available before writing duplicates.
 
 Create the Next.js route:
 
@@ -116,7 +124,7 @@ import { {Game}Game } from "@/games/{game-name}";
 export default function Page() { return <{Game}Game />; }
 ```
 
-**`src/app/{game-name}/layout.tsx`** — copy from `src/app/mafia/layout.tsx`, update the `<title>` and `<link rel="icon">` href to point to `favicons/favicon-{game-name}.svg`.
+**`src/app/{game-name}/layout.tsx`** — model on any existing `src/app/*/layout.tsx`, update the `<title>` and `<link rel="icon">` href to point to `favicons/favicon-{game-name}.svg`.
 
 ---
 
@@ -146,7 +154,7 @@ Derive functions from the gameplay doc's **Game Phases** and **Win Condition Log
 
 ### `src/games/{game}/store.ts`
 
-Zustand store following the Mafia pattern:
+Zustand store. Read `src/games/wavelength/store.ts` or `src/games/mafia/store.ts` for the pattern:
 - State shape: `{ game: GameState, set: (partial) => void, reset: () => void }`
 - Initial state matches DEFAULT_CONFIG values
 
@@ -173,7 +181,7 @@ UI rules — all from `docs/ARCHITECTURE.md`:
 
 ### `src/games/{game}/components/ui.tsx`
 
-Copy from `src/games/mafia/components/ui.tsx`. Update only the game name string inside the logo component.
+Read `src/games/mafia/components/ui.tsx` or `src/games/wavelength/components/ui.tsx` to understand the pattern (Screen, TopBar, Btn, Card exports). Create this file from scratch — update only the game name string inside the logo component.
 
 ---
 

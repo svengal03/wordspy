@@ -13,7 +13,6 @@ create extension if not exists "pgcrypto";
 create table if not exists word_packs (
   id          uuid primary key default gen_random_uuid(),
   game        text not null
-                check (game in ('wordspy','pictionary','dumbcharades','wavelength')),
   name        text not null,
   category    text not null,
   emoji       text,
@@ -61,7 +60,6 @@ create table if not exists rooms (
   id         uuid primary key default gen_random_uuid(),
   code       text not null unique,
   game       text not null
-               check (game in ('wordspy','mafia','pictionary','dumbcharades','wavelength')),
   host_id    uuid,              -- FK to room_players.id, added below
   status     text not null default 'lobby'
                check (status in ('lobby','playing','ended')),
