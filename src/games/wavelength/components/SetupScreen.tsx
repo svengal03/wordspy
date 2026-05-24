@@ -23,7 +23,13 @@ export default function SetupScreen() {
   // ── Supabase pack list ────────────────────────────────────────────────────
   const [packOptions, setPackOptions] = useState<Awaited<ReturnType<typeof getWavelengthPacks>>>([]);
   useEffect(() => {
-    getWavelengthPacks().then(setPackOptions).catch(console.error);
+    getWavelengthPacks().then((packs) => {
+      setPackOptions(packs);
+      // Auto-select the first pack if none is set yet
+      if (packs.length > 0 && !config.packId) {
+        setConfig((c) => ({ ...c, packId: packs[0]!.id }));
+      }
+    }).catch(console.error);
   }, []);
 
   function addPlayer() {
@@ -49,6 +55,7 @@ export default function SetupScreen() {
     const teamA = Math.ceil(names.length / 2);
     const teamB = names.length - teamA;
     if (teamA < 2 || teamB < 2) return setError("Need at least 2 players per team");
+    if (!config.packId) return setError("Please select a spectrum pack");
 
     let players: Player[] = names.map((n) => createPlayer(n, "A"));
     if (config.randomTeams) {

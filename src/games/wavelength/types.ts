@@ -58,7 +58,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   targetScore: 10,
   enableOpposingBet: true,
   randomTeams: true,
-  packId: "wavelength-general",
+  packId: "",
   guessTimerSeconds: 60,
 };
 

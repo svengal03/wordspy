@@ -43,7 +43,18 @@ export const useGame = create<GameStore>()(
       })),
     }),
     { name: "wavelength-store",
-      version: 2,
+      version: 3,
+      migrate: (persisted: unknown, fromVersion: number) => {
+        // Wipe any state from before v3 — old packId was a slug, not a UUID
+        if (fromVersion < 3) return { game: { ...INITIAL_STATE } };
+        const s = persisted as { game: GameState };
+        // Also fix any lingering slug-style packId at runtime
+        if (s?.game?.config?.packId && !s.game.config.packId.includes("-") === false) {
+          const looksLikeUuid = /^[0-9a-f-]{36}$/i.test(s.game.config.packId);
+          if (!looksLikeUuid) s.game.config.packId = "";
+        }
+        return s;
+      },
       // Persist full game state so accidental browser close can be resumed.
       // Reset only if the stored game was already finished.
       onRehydrateStorage: () => (state) => {
