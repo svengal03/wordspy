@@ -47,10 +47,13 @@ create table if not exists room_players (
   room_id      uuid not null,   -- FK added below after rooms exists
   player_name  text not null,
   is_host      boolean not null default false,
-  role         text,            -- 'mafia' | 'detective' | null etc.
+  role         text,            -- game-specific: 'spymaster'|'agent' | 'civilian'|'undercover'|'ghost' etc.
+  team         text,                -- game-specific: MindField uses 'red'|'blue', others: null
+  word         text,            -- WordSpy: secret word assigned to player, others: null
   score        int  not null default 0,
   is_connected boolean not null default true,
-  joined_at    timestamptz not null default now()
+  joined_at    timestamptz not null default now(),
+  unique (room_id, player_name)
 );
 
 -- ─────────────────────────────────────────────────────────────
@@ -130,3 +133,66 @@ create table if not exists game_events (
 -- composite index for ordered event replay per room
 create index if not exists idx_game_events_room_time
   on game_events (room_id, created_at);
+
+-- ─────────────────────────────────────────────────────────────
+-- 8. MindField normalized tables
+-- ─────────────────────────────────────────────────────────────
+create table if not exists mf_rounds (
+  id                  uuid primary key default gen_random_uuid(),
+  room_id             uuid not null references rooms(id) on delete cascade,
+  round_number        int not null,
+  current_team        text not null default 'red',
+  turn_phase          text not null default 'giving-clue',
+  clue                text,
+  clue_number         int,
+  guesses_remaining   int not null default 0,
+  big_clue_used_red   boolean not null default false,
+  big_clue_used_blue  boolean not null default false,
+  round_winner        text,
+  bomb_triggered_by   text,
+  started_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now(),
+  unique (room_id, round_number)
+);
+
+create index if not exists idx_mf_rounds_room_id on mf_rounds (room_id);
+
+create table if not exists mf_tiles (
+  id          uuid primary key default gen_random_uuid(),
+  round_id    uuid not null references mf_rounds(id) on delete cascade,
+  position    int not null,
+  word        text not null,
+  color       text not null,
+  revealed    boolean not null default false,
+  revealed_at timestamptz,
+  flagged     boolean not null default false,
+  unique (round_id, position)
+);
+
+create index if not exists idx_mf_tiles_round_id on mf_tiles (round_id);
+
+create table if not exists mf_clues (
+  id             uuid primary key default gen_random_uuid(),
+  round_id       uuid not null references mf_rounds(id) on delete cascade,
+  sequence       int not null,
+  team           text not null,
+  spymaster_name text not null default '',
+  word           text not null,
+  count          int not null,
+  given_at       timestamptz not null default now(),
+  unique (round_id, sequence)
+);
+
+create table if not exists mf_round_results (
+  id                   uuid primary key default gen_random_uuid(),
+  room_id              uuid not null references rooms(id) on delete cascade,
+  round_number         int not null,
+  winner               text not null,
+  bomb_triggered       boolean not null default false,
+  bomb_triggered_by    text,
+  winner_used_big_clue boolean not null default false,
+  red_points_earned    int not null default 0,
+  blue_points_earned   int not null default 0,
+  ended_at             timestamptz not null default now(),
+  unique (room_id, round_number)
+);

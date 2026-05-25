@@ -31,7 +31,7 @@ export function MindFieldRoom() {
   const [isStarting, setIsStarting] = useState(false);
   const leavingRef = useRef(false);
 
-  const { pushState } = useMindFieldRoom(roomId, roomCode, (incoming) => {
+  const { pushState, sendFlagBroadcast } = useMindFieldRoom(roomId, roomCode, (incoming) => {
     // If bomb was just triggered, show overlay briefly
     if (incoming.phase === "round-over" && incoming.roundHistory.length > 0) {
       const last = incoming.roundHistory[incoming.roundHistory.length - 1];
@@ -213,12 +213,15 @@ export function MindFieldRoom() {
     }
   }
 
-  async function handleFlagTile(tileId: number) {
+  function handleFlagTile(tileId: number) {
     if (!gameState || !effectivePlayer) return;
     if (effectivePlayer.role !== "agent") return;
     if (gameState.currentTeam !== effectivePlayer.team) return;
     if (gameState.turnPhase !== "guessing") return;
-    await push(toggleFlag(gameState, tileId));
+    const newState = toggleFlag(gameState, tileId);
+    setGameState(newState);
+    sendFlagBroadcast(newState.flaggedTiles);
+    pushState(roomCode, newState);
   }
 
   async function handlePass() {

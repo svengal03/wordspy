@@ -13,8 +13,32 @@ export function useMindFieldRoom(
 
   const [realtimeReady, setRealtimeReady] = useState(false);
   const lastEtagRef = useRef<string | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const stateRef = useRef<GameState | null>(null);
 
-  // Realtime subscription
+  const fetchState = useCallback(async () => {
+    if (!roomCode) return;
+    try {
+      const headers: Record<string, string> = {};
+      if (lastEtagRef.current) headers["If-None-Match"] = lastEtagRef.current;
+      const res = await fetch(`/api/mindfield/rooms/${roomCode}/state`, { headers });
+      if (res.status === 304) return;
+      if (res.ok) {
+        const etag = res.headers.get("etag");
+        if (etag) lastEtagRef.current = etag;
+        const data = await res.json();
+        if (data.gameState) {
+          stateRef.current = data.gameState;
+          onUpdateRef.current(data.gameState);
+        }
+      }
+    } catch {}
+  }, [roomCode]);
+
+  // Reset ETag when room changes
+  useEffect(() => { lastEtagRef.current = null; }, [roomCode]);
+
+  // Realtime subscription — fires fetchState on game_state change, receives flag broadcasts
   useEffect(() => {
     if (!roomId) return;
 
@@ -28,54 +52,59 @@ export function useMindFieldRoom(
           table: "game_state",
           filter: `room_id=eq.${roomId}`,
         },
-        (payload) => {
-          const row = payload.new as { payload: GameState };
-          if (row?.payload) onUpdateRef.current(row.payload);
-        }
+        () => { fetchState(); }
       )
+      .on("broadcast", { event: "flag_toggle" }, ({ payload }) => {
+        const current = stateRef.current;
+        if (!current) return;
+        const flaggedTiles = (payload as { flaggedTiles: number[] }).flaggedTiles;
+        const updated = { ...current, flaggedTiles };
+        stateRef.current = updated;
+        onUpdateRef.current(updated);
+      })
       .subscribe((status) => {
         setRealtimeReady(status === "SUBSCRIBED");
       });
 
+    channelRef.current = channel;
+
     return () => {
       setRealtimeReady(false);
+      channelRef.current = null;
       supabase.removeChannel(channel);
     };
-  }, [roomId]);
+  }, [roomId, fetchState]);
 
-  // Reset ETag when room changes so we don't suppress a valid first fetch
-  useEffect(() => {
-    lastEtagRef.current = null;
-  }, [roomCode]);
-
-  // Polling fallback — only active when Realtime is not connected
+  // Polling fallback — only when Realtime is disconnected
   useEffect(() => {
     if (!roomCode || realtimeReady) return;
-    const interval = setInterval(async () => {
-      try {
-        const headers: Record<string, string> = {};
-        if (lastEtagRef.current) headers["If-None-Match"] = lastEtagRef.current;
-        const res = await fetch(`/api/mindfield/rooms/${roomCode}/state`, { headers });
-        if (res.status === 304) return;
-        if (res.ok) {
-          const etag = res.headers.get("etag");
-          if (etag) lastEtagRef.current = etag;
-          const data = await res.json();
-          if (data.gameState) onUpdateRef.current(data.gameState);
-        }
-      } catch {}
-    }, 2000);
+    const interval = setInterval(fetchState, 2000);
     return () => clearInterval(interval);
-  }, [roomCode, realtimeReady]);
+  }, [roomCode, realtimeReady, fetchState]);
 
   const pushState = useCallback(
-    async (roomCode: string, state: GameState): Promise<boolean> => {
+    async (code: string, state: GameState): Promise<boolean> => {
       try {
-        const res = await fetch(`/api/mindfield/rooms/${roomCode}/state`, {
+        const res = await fetch(`/api/mindfield/rooms/${code}/state`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ gameState: state, roomId: roomId ?? undefined }),
         });
+        if (res.status === 409) {
+          const data = await res.json();
+          if (data.current) {
+            stateRef.current = data.current;
+            onUpdateRef.current(data.current);
+          }
+          return false;
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (data.gameState) {
+            stateRef.current = data.gameState;
+            onUpdateRef.current(data.gameState);
+          }
+        }
         return res.ok;
       } catch {
         return false;
@@ -84,5 +113,13 @@ export function useMindFieldRoom(
     [roomId]
   );
 
-  return { pushState };
+  const sendFlagBroadcast = useCallback((flaggedTiles: number[]) => {
+    channelRef.current?.send({
+      type: "broadcast",
+      event: "flag_toggle",
+      payload: { flaggedTiles },
+    });
+  }, []);
+
+  return { pushState, sendFlagBroadcast };
 }

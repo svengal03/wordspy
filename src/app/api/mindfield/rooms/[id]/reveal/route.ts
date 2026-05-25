@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMFStateByCode, updateMFStateIf } from "@/server/db/mindfield";
+import { getMFStateByCode, revealMFTile, updateMFState, getMFState } from "@/server/db/mindfield";
 import { revealTile } from "@/games/mindfield/engine";
+import { createServerClient } from "@/server/supabase";
 
 export async function POST(
   req: NextRequest,
@@ -14,23 +15,38 @@ export async function POST(
   const row = await getMFStateByCode(roomCode);
   if (!row) return NextResponse.json({ error: "Room not found" }, { status: 404 });
 
-  const state = row.payload;
+  const state = row.state;
 
   if (state.phase !== "playing" || state.turnPhase !== "guessing") {
     return NextResponse.json({ error: "Not in guessing phase" }, { status: 409 });
   }
 
-  const tile = state.tiles.find(t => t.id === body.tileId);
-  if (!tile || tile.revealed) {
-    return NextResponse.json({ error: "Tile already revealed or not found" }, { status: 409 });
+  // Get current round id
+  const db = createServerClient();
+  const { data: roundRow } = await db
+    .from("mf_rounds")
+    .select("id")
+    .eq("room_id", row.room_id)
+    .order("round_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!roundRow) return NextResponse.json({ error: "No active round" }, { status: 409 });
+
+  // Atomic reveal — returns null if already revealed
+  const revealed = await revealMFTile(roundRow.id as string, body.tileId);
+  if (!revealed) {
+    // Already revealed — return current state
+    const current = await getMFState(row.room_id);
+    return NextResponse.json({ gameState: current!.state, conflict: true }, { status: 409 });
   }
 
+  // Run game logic on current state to compute transitions
   const newState = revealTile(state, body.tileId);
-  const result = await updateMFStateIf(row.room_id, newState);
 
-  if (result.conflict) {
-    return NextResponse.json({ gameState: result.currentRow.payload, conflict: true }, { status: 409 });
-  }
+  // Persist turn/round state changes (phase, scores, round results, etc.)
+  await updateMFState(row.room_id, newState);
 
-  return NextResponse.json({ gameState: result.newState });
+  const fresh = await getMFState(row.room_id);
+  return NextResponse.json({ gameState: fresh!.state });
 }

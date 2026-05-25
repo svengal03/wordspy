@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMFStateByCode, updateMFState } from "@/server/db/mindfield";
+import { getMFStateByCode, getMFState, getMFMeta, updateMFState } from "@/server/db/mindfield";
 import type { GameState } from "@/games/mindfield/types";
 
 export async function GET(
@@ -16,7 +16,7 @@ export async function GET(
   }
 
   return NextResponse.json(
-    { gameState: row.payload, roomId: row.room_id },
+    { gameState: row.state, roomId: row.room_id },
     { headers: { ETag: etag } }
   );
 }
@@ -38,6 +38,24 @@ export async function PATCH(
     roomId = row.room_id;
   }
 
+  const meta = await getMFMeta(roomId);
+  if (!meta) return NextResponse.json({ error: "Room not found" }, { status: 404 });
+
+  const currentVersion = new Date(meta.updated_at).getTime();
+  if (body.gameState.version > 0 && body.gameState.version !== currentVersion) {
+    const fresh = await getMFState(roomId);
+    return NextResponse.json({ error: "version_conflict", current: fresh?.state }, { status: 409 });
+  }
+
+  if (
+    (meta.phase === "lobby" && body.gameState.phase === "playing") ||
+    (meta.phase === "round-over" && body.gameState.phase === "playing")
+  ) {
+    return NextResponse.json({ error: "illegal_action", phase: meta.phase }, { status: 400 });
+  }
+
   await updateMFState(roomId, body.gameState);
-  return NextResponse.json({ ok: true });
+
+  const fresh = await getMFState(roomId);
+  return NextResponse.json({ ok: true, gameState: fresh?.state });
 }
