@@ -15,6 +15,7 @@ interface Props {
   onUpdatePackId: (packId: string) => void;
   onUpdateTargetWins: (n: number) => void;
   onStart: () => void;
+  isStarting?: boolean;
   onRemovePlayer: (id: string) => void;
   onLeave: () => void;
 }
@@ -34,7 +35,7 @@ const TEAM = {
 export default function LobbyScreen({
   gameState, localPlayer,
   onAssignTeam, onAssignSpymaster, onUpdatePackId, onUpdateTargetWins,
-  onStart, onRemovePlayer, onLeave,
+  onStart, isStarting, onRemovePlayer, onLeave,
 }: Props) {
   const isHost = localPlayer.isHost;
   const [copied, setCopied] = useState(false);
@@ -71,14 +72,13 @@ export default function LobbyScreen({
   const redHasSpy   = redPlayers.some(p => p.role === "spymaster");
   const blueHasSpy  = bluePlayers.some(p => p.role === "spymaster");
 
-  // DEV: bypass team requirements
-  const canStart = gameState.config.packId !== "";
-
   const startHints = [
     !gameState.config.packId && "Choose a word pack",
     (redPlayers.length < 2 || bluePlayers.length < 2) && "Each team needs at least 2 players",
     (!redHasSpy || !blueHasSpy) && "Each team needs a Spymaster",
   ].filter(Boolean) as string[];
+
+  const canStart = startHints.length === 0;
 
   return (
     <div style={{ minHeight: "100dvh", background: tokens.bg, fontFamily: "'DM Sans', system-ui, sans-serif" }}>
@@ -356,11 +356,11 @@ export default function LobbyScreen({
         {/* Start / Waiting */}
         {isHost ? (
           <motion.div {...fadeUp(0.12)} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {startHints[0] && (
-              <div style={{ fontSize: 12, color: tokens.grey3, textAlign: "center" }}>{startHints[0]}</div>
-            )}
-            <Btn fullWidth onClick={onStart} disabled={!canStart} style={{ padding: 15, fontSize: 15 }}>
-              Start Game →
+            {startHints.map(hint => (
+              <div key={hint} style={{ fontSize: 12, color: tokens.grey3, textAlign: "center" }}>{hint}</div>
+            ))}
+            <Btn fullWidth onClick={onStart} disabled={!canStart || isStarting} style={{ padding: 15, fontSize: 15 }}>
+              {isStarting ? "Starting…" : "Start Game →"}
             </Btn>
           </motion.div>
         ) : (

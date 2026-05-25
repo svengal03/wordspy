@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import { shuffle } from "@/lib/array";
 import type {
   GameState, Player, GamePhase, TeamColor, TileColor,
-  RoundRecord, GameConfig, Tile,
+  RoundRecord, GameConfig, Tile, ClueEntry,
 } from "./types";
 import { DEFAULT_CONFIG } from "./types";
 
@@ -43,9 +43,12 @@ export function createInitialState(roomCode: string, config: GameConfig = DEFAUL
     redPoints: 0,
     bluePoints: 0,
     winner: null,
+    flaggedTiles: [],
+    clueHistory: [],
     roundHistory: [],
     round: 0,
     createdAt: Date.now(),
+    version: 0,
   };
 }
 
@@ -71,8 +74,15 @@ export function validateClue(clue: string, tiles: Tile[]): string | null {
   return null;
 }
 
-export function submitClue(state: GameState, clue: string, clueNumber: number): GameState {
+export function submitClue(state: GameState, clue: string, clueNumber: number, spymasterName = ""): GameState {
   const isBig = clueNumber >= 3;
+  const entry: ClueEntry = {
+    team: state.currentTeam,
+    spymasterName,
+    clue,
+    clueNumber,
+    round: state.round,
+  };
   return {
     ...state,
     clue,
@@ -81,6 +91,7 @@ export function submitClue(state: GameState, clue: string, clueNumber: number): 
     turnPhase: "guessing",
     bigClueUsedRed: state.bigClueUsedRed || (state.currentTeam === "red" && isBig),
     bigClueUsedBlue: state.bigClueUsedBlue || (state.currentTeam === "blue" && isBig),
+    clueHistory: [...(state.clueHistory ?? []), entry],
   };
 }
 
@@ -93,7 +104,16 @@ export function endTurn(state: GameState): GameState {
     clue: null,
     clueNumber: null,
     guessesRemaining: 0,
+    flaggedTiles: [],
   };
+}
+
+export function toggleFlag(state: GameState, tileId: number): GameState {
+  const flags = state.flaggedTiles ?? [];
+  const newFlags = flags.includes(tileId)
+    ? flags.filter(id => id !== tileId)
+    : [...flags, tileId];
+  return { ...state, flaggedTiles: newFlags };
 }
 
 function allRevealed(state: GameState, team: TeamColor): boolean {
@@ -162,7 +182,8 @@ export function revealTile(state: GameState, tileId: number): GameState {
 
   const tile = state.tiles[idx];
   const tiles = state.tiles.map((t, i) => i === idx ? { ...t, revealed: true } : t);
-  let s = { ...state, tiles };
+  const flaggedTiles = (state.flaggedTiles ?? []).filter(id => id !== tileId);
+  let s = { ...state, tiles, flaggedTiles };
 
   if (tile.color === "bomb") {
     s = { ...s, bombTriggeredBy: state.currentTeam };
@@ -198,6 +219,8 @@ export function startNextRound(state: GameState, newTiles: Tile[]): GameState {
     bigClueUsedBlue: false,
     roundWinner: null,
     bombTriggeredBy: null,
+    flaggedTiles: [],
+    clueHistory: [],
   };
 }
 

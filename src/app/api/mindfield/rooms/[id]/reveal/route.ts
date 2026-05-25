@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRoom } from "@/server/db/rooms";
-import { getMFState, updateMFState } from "@/server/db/mindfield";
+import { getMFStateByCode, updateMFStateIf } from "@/server/db/mindfield";
 import { revealTile } from "@/games/mindfield/engine";
 
 export async function POST(
@@ -12,15 +11,11 @@ export async function POST(
   catch { return NextResponse.json({ error: "Invalid body" }, { status: 400 }); }
 
   const { id: roomCode } = await params;
-  const room = await getRoom(roomCode);
-  if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
-
-  const row = await getMFState(room.id);
-  if (!row) return NextResponse.json({ error: "State not found" }, { status: 404 });
+  const row = await getMFStateByCode(roomCode);
+  if (!row) return NextResponse.json({ error: "Room not found" }, { status: 404 });
 
   const state = row.payload;
 
-  // Guard: only valid during guessing phase
   if (state.phase !== "playing" || state.turnPhase !== "guessing") {
     return NextResponse.json({ error: "Not in guessing phase" }, { status: 409 });
   }
@@ -31,7 +26,11 @@ export async function POST(
   }
 
   const newState = revealTile(state, body.tileId);
-  await updateMFState(room.id, newState);
+  const result = await updateMFStateIf(row.room_id, newState);
 
-  return NextResponse.json({ gameState: newState });
+  if (result.conflict) {
+    return NextResponse.json({ gameState: result.currentRow.payload, conflict: true }, { status: 409 });
+  }
+
+  return NextResponse.json({ gameState: result.newState });
 }

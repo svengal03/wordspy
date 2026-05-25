@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { GameState } from "./types";
 
@@ -10,6 +10,9 @@ export function useMindFieldRoom(
 ) {
   const onUpdateRef = useRef(onStateUpdate);
   onUpdateRef.current = onStateUpdate;
+
+  const [realtimeReady, setRealtimeReady] = useState(false);
+  const lastEtagRef = useRef<string | null>(null);
 
   // Realtime subscription
   useEffect(() => {
@@ -30,25 +33,40 @@ export function useMindFieldRoom(
           if (row?.payload) onUpdateRef.current(row.payload);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        setRealtimeReady(status === "SUBSCRIBED");
+      });
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      setRealtimeReady(false);
+      supabase.removeChannel(channel);
+    };
   }, [roomId]);
 
-  // Polling fallback — catches updates that realtime might miss (e.g. table not enabled for realtime)
+  // Reset ETag when room changes so we don't suppress a valid first fetch
   useEffect(() => {
-    if (!roomCode) return;
+    lastEtagRef.current = null;
+  }, [roomCode]);
+
+  // Polling fallback — only active when Realtime is not connected
+  useEffect(() => {
+    if (!roomCode || realtimeReady) return;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/mindfield/rooms/${roomCode}/state`);
+        const headers: Record<string, string> = {};
+        if (lastEtagRef.current) headers["If-None-Match"] = lastEtagRef.current;
+        const res = await fetch(`/api/mindfield/rooms/${roomCode}/state`, { headers });
+        if (res.status === 304) return;
         if (res.ok) {
+          const etag = res.headers.get("etag");
+          if (etag) lastEtagRef.current = etag;
           const data = await res.json();
           if (data.gameState) onUpdateRef.current(data.gameState);
         }
       } catch {}
-    }, 4000);
+    }, 2000);
     return () => clearInterval(interval);
-  }, [roomCode]);
+  }, [roomCode, realtimeReady]);
 
   const pushState = useCallback(
     async (roomCode: string, state: GameState): Promise<boolean> => {
@@ -56,14 +74,14 @@ export function useMindFieldRoom(
         const res = await fetch(`/api/mindfield/rooms/${roomCode}/state`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ gameState: state }),
+          body: JSON.stringify({ gameState: state, roomId: roomId ?? undefined }),
         });
         return res.ok;
       } catch {
         return false;
       }
     },
-    []
+    [roomId]
   );
 
   return { pushState };

@@ -3,18 +3,19 @@ import { useState } from "react";
 import { Btn, tokens, PlayHubLogo, OptionsMenu } from "@playhub/ui";
 import WordCard from "./WordCard";
 import RulesModal from "./RulesModal";
-import type { GameState, Player } from "../types";
+import type { GameState, Player, ClueEntry } from "../types";
 
 interface Props {
   gameState: GameState;
   localPlayer: Player;
   onRevealTile: (tileId: number) => void;
+  onFlagTile: (tileId: number) => void;
   onPass: () => void;
   onLeave: () => void;
   onNewGame?: () => void;
 }
 
-export default function AgentView({ gameState, localPlayer, onRevealTile, onPass, onLeave, onNewGame }: Props) {
+export default function AgentView({ gameState, localPlayer, onRevealTile, onFlagTile, onPass, onLeave, onNewGame }: Props) {
   const [showRules, setShowRules] = useState(false);
   const isMyTeam = gameState.currentTeam === localPlayer.team;
   const canGuess = isMyTeam && gameState.turnPhase === "guessing";
@@ -65,46 +66,26 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onPass
           />
         </div>
 
-        {/* Status / Clue banner */}
-        <div style={{
-          background: isMyTeam && gameState.turnPhase === "guessing"
-            ? (localPlayer.team === "red" ? "#FEF2F2" : "#EFF6FF")
-            : tokens.white,
-          border: `1.5px solid ${isMyTeam && gameState.turnPhase === "guessing"
-            ? (localPlayer.team === "red" ? "#DC262630" : "#2563EB30")
-            : tokens.border}`,
-          borderRadius: 14,
-          padding: "12px 14px",
-          marginBottom: 10,
-          textAlign: "center",
-        }}>
-          {gameState.clue ? (
-            <>
-              <div style={{ fontSize: 11, color: tokens.grey3, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-                {gameState.currentTeam === "red" ? "🔴 Red" : "🔵 Blue"} Spymaster&rsquo;s Clue
-              </div>
-              <div>
-                <span style={{ fontSize: 26, fontWeight: 800, color: tokens.black }}>{gameState.clue}</span>
-                <span style={{ fontSize: 20, color: tokens.grey2, marginLeft: 8 }}>{gameState.clueNumber}</span>
-              </div>
-              {canGuess && (
-                <div style={{ fontSize: 12, color: tokens.grey3, marginTop: 4 }}>
-                  {gameState.guessesRemaining} guess{gameState.guessesRemaining !== 1 ? "es" : ""} remaining — tap a word
-                </div>
-              )}
-            </>
-          ) : (
-            <div style={{ color: tokens.grey3, fontSize: 14 }}>
-              ⏳ Waiting for{" "}
-              <span style={{
-                fontWeight: 700,
-                color: gameState.currentTeam === "red" ? "#DC2626" : "#2563EB",
-              }}>
-                {gameState.currentTeam === "red" ? "Red" : "Blue"}
-              </span>{" "}Spymaster…
-            </div>
-          )}
-        </div>
+        {/* Current clue banner */}
+        {gameState.clue && (
+          <CurrentClueBanner
+            clue={gameState.clue}
+            clueNumber={gameState.clueNumber}
+            team={gameState.currentTeam}
+            guessesRemaining={gameState.guessesRemaining}
+            canGuess={canGuess}
+          />
+        )}
+
+        {/* Clue chat history */}
+        <ClueChatBox
+          clueHistory={gameState.clueHistory ?? []}
+          currentTeam={gameState.currentTeam}
+          turnPhase={gameState.turnPhase}
+          currentClue={gameState.clue}
+          canGuess={canGuess}
+          localTeam={localPlayer.team}
+        />
 
         {/* Grid */}
         <div style={{
@@ -122,6 +103,9 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onPass
               activeTeam={gameState.currentTeam}
               canTap={canGuess && !tile.revealed}
               onTap={onRevealTile}
+              flagged={(gameState.flaggedTiles ?? []).includes(tile.id)}
+              canFlag={canGuess && !tile.revealed}
+              onFlag={onFlagTile}
             />
           ))}
         </div>
@@ -133,14 +117,17 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onPass
           </Btn>
         )}
 
-        {/* Not my turn */}
+        {/* Turn status */}
         {!isMyTeam && (
           <div style={{
             textAlign: "center", color: tokens.grey3, fontSize: 13,
             padding: "12px", background: tokens.white, borderRadius: 12,
             border: `1.5px solid ${tokens.border}`,
           }}>
-            {gameState.currentTeam === "red" ? "🔴 Red" : "🔵 Blue"} team&rsquo;s turn
+            {gameState.turnPhase === "giving-clue"
+              ? `${gameState.currentTeam === "red" ? "🔴 Red" : "🔵 Blue"} Spymaster is thinking…`
+              : `${gameState.currentTeam === "red" ? "🔴 Red" : "🔵 Blue"} team is guessing…`
+            }
           </div>
         )}
         {isMyTeam && gameState.turnPhase === "giving-clue" && (
@@ -149,7 +136,133 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onPass
             padding: "12px", background: tokens.white, borderRadius: 12,
             border: `1.5px solid ${tokens.border}`,
           }}>
-            Your Spymaster is thinking…
+            ⏳ Your Spymaster is thinking…
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CurrentClueBanner({ clue, clueNumber, team, guessesRemaining, canGuess }: {
+  clue: string;
+  clueNumber: number | null;
+  team: "red" | "blue";
+  guessesRemaining: number;
+  canGuess: boolean;
+}) {
+  const tc = team === "red" ? "#DC2626" : "#2563EB";
+  const bg = team === "red" ? "#FEF2F2" : "#EFF6FF";
+  return (
+    <div style={{
+      background: bg, border: `1.5px solid ${tc}30`,
+      borderRadius: 12, padding: "10px 14px", marginBottom: 8,
+      display: "flex", alignItems: "center", gap: 10,
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: tc, whiteSpace: "nowrap" }}>
+        {team === "red" ? "🔴 Red" : "🔵 Blue"} clue
+      </div>
+      <div style={{ flex: 1, fontSize: 22, fontWeight: 900, color: tokens.black, letterSpacing: -0.5 }}>
+        {clue}
+        <span style={{ fontSize: 15, color: tokens.grey2, marginLeft: 8, fontWeight: 600 }}>
+          {clueNumber}
+        </span>
+      </div>
+      <div style={{ textAlign: "right" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: tc }}>{guessesRemaining}</div>
+        <div style={{ fontSize: 10, color: tokens.grey3 }}>left</div>
+      </div>
+      {canGuess && (
+        <div style={{
+          fontSize: 10, color: tc, fontWeight: 600,
+          background: `${tc}15`, padding: "3px 8px", borderRadius: 20, whiteSpace: "nowrap",
+        }}>Tap to guess</div>
+      )}
+    </div>
+  );
+}
+
+function ClueChatBox({
+  clueHistory, currentTeam, turnPhase, currentClue, canGuess, localTeam,
+}: {
+  clueHistory: ClueEntry[];
+  currentTeam: "red" | "blue";
+  turnPhase: string;
+  currentClue: string | null;
+  canGuess: boolean;
+  localTeam: "red" | "blue" | null;
+}) {
+  const teamColor = (t: "red" | "blue") => t === "red" ? "#DC2626" : "#2563EB";
+  // When a clue is active, it's already shown in the banner — only show past clues in history
+  const historyEntries = currentClue ? clueHistory.slice(0, -1) : clueHistory;
+
+  return (
+    <div style={{
+      background: tokens.white,
+      border: `1.5px solid ${tokens.border}`,
+      borderRadius: 14,
+      marginBottom: 10,
+      overflow: "hidden",
+    }}>
+      {/* Past clue history */}
+      {historyEntries.length > 0 && (
+        <div style={{
+          maxHeight: 130,
+          overflowY: "auto",
+          padding: "10px 14px 6px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase" }}>
+            Clue History
+          </div>
+          {historyEntries.map((entry, i) => {
+            const tc = teamColor(entry.team);
+            return (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: "50%",
+                  background: `${tc}12`,
+                  border: `1.5px solid ${tc}30`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10, fontWeight: 700, color: tc, flexShrink: 0,
+                }}>
+                  {entry.spymasterName.slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: tc, fontWeight: 700, marginBottom: 1 }}>
+                    {entry.spymasterName}
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: tokens.black, lineHeight: 1.1 }}>
+                    {entry.clue}
+                    <span style={{ fontSize: 12, color: tokens.grey2, marginLeft: 6, fontWeight: 600 }}>
+                      {entry.clueNumber}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Status line */}
+      <div style={{ padding: historyEntries.length > 0 ? "6px 14px 12px" : "12px 14px", textAlign: "center" }}>
+        {currentClue ? (
+          canGuess ? (
+            <div style={{ fontSize: 12, color: tokens.grey3 }}>Tap a card to guess · Pass when done</div>
+          ) : (
+            <div style={{ fontSize: 12, color: tokens.grey3 }}>
+              {currentTeam === "red" ? "🔴 Red" : "🔵 Blue"} team is guessing…
+            </div>
+          )
+        ) : (
+          <div style={{ color: tokens.grey3, fontSize: 13 }}>
+            ⏳ Waiting for{" "}
+            <span style={{ fontWeight: 700, color: teamColor(currentTeam) }}>
+              {currentTeam === "red" ? "Red" : "Blue"}
+            </span>{" "}Spymaster…
           </div>
         )}
       </div>

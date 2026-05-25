@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMindFieldStore } from "./store";
 import { useMindFieldRoom } from "./useRoom";
-import { submitClue, endTurn, resetForPlayAgain } from "./engine";
+import { submitClue, endTurn, toggleFlag, revealTile, resetForPlayAgain } from "./engine";
 import type { GameState, TeamColor, PlayerRole } from "./types";
 
 import LobbyScreen from "./components/LobbyScreen";
@@ -19,10 +19,16 @@ export function MindFieldRoom() {
   const router = useRouter();
 
   const { localPlayer, gameState, setGameState, setRoomCode, setLocalPlayer, reset } = useMindFieldStore();
+  // Derive from gameState.players so role/team updates are always fresh
+  const effectivePlayer = (gameState && localPlayer)
+    ? (gameState.players.find(p => p.id === localPlayer.id) ?? localPlayer)
+    : localPlayer;
+
   const [roomId, setRoomId] = useState<string | null>(null);
   const [roomError, setRoomError] = useState<string | null>(null);
   const [showBomb, setShowBomb] = useState(false);
   const [isLoadingRoom, setIsLoadingRoom] = useState(true);
+  const [isStarting, setIsStarting] = useState(false);
   const leavingRef = useRef(false);
 
   const { pushState } = useMindFieldRoom(roomId, roomCode, (incoming) => {
@@ -68,14 +74,18 @@ export function MindFieldRoom() {
           }
 
           const joinData = await joinRes.json();
-          // Server may return a different player object (e.g. name collision rejoined existing seat)
           if (joinData.player.id !== localPlayer.id) {
             setLocalPlayer(joinData.player);
           }
           setGameState(joinData.gameState);
+          // Join response includes roomId — skip the extra state fetch
+          if (joinData.roomId) {
+            setRoomId(joinData.roomId);
+            return;
+          }
         }
 
-        // Fetch roomId for realtime subscription (separate from join — always needed)
+        // Spectator (no localPlayer) or legacy fallback — fetch roomId via state endpoint
         const stateRes = await fetch(`/api/mindfield/rooms/${roomCode}/state`);
         if (!stateRes.ok) {
           if (!localPlayer) {
@@ -87,7 +97,6 @@ export function MindFieldRoom() {
         const stateData = await stateRes.json();
         setRoomId(stateData.roomId);
 
-        // If no localPlayer (direct URL access without going through home), just show state
         if (!localPlayer) {
           setGameState(stateData.gameState as GameState);
         }
@@ -134,7 +143,8 @@ export function MindFieldRoom() {
   }
 
   async function handleStart() {
-    if (!gameState) return;
+    if (!gameState || isStarting) return;
+    setIsStarting(true);
     try {
       const res = await fetch(`/api/mindfield/rooms/${roomCode}/start`, {
         method: "POST",
@@ -144,7 +154,9 @@ export function MindFieldRoom() {
       if (!res.ok) return;
       const data = await res.json();
       setGameState(data.gameState);
-    } catch {}
+    } catch {} finally {
+      setIsStarting(false);
+    }
   }
 
   async function handleRemovePlayer(id: string) {
@@ -159,46 +171,70 @@ export function MindFieldRoom() {
 
   // ── Playing actions ───────────────────────────────────────────────────────
   async function handleSubmitClue(clue: string, num: number) {
-    if (!gameState || !localPlayer) return;
-    if (localPlayer.role !== "spymaster") return;
-    if (gameState.currentTeam !== localPlayer.team) return;
-    const updated = submitClue(gameState, clue, num);
+    if (!gameState || !effectivePlayer) return;
+    if (effectivePlayer.role !== "spymaster") return;
+    if (gameState.currentTeam !== effectivePlayer.team) return;
+    const updated = submitClue(gameState, clue, num, effectivePlayer.name);
     await push(updated);
   }
 
   async function handleRevealTile(tileId: number) {
-    if (!gameState || !localPlayer) return;
-    if (localPlayer.role !== "agent") return;
-    if (gameState.currentTeam !== localPlayer.team) return;
+    if (!gameState || !effectivePlayer) return;
+    if (effectivePlayer.role !== "agent") return;
+    if (gameState.currentTeam !== effectivePlayer.team) return;
     if (gameState.turnPhase !== "guessing") return;
+
+    // Optimistic update — show result instantly
+    const optimistic = revealTile(gameState, tileId);
+    setGameState(optimistic);
+    if (optimistic.phase === "round-over" || optimistic.phase === "game-over") {
+      const last = optimistic.roundHistory[optimistic.roundHistory.length - 1];
+      if (last?.bombTriggered) setShowBomb(true);
+    }
+
     try {
       const res = await fetch(`/api/mindfield/rooms/${roomCode}/reveal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tileId }),
       });
-      if (!res.ok) return;
       const data = await res.json();
-      // Show bomb overlay if applicable
-      const newState = data.gameState as GameState;
-      if (newState.phase === "round-over" || newState.phase === "game-over") {
-        const last = newState.roundHistory[newState.roundHistory.length - 1];
+      // 409 = tile already revealed by concurrent click — server returns fresh state
+      if (!res.ok && !data.gameState) { setGameState(gameState); return; }
+      if (!res.ok && data.gameState) { setGameState(data.gameState as GameState); return; }
+      const confirmed = data.gameState as GameState;
+      if (confirmed.phase === "round-over" || confirmed.phase === "game-over") {
+        const last = confirmed.roundHistory[confirmed.roundHistory.length - 1];
         if (last?.bombTriggered) setShowBomb(true);
       }
-      setGameState(newState);
-    } catch {}
+      setGameState(confirmed);
+    } catch {
+      setGameState(gameState);
+    }
+  }
+
+  async function handleFlagTile(tileId: number) {
+    if (!gameState || !effectivePlayer) return;
+    if (effectivePlayer.role !== "agent") return;
+    if (gameState.currentTeam !== effectivePlayer.team) return;
+    if (gameState.turnPhase !== "guessing") return;
+    await push(toggleFlag(gameState, tileId));
   }
 
   async function handlePass() {
-    if (!gameState) return;
+    if (!gameState || !effectivePlayer) return;
+    if (effectivePlayer.role !== "agent") return;
+    if (gameState.currentTeam !== effectivePlayer.team) return;
+    if (gameState.turnPhase !== "guessing") return;
     const updated = endTurn(gameState);
     await push(updated);
   }
 
   // ── Round/Game transitions ────────────────────────────────────────────────
   async function handleNextRound() {
-    if (!gameState) return;
+    if (!gameState || isStarting) return;
     setShowBomb(false);
+    setIsStarting(true);
     try {
       const res = await fetch(`/api/mindfield/rooms/${roomCode}/start`, {
         method: "POST",
@@ -208,7 +244,9 @@ export function MindFieldRoom() {
       if (!res.ok) return;
       const data = await res.json();
       setGameState(data.gameState);
-    } catch {}
+    } catch {} finally {
+      setIsStarting(false);
+    }
   }
 
   async function handlePlayAgain() {
@@ -245,6 +283,17 @@ export function MindFieldRoom() {
       }}>
         <div style={{ fontSize: 32 }}>{isError ? "😔" : "🧠"}</div>
         <div style={{ color: isError ? "#EF4444" : "#888", textAlign: "center", maxWidth: 280, lineHeight: 1.5 }}>{msg}</div>
+        {isError && (
+          <button
+            onClick={() => router.push("/mindfield")}
+            style={{
+              marginTop: 8, padding: "10px 24px", borderRadius: 10, border: "1.5px solid #ddd",
+              background: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 600, fontFamily: "inherit",
+            }}
+          >
+            Go Home
+          </button>
+        )}
       </div>
     );
   }
@@ -258,19 +307,32 @@ export function MindFieldRoom() {
       <>
         <BombReveal triggeredBy={gameState.bombTriggeredBy} word={bombTile?.word ?? "???"} />
         {/* Host still needs to advance — show next round button beneath overlay if host */}
-        {localPlayer.isHost && (
+        <div style={{ position: "fixed", bottom: 40, left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, zIndex: 300 }}>
+          {localPlayer.isHost ? (
+            <button
+              onClick={phase === "game-over" ? handlePlayAgain : handleNextRound}
+              disabled={isStarting}
+              style={{
+                padding: "14px 32px", borderRadius: 14, background: "#CC785C", color: "#fff",
+                border: "none", fontSize: 16, fontWeight: 700, cursor: isStarting ? "default" : "pointer",
+                fontFamily: "inherit", opacity: isStarting ? 0.6 : 1,
+              }}
+            >
+              {isStarting ? "Loading…" : phase === "game-over" ? "Play Again →" : "Next Round →"}
+            </button>
+          ) : (
+            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 13 }}>Waiting for host…</div>
+          )}
           <button
-            onClick={phase === "game-over" ? handlePlayAgain : handleNextRound}
+            onClick={handleLeave}
             style={{
-              position: "fixed", bottom: 40, left: "50%", transform: "translateX(-50%)",
-              padding: "14px 32px", borderRadius: 14, background: "#CC785C", color: "#fff",
-              border: "none", fontSize: 16, fontWeight: 700, cursor: "pointer",
-              fontFamily: "inherit", zIndex: 300,
+              padding: "8px 20px", borderRadius: 10, background: "transparent", color: "rgba(255,255,255,0.4)",
+              border: "1px solid rgba(255,255,255,0.2)", fontSize: 13, cursor: "pointer", fontFamily: "inherit",
             }}
           >
-            {phase === "game-over" ? "Play Again →" : "Next Round →"}
+            Leave Game
           </button>
-        )}
+        </div>
       </>
     );
   }
@@ -286,6 +348,7 @@ export function MindFieldRoom() {
         onUpdatePackId={handleUpdatePackId}
         onUpdateTargetWins={handleUpdateTargetWins}
         onStart={handleStart}
+        isStarting={isStarting}
         onRemovePlayer={handleRemovePlayer}
         onLeave={handleLeave}
       />
@@ -293,14 +356,15 @@ export function MindFieldRoom() {
   }
 
   // ── Playing ───────────────────────────────────────────────────────────────
-  const newGame = localPlayer.isHost ? handlePlayAgain : undefined;
+  if (!effectivePlayer) return null;
+  const newGame = effectivePlayer.isHost ? handlePlayAgain : undefined;
 
   if (phase === "playing") {
-    if (localPlayer.role === "spymaster") {
+    if (effectivePlayer.role === "spymaster") {
       return (
         <SpymasterView
           gameState={gameState}
-          localPlayer={localPlayer}
+          localPlayer={effectivePlayer}
           onSubmitClue={handleSubmitClue}
           onLeave={handleLeave}
           onNewGame={newGame}
@@ -310,8 +374,9 @@ export function MindFieldRoom() {
     return (
       <AgentView
         gameState={gameState}
-        localPlayer={localPlayer}
+        localPlayer={effectivePlayer}
         onRevealTile={handleRevealTile}
+        onFlagTile={handleFlagTile}
         onPass={handlePass}
         onLeave={handleLeave}
         onNewGame={newGame}
@@ -324,7 +389,7 @@ export function MindFieldRoom() {
     return (
       <RoundOverScreen
         gameState={gameState}
-        localPlayer={localPlayer}
+        localPlayer={effectivePlayer}
         onNextRound={handleNextRound}
         onLeave={handleLeave}
         onNewGame={newGame}
@@ -337,7 +402,7 @@ export function MindFieldRoom() {
     return (
       <GameOverScreen
         gameState={gameState}
-        localPlayer={localPlayer}
+        localPlayer={effectivePlayer}
         onPlayAgain={handlePlayAgain}
         onLeave={handleLeave}
       />

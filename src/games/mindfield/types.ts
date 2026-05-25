@@ -20,6 +20,14 @@ export interface Player {
   joinedAt: number;
 }
 
+export interface ClueEntry {
+  team: TeamColor;
+  spymasterName: string;
+  clue: string;
+  clueNumber: number;
+  round: number;
+}
+
 export interface RoundRecord {
   round: number;
   winner: TeamColor;
@@ -65,7 +73,11 @@ export interface GameState {
   bluePoints: number;
   winner: TeamColor | null;
 
+  flaggedTiles: number[];
+
+  clueHistory: ClueEntry[];
   roundHistory: RoundRecord[];
   round: number;
   createdAt: number;
+  version: number;
 }

@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRoom } from "@/server/db/rooms";
-import { getMFState, updateMFState } from "@/server/db/mindfield";
+import { getMFStateByCode, updateMFState } from "@/server/db/mindfield";
 import { assignTiles, startNextRound } from "@/games/mindfield/engine";
-import { getWords } from "@/server/db/wordpacks";
+import { getWordList } from "@/server/db/wordpacks";
+
+// Module-level cache per serverless instance — avoids re-fetching the same pack
+// on every round start within the same function lifetime.
+const wordCache = new Map<string, string[]>();
 
 async function fetchWords(packId: string): Promise<string[]> {
-  const rows = await getWords(packId);
-  const words = rows.map(r => r.word_a).filter(Boolean);
+  const cached = wordCache.get(packId);
+  if (cached) return cached;
+  const words = await getWordList(packId);
   if (words.length < 25) throw new Error("Not enough words in pack (need at least 25)");
+  wordCache.set(packId, words);
   return words;
 }
 
@@ -20,11 +25,8 @@ export async function POST(
   catch { return NextResponse.json({ error: "Invalid body" }, { status: 400 }); }
 
   const { id: roomCode } = await params;
-  const room = await getRoom(roomCode);
-  if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
-
-  const row = await getMFState(room.id);
-  if (!row) return NextResponse.json({ error: "State not found" }, { status: 404 });
+  const row = await getMFStateByCode(roomCode);
+  if (!row) return NextResponse.json({ error: "Room not found" }, { status: 404 });
 
   const state = row.payload;
 
@@ -44,16 +46,13 @@ export async function POST(
   let newState = state;
 
   if (body.action === "start") {
-    // Validate lobby requirements
     const redPlayers = state.players.filter(p => p.team === "red");
     const bluePlayers = state.players.filter(p => p.team === "blue");
     const redSpy = redPlayers.some(p => p.role === "spymaster");
     const blueSpy = bluePlayers.some(p => p.role === "spymaster");
-    // DEV: bypass team requirements
-    // if (redPlayers.length < 2 || bluePlayers.length < 2 || !redSpy || !blueSpy) {
-    //   return NextResponse.json({ error: "Teams not ready" }, { status: 400 });
-    // }
-
+    if (redPlayers.length < 2 || bluePlayers.length < 2 || !redSpy || !blueSpy) {
+      return NextResponse.json({ error: "Teams not ready" }, { status: 400 });
+    }
     newState = startNextRound({ ...state, round: 0 }, tiles);
   } else if (body.action === "next-round") {
     if (state.phase !== "round-over") {
@@ -64,6 +63,6 @@ export async function POST(
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   }
 
-  await updateMFState(room.id, newState);
+  await updateMFState(row.room_id, newState);
   return NextResponse.json({ gameState: newState });
 }
