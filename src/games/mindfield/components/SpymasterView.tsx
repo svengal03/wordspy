@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+
+const NOOP = () => {};
 import { tokens, PlayHubLogo, OptionsMenu } from "@playhub/ui";
 import WordCard from "./WordCard";
 import ClueInput from "./ClueInput";
@@ -21,8 +23,20 @@ export default function SpymasterView({ gameState, localPlayer, onSubmitClue, on
   const isGivingClue = gameState.turnPhase === "giving-clue";
   const showInput = isMyTurn && isGivingClue;
 
-  const redLeft = gameState.tiles.filter(t => t.color === "red" && !t.revealed).length;
-  const blueLeft = gameState.tiles.filter(t => t.color === "blue" && !t.revealed).length;
+  const { redLeft, blueLeft } = useMemo(() => {
+    let r = 0, b = 0;
+    for (const t of gameState.tiles) {
+      if (t.revealed) continue;
+      if (t.color === "red") r++;
+      else if (t.color === "blue") b++;
+    }
+    return { redLeft: r, blueLeft: b };
+  }, [gameState.tiles]);
+
+  const flaggedSet = useMemo(
+    () => new Set(gameState.flaggedTiles ?? []),
+    [gameState.flaggedTiles]
+  );
 
   const teamColor = gameState.currentTeam === "red" ? "#DC2626" : "#2563EB";
   const myTeamColor = localPlayer.team === "red" ? "#DC2626" : "#2563EB";
@@ -105,8 +119,8 @@ export default function SpymasterView({ gameState, localPlayer, onSubmitClue, on
               viewerTeam={localPlayer.team}
               activeTeam={gameState.currentTeam}
               canTap={false}
-              onTap={() => {}}
-              flagged={(gameState.flaggedTiles ?? []).includes(tile.id)}
+              onTap={NOOP}
+              flagged={flaggedSet.has(tile.id)}
               canFlag={false}
             />
           ))}

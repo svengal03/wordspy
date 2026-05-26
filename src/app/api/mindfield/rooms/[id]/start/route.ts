@@ -3,6 +3,8 @@ import { getMFStateByCode, getMFState, insertMFRound } from "@/server/db/mindfie
 import { assignTiles } from "@/games/mindfield/engine";
 import { createServerClient } from "@/server/supabase";
 
+export const runtime = "edge";
+
 const wordCache = new Map<string, string[]>();
 
 async function fetchWords(packId: string): Promise<string[]> {

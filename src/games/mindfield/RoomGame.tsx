@@ -30,13 +30,16 @@ export function MindFieldRoom() {
   const [isLoadingRoom, setIsLoadingRoom] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
   const leavingRef = useRef(false);
+  const joinedRef = useRef(false);
+
+  function syncShowBomb(s: GameState) {
+    const ended = s.phase === "round-over" || s.phase === "game-over";
+    const last = s.roundHistory[s.roundHistory.length - 1];
+    setShowBomb(ended && last?.bombTriggered === true);
+  }
 
   const { pushState, sendFlagBroadcast } = useMindFieldRoom(roomId, roomCode, (incoming) => {
-    // If bomb was just triggered, show overlay briefly
-    if (incoming.phase === "round-over" && incoming.roundHistory.length > 0) {
-      const last = incoming.roundHistory[incoming.roundHistory.length - 1];
-      if (last.bombTriggered) setShowBomb(true);
-    }
+    syncShowBomb(incoming);
     setGameState(incoming);
   });
 
@@ -50,6 +53,8 @@ export function MindFieldRoom() {
   // ── Initial load ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!roomCode) return;
+    if (joinedRef.current) return;
+    joinedRef.current = true;
     setRoomCode(roomCode);
 
     (async () => {
@@ -113,9 +118,16 @@ export function MindFieldRoom() {
   // ── Lobby actions ─────────────────────────────────────────────────────────
   async function handleAssignTeam(playerId: string, team: TeamColor | null) {
     if (!gameState) return;
-    const players = gameState.players.map(p =>
-      p.id !== playerId ? p : { ...p, team, role: team ? (p.role ?? "agent") as PlayerRole : null }
-    );
+    // Reset role on any team change so a spymaster swapping teams doesn't bring the role
+    // along (would otherwise produce two spymasters on the destination team).
+    const players = gameState.players.map(p => {
+      if (p.id !== playerId) return p;
+      const switchingTeam = team !== p.team;
+      const nextRole: PlayerRole | null = team
+        ? switchingTeam ? "agent" : (p.role ?? "agent")
+        : null;
+      return { ...p, team, role: nextRole };
+    });
     await push({ ...gameState, players });
   }
 
@@ -185,12 +197,10 @@ export function MindFieldRoom() {
     if (gameState.turnPhase !== "guessing") return;
 
     // Optimistic update — show result instantly
+    const prev = gameState;
     const optimistic = revealTile(gameState, tileId);
     setGameState(optimistic);
-    if (optimistic.phase === "round-over" || optimistic.phase === "game-over") {
-      const last = optimistic.roundHistory[optimistic.roundHistory.length - 1];
-      if (last?.bombTriggered) setShowBomb(true);
-    }
+    syncShowBomb(optimistic);
 
     try {
       const res = await fetch(`/api/mindfield/rooms/${roomCode}/reveal`, {
@@ -200,16 +210,18 @@ export function MindFieldRoom() {
       });
       const data = await res.json();
       // 409 = tile already revealed by concurrent click — server returns fresh state
-      if (!res.ok && !data.gameState) { setGameState(gameState); return; }
-      if (!res.ok && data.gameState) { setGameState(data.gameState as GameState); return; }
-      const confirmed = data.gameState as GameState;
-      if (confirmed.phase === "round-over" || confirmed.phase === "game-over") {
-        const last = confirmed.roundHistory[confirmed.roundHistory.length - 1];
-        if (last?.bombTriggered) setShowBomb(true);
+      if (!res.ok) {
+        const reverted = (data.gameState as GameState) ?? prev;
+        setGameState(reverted);
+        syncShowBomb(reverted);
+        return;
       }
+      const confirmed = data.gameState as GameState;
       setGameState(confirmed);
+      syncShowBomb(confirmed);
     } catch {
-      setGameState(gameState);
+      setGameState(prev);
+      syncShowBomb(prev);
     }
   }
 
@@ -218,10 +230,12 @@ export function MindFieldRoom() {
     if (effectivePlayer.role !== "agent") return;
     if (gameState.currentTeam !== effectivePlayer.team) return;
     if (gameState.turnPhase !== "guessing") return;
+    // Flags are ephemeral within a turn — engine.endTurn() clears them. Skip persistence;
+    // realtime broadcast is enough for teammates' devices, and late joiners simply start
+    // with no flags. Saves a PATCH /state per flag click.
     const newState = toggleFlag(gameState, tileId);
     setGameState(newState);
     sendFlagBroadcast(newState.flaggedTiles);
-    pushState(roomCode, newState);
   }
 
   async function handlePass() {

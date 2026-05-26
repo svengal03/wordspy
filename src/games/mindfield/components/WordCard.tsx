@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { memo, useState, useEffect, useRef } from "react";
 import type { Tile, PlayerRole, TeamColor } from "../types";
 
 interface Props {
@@ -31,7 +31,7 @@ const SPY_UNREVEALED: Record<string, { bg: string; text: string; border: string 
 
 const AGENT_UNREVEALED = { bg: "#F0E6C8", text: "#2A1A0E", border: "#C8B48A" };
 
-export default function WordCard({ tile, viewerRole, canTap, onTap, flagged, canFlag, onFlag }: Props) {
+function WordCardImpl({ tile, viewerRole, canTap, onTap, flagged, canFlag, onFlag }: Props) {
   const isSpymaster = viewerRole === "spymaster";
   const isClickable = canTap && !tile.revealed;
 
@@ -96,6 +96,7 @@ export default function WordCard({ tile, viewerRole, canTap, onTap, flagged, can
         userSelect: "none",
         WebkitUserSelect: "none",
         overflow: "hidden",
+        willChange: "transform",
         boxShadow: tile.revealed
           ? "inset 0 2px 4px rgba(0,0,0,0.2)"
           : flagged
@@ -139,3 +140,20 @@ export default function WordCard({ tile, viewerRole, canTap, onTap, flagged, can
     </motion.button>
   );
 }
+
+const WordCard = memo(WordCardImpl, (a, b) =>
+  a.tile.id === b.tile.id &&
+  a.tile.revealed === b.tile.revealed &&
+  a.tile.color === b.tile.color &&
+  a.tile.word === b.tile.word &&
+  a.viewerRole === b.viewerRole &&
+  a.viewerTeam === b.viewerTeam &&
+  a.activeTeam === b.activeTeam &&
+  a.canTap === b.canTap &&
+  a.canFlag === b.canFlag &&
+  a.flagged === b.flagged &&
+  a.onTap === b.onTap &&
+  a.onFlag === b.onFlag
+);
+
+export default WordCard;

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { Btn, tokens, PlayHubLogo, OptionsMenu } from "@playhub/ui";
 import WordCard from "./WordCard";
 import RulesModal from "./RulesModal";
@@ -20,8 +20,28 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onFlag
   const isMyTeam = gameState.currentTeam === localPlayer.team;
   const canGuess = isMyTeam && gameState.turnPhase === "guessing";
 
-  const redLeft = gameState.tiles.filter(t => t.color === "red" && !t.revealed).length;
-  const blueLeft = gameState.tiles.filter(t => t.color === "blue" && !t.revealed).length;
+  const { redLeft, blueLeft } = useMemo(() => {
+    let r = 0, b = 0;
+    for (const t of gameState.tiles) {
+      if (t.revealed) continue;
+      if (t.color === "red") r++;
+      else if (t.color === "blue") b++;
+    }
+    return { redLeft: r, blueLeft: b };
+  }, [gameState.tiles]);
+
+  const flaggedSet = useMemo(
+    () => new Set(gameState.flaggedTiles ?? []),
+    [gameState.flaggedTiles]
+  );
+
+  // Stable callback refs so memoized WordCards don't re-render on every parent state change
+  const revealRef = useRef(onRevealTile);
+  revealRef.current = onRevealTile;
+  const flagRef = useRef(onFlagTile);
+  flagRef.current = onFlagTile;
+  const stableReveal = useCallback((id: number) => revealRef.current(id), []);
+  const stableFlag = useCallback((id: number) => flagRef.current(id), []);
 
   return (
     <div style={{ minHeight: "100dvh", background: tokens.bg, fontFamily: "'DM Sans', system-ui, sans-serif" }}>
@@ -102,10 +122,10 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onFlag
               viewerTeam={localPlayer.team}
               activeTeam={gameState.currentTeam}
               canTap={canGuess && !tile.revealed}
-              onTap={onRevealTile}
-              flagged={(gameState.flaggedTiles ?? []).includes(tile.id)}
+              onTap={stableReveal}
+              flagged={flaggedSet.has(tile.id)}
               canFlag={canGuess && !tile.revealed}
-              onFlag={onFlagTile}
+              onFlag={stableFlag}
             />
           ))}
         </div>

@@ -13,7 +13,7 @@ Standards for app structure and file layout are owned by `docs/ARCHITECTURE.md`.
 | 1 | [ARCHITECTURE.md](ARCHITECTURE.md) | Understand the monorepo structure, app patterns, shared packages, and UI conventions |
 | 2 | This file | Know what games exist and where their design docs live |
 | 3 | [gameplay/MAFIA.md](gameplay/MAFIA.md) | Canonical reference for a simple offline pass-phone game |
-| 4 | [gameplay/WORDSPY.md](gameplay/WORDSPY.md) | Reference for the more complex online + offline game |
+| 4 | [gameplay/MINDFIELD.md](gameplay/MINDFIELD.md) | Canonical reference for a multi-device online game |
 | 5 | [NEW_GAME.md](NEW_GAME.md) | Follow when adding a new game to the platform |
 
 ---
@@ -76,6 +76,20 @@ Team-based silent acting and guessing for **4+ players** (2–6 teams). Identica
 
 ---
 
+### Mind Field — [Full design doc](gameplay/MINDFIELD.md)
+
+Two-team word-deduction game for **4–16 players** on multiple devices. Each team has a Spymaster who sees a colour-coded 5×5 grid; Field Agents see the same grid uncoloured. Spymasters give one-word clues with a number; agents tap matching words. Hit the Bomb and your team instantly loses the round.
+
+| | |
+|---|---|
+| **Teams** | 2 (Red, Blue) — each with one Spymaster |
+| **Win** | First team to reach `targetWins` rounds (configurable) |
+| **Phases** | Lobby → Team Assign → Clue → Guessing → Round End → Game Over |
+| **Mode** | Online only (Supabase Realtime + ETag snapshot polling) |
+| **Players** | 4–16 |
+
+---
+
 ### Wavelength — [Full design doc](gameplay/WAVELENGTH.md)
 
 Spectrum-based team game for **4–12 players**. One player (the Psychic) sees a hidden target on a spectrum dial and gives a one-word clue. Their team drags the needle to their best guess. The opposing team earns a bonus point by betting which side of the needle the target is on.
@@ -134,6 +148,7 @@ Point values are defined as constants in `@playhub/core`.
 | [gameplay/PICTIONARY.md](gameplay/PICTIONARY.md) | Pictionary rules, phases, config, state types | Pictionary |
 | [gameplay/DUMBCHARADES.md](gameplay/DUMBCHARADES.md) | Dumb Charades rules, phases, config, state types | Dumb Charades |
 | [gameplay/WAVELENGTH.md](gameplay/WAVELENGTH.md) | Wavelength rules, phases, config, state types | Wavelength |
+| [gameplay/MINDFIELD.md](gameplay/MINDFIELD.md) | Mind Field rules, phases, config, state types | Mind Field |
 | [NEW_GAME.md](NEW_GAME.md) | End-to-end instruction for adding a new game | New game process |
 
 ---
@@ -144,8 +159,11 @@ See [NEW_GAME.md](NEW_GAME.md) for the complete step-by-step instruction.
 
 When a new game is added:
 1. Create `docs/gameplay/{GAME_NAME}.md` following the template in NEW_GAME.md
-2. Add an entry to `packages/config/src/games.ts` — this registers the game on the home screen
-3. Add `src/app/{game}/page.tsx` + `layout.tsx`
-4. Implement `src/games/{game}/` — types → engine → store → `{Game}Game.tsx` → components
-5. Add a section to this file under Games
-6. Add a row to the Documentation Index table above
+2. Pick a pattern (A minimal-offline / B stateful-offline / C online) — see NEW_GAME.md Step 0
+3. Add an entry to `packages/config/src/games.ts` (must include `tags`) — registers the game on the home screen
+4. Add `src/app/{game}/page.tsx` + `layout.tsx` + favicon under `src/public/favicons/`
+5. Implement `src/games/{game}/` — files depend on pattern (see NEW_GAME.md Step 2)
+6. **Online only:** add DB migration in `database/migrations/`, server helpers in `src/server/db/{game}.ts`, API routes under `src/app/api/{game}/`
+7. Add a section to this file under Games
+8. Add a row to the Documentation Index table above
+9. Add a row to the Per-App Summary table in `docs/ARCHITECTURE.md`

@@ -82,6 +82,9 @@ export function useMindFieldRoom(
     return () => clearInterval(interval);
   }, [roomCode, realtimeReady, fetchState]);
 
+  // Returns true if the optimistic state should be kept (server accepted OR conflict
+  // already resynced via onUpdate). Returns false only on network/server errors where
+  // the caller should revert its optimistic update.
   const pushState = useCallback(
     async (code: string, state: GameState): Promise<boolean> => {
       try {
@@ -96,7 +99,8 @@ export function useMindFieldRoom(
             stateRef.current = data.current;
             onUpdateRef.current(data.current);
           }
-          return false;
+          // Conflict was handled by syncing to server's current state — don't revert.
+          return true;
         }
         if (res.ok) {
           const data = await res.json();
@@ -104,8 +108,9 @@ export function useMindFieldRoom(
             stateRef.current = data.gameState;
             onUpdateRef.current(data.gameState);
           }
+          return true;
         }
-        return res.ok;
+        return false;
       } catch {
         return false;
       }

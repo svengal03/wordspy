@@ -149,6 +149,15 @@ export async function getMFMeta(roomId: string): Promise<{ updated_at: string; p
   return data as { updated_at: string; phase: string } | null;
 }
 
+export async function getMFMetaByCode(roomCode: string): Promise<{ room_id: string; updated_at: string; phase: string } | null> {
+  const db = createServerClient();
+  const roomRes = await db.from("rooms").select("id").eq("code", roomCode).maybeSingle();
+  if (!roomRes.data) return null;
+  const roomId = (roomRes.data as { id: string }).id;
+  const { data } = await db.from("game_state").select("room_id,updated_at,phase").eq("room_id", roomId).maybeSingle();
+  return data as { room_id: string; updated_at: string; phase: string } | null;
+}
+
 // ── Read ──────────────────────────────────────────────────────────────────────
 
 export async function getMFState(roomId: string): Promise<MFStateRow | null> {
@@ -247,6 +256,19 @@ export async function revealMFTile(
 export async function updateMFState(roomId: string, state: GameState): Promise<void> {
   const db = createServerClient();
 
+  // Play-again: when transitioning out of game-over/round-over into lobby, wipe round data.
+  // Without this, mf_rounds keeps colliding on (room_id, round_number) and assemble pulls
+  // stale roundHistory/wins from mf_round_results, so the lobby shows last game's scores.
+  if (state.phase === "lobby") {
+    const prev = await db.from("game_state").select("phase").eq("room_id", roomId).maybeSingle();
+    if (prev.data && (prev.data as { phase: string }).phase !== "lobby") {
+      await Promise.all([
+        db.from("mf_rounds").delete().eq("room_id", roomId),
+        db.from("mf_round_results").delete().eq("room_id", roomId),
+      ]);
+    }
+  }
+
   // 1. Update game_state phase + round
   await db.from("game_state")
     .update({ phase: state.phase, round: state.round })
@@ -304,17 +326,19 @@ export async function updateMFState(roomId: string, state: GameState): Promise<v
         bomb_triggered_by:  state.bombTriggeredBy,
       }).eq("id", rid);
 
-      // Update flagged tiles
+      // Update flagged tiles — 2 batched queries instead of N=25
       if (state.tiles.length > 0) {
-        const flagged = new Set(state.flaggedTiles ?? []);
-        await Promise.all(
-          state.tiles.map(t =>
-            db.from("mf_tiles")
-              .update({ flagged: flagged.has(t.id) })
-              .eq("round_id", rid)
-              .eq("position", t.id)
-          )
-        );
+        const flaggedSet = new Set(state.flaggedTiles ?? []);
+        const flaggedPositions = state.tiles.filter(t => flaggedSet.has(t.id)).map(t => t.id);
+        const unflaggedPositions = state.tiles.filter(t => !flaggedSet.has(t.id)).map(t => t.id);
+        await Promise.all([
+          flaggedPositions.length > 0
+            ? db.from("mf_tiles").update({ flagged: true }).eq("round_id", rid).in("position", flaggedPositions)
+            : Promise.resolve(),
+          unflaggedPositions.length > 0
+            ? db.from("mf_tiles").update({ flagged: false }).eq("round_id", rid).in("position", unflaggedPositions)
+            : Promise.resolve(),
+        ]);
       }
 
       // Sync new clues (append-only — insert any beyond what's already stored)

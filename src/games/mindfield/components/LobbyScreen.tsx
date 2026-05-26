@@ -7,6 +7,18 @@ import type { GameState, Player, TeamColor } from "../types";
 
 interface Pack { id: string; name: string; emoji: string | null; }
 
+let packsCache: Pack[] | null = null;
+let packsPromise: Promise<Pack[]> | null = null;
+function loadPacks(): Promise<Pack[]> {
+  if (packsCache) return Promise.resolve(packsCache);
+  if (packsPromise) return packsPromise;
+  packsPromise = fetch("/api/packs?game=mindfield")
+    .then(r => r.json())
+    .then(d => { packsCache = d.packs ?? []; return packsCache!; })
+    .catch(() => { packsPromise = null; return []; });
+  return packsPromise;
+}
+
 interface Props {
   gameState: GameState;
   localPlayer: Player;
@@ -40,13 +52,13 @@ export default function LobbyScreen({
   const isHost = localPlayer.isHost;
   const [copied, setCopied] = useState(false);
   const [showRules, setShowRules] = useState(false);
-  const [packs, setPacks] = useState<Pack[]>([]);
+  const [packs, setPacks] = useState<Pack[]>(packsCache ?? []);
 
   useEffect(() => {
-    fetch("/api/packs?game=mindfield")
-      .then(r => r.json())
-      .then(d => setPacks(d.packs ?? []))
-      .catch(() => {});
+    if (packsCache) return;
+    let cancelled = false;
+    loadPacks().then(p => { if (!cancelled) setPacks(p); });
+    return () => { cancelled = true; };
   }, []);
 
   function copyCode() {

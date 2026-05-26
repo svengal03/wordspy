@@ -1,13 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import { GAME_BY_SLUG } from "@playhub/config";
+
+const game = GAME_BY_SLUG["mindfield"];
 
 export const metadata: Metadata = {
-  title: "Mind Field – PlayHub",
-  description: "Two-team word deduction. Spymasters hint, agents guess. Don't hit the bomb.",
+  title: `${game.name} – PlayHub`,
+  description: game.description,
   icons: { icon: "/favicons/favicon-mindfield.svg" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#CC785C",
+  themeColor: game.themeColor,
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
