@@ -4,10 +4,7 @@ const path = require("path");
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@playhub/ui", "@playhub/core", "@playhub/config"],
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.cache = { type: "memory" };
-    }
+  webpack: (config) => {
     config.resolve.symlinks = false;
     // Allow webpack to resolve hoisted workspace packages from the monorepo root
     config.resolve.modules = [

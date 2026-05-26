@@ -7,6 +7,8 @@ export interface PlayerRow {
   player_name: string;
   is_host: boolean;
   role: string | null;
+  team: string | null;
+  word: string | null;
   score: number;
   is_connected: boolean;
   joined_at: string;
@@ -16,12 +18,19 @@ export interface PlayerRow {
 export async function joinRoom(
   roomId: string,
   playerName: string,
-  isHost = false
+  isHost = false,
+  opts: { team?: string; word?: string } = {}
 ): Promise<PlayerRow> {
   const db = createServerClient();
   const { data, error } = await db
     .from("room_players")
-    .insert({ room_id: roomId, player_name: playerName, is_host: isHost })
+    .insert({
+      room_id: roomId,
+      player_name: playerName,
+      is_host: isHost,
+      team: opts.team ?? null,
+      word: opts.word ?? null,
+    })
     .select()
     .single();
 
@@ -45,7 +54,7 @@ export async function leaveRoom(playerId: string): Promise<void> {
 // ─── updatePlayer ─────────────────────────────────────────────────────────────
 export async function updatePlayer(
   playerId: string,
-  patch: Partial<Pick<PlayerRow, "role" | "score" | "is_connected" | "is_host">>
+  patch: Partial<Pick<PlayerRow, "role" | "team" | "word" | "score" | "is_connected" | "is_host">>
 ): Promise<void> {
   const db = createServerClient();
   const { error } = await db

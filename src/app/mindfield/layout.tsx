@@ -1,12 +1,12 @@
-﻿import type { Metadata, Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import { GAME_BY_SLUG } from "@playhub/config";
 
-const game = GAME_BY_SLUG["wavelength"];
+const game = GAME_BY_SLUG["mindfield"];
 
 export const metadata: Metadata = {
   title: `${game.name} – PlayHub`,
   description: game.description,
-  icons: { icon: "/favicons/favicon-wavelength.svg" },
+  icons: { icon: "/favicons/favicon-mindfield.svg" },
 };
 
 export const viewport: Viewport = {

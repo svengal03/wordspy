@@ -99,6 +99,17 @@ export async function getPacksWithWords(
   return result;
 }
 
+// ─── getWordList ──────────────────────────────────────────────────────────────
+// Fetch only word_a strings for a pack — used by MindField to pick 25 tiles.
+export async function getWordList(packId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("words")
+    .select("word_a")
+    .eq("pack_id", packId);
+  if (error) throw new Error(`getWordList: ${error.message}`);
+  return (data ?? []).map((r: { word_a: string }) => r.word_a).filter(Boolean);
+}
+
 // ─── getRandomPairFromPack ────────────────────────────────────────────────────
 // Convenience: pick one random word pair from a pack without loading all words.
 // Used by the server-side game engine when starting a round.
