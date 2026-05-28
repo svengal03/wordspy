@@ -1,7 +1,9 @@
 "use client";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Btn, tokens, PlayHubLogo, OptionsMenu } from "@playhub/ui";
 import type { GameState, Player } from "../types";
+import { sfx, haptic } from "../sound";
 
 interface Props {
   gameState: GameState;
@@ -16,6 +18,17 @@ export default function RoundOverScreen({ gameState, localPlayer, onNextRound, o
   const record = gameState.roundHistory[gameState.roundHistory.length - 1];
   const bombTriggered = record?.bombTriggered ?? false;
   const isHost = localPlayer.isHost;
+
+  // Round-win chime — skip when bomb already played its own sound during reveal.
+  const playedRef = useRef(false);
+  useEffect(() => {
+    if (playedRef.current) return;
+    playedRef.current = true;
+    if (!bombTriggered) {
+      sfx.roundWin();
+      haptic([0, 35, 60, 35]);
+    }
+  }, [bombTriggered]);
 
   const winnerColor = winner === "red" ? "#DC2626" : "#2563EB";
   const winnerBg = winner === "red" ? "#FEF2F2" : "#EFF6FF";
@@ -77,7 +90,7 @@ export default function RoundOverScreen({ gameState, localPlayer, onNextRound, o
           </Btn>
         ) : (
           <div style={{ textAlign: "center", color: tokens.grey3, fontSize: 14 }}>
-            ⏳ Waiting for host to start next round…
+            Waiting for host to start next round…
           </div>
         )}
       </div>

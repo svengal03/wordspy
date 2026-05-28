@@ -17,6 +17,7 @@ export interface Player {
 // ─── Game Phase ───────────────────────────────────────────────────────────────
 export type GamePhase =
   | "lobby"       // waiting for players
+  | "get-ready"   // get-ready splash between lobby and role reveal
   | "role-reveal" // each player sees their word privately
   | "clue"        // everyone gives a clue
   | "discussion"  // open chat + debate

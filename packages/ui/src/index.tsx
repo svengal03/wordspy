@@ -133,22 +133,31 @@ export function Btn({ children, variant = "primary", fullWidth, style, disabled,
     gap: 8, padding: "13px 24px", borderRadius: tokens.radius.md, fontSize: 15,
     fontWeight: 600, cursor: disabled ? "not-allowed" : "pointer",
     border: "none", fontFamily: "inherit", letterSpacing: -0.2,
-    transition: "opacity .15s, transform .1s",
+    transition: "opacity .15s, transform .1s, box-shadow .15s",
     width: fullWidth ? "100%" : undefined,
-    opacity: disabled ? 0.45 : 1, ...style,
+    ...style,
   };
   const bg = color ?? tokens.coral;
-  const variants: Record<string, React.CSSProperties> = {
-    primary: { background: bg, color: "#fff", boxShadow: `0 4px 14px ${bg}40` },
-    ghost: { background: "transparent", color: tokens.grey2, border: `1.5px solid ${tokens.border}` },
-    danger: { background: tokens.redBg, color: tokens.red, border: `1.5px solid #FECACA` },
-    secondary: { background: "#F5F5F5", color: tokens.black },
-    warning: { background: tokens.yellowBg, color: tokens.yellow, border: `1.5px solid #FDE047` },
-    success: { background: tokens.greenBg, color: tokens.green, border: `1.5px solid #BBF7D0` },
-  };
+  const variants: Record<string, React.CSSProperties> = disabled
+    ? {
+        primary: { background: tokens.disabledBg, color: tokens.disabledFg },
+        ghost: { background: "transparent", color: tokens.disabledFg, border: `1.5px solid ${tokens.border}` },
+        danger: { background: tokens.disabledBg, color: tokens.disabledFg, border: `1.5px solid ${tokens.border}` },
+        secondary: { background: tokens.disabledBg, color: tokens.disabledFg },
+        warning: { background: tokens.disabledBg, color: tokens.disabledFg, border: `1.5px solid ${tokens.border}` },
+        success: { background: tokens.disabledBg, color: tokens.disabledFg, border: `1.5px solid ${tokens.border}` },
+      }
+    : {
+        primary: { background: bg, color: "#fff", boxShadow: color ? `0 4px 14px ${bg}40` : tokens.shadow.coral },
+        ghost: { background: "transparent", color: tokens.grey1, border: `1.5px solid ${tokens.border}` },
+        danger: { background: tokens.redBg, color: tokens.red, border: `1.5px solid #FECACA` },
+        secondary: { background: tokens.inputBg, color: tokens.black, border: `1.5px solid ${tokens.border}` },
+        warning: { background: tokens.yellowBg, color: tokens.yellow, border: `1.5px solid #FDE047` },
+        success: { background: tokens.greenBg, color: tokens.green, border: `1.5px solid #BBF7D0` },
+      };
   return (
     <motion.button
-      whileHover={disabled ? {} : { opacity: 0.88 }}
+      whileHover={disabled ? {} : { opacity: 0.92 }}
       whileTap={disabled ? {} : { scale: 0.97 }}
       style={{ ...base, ...variants[variant] }}
       disabled={disabled}
@@ -165,7 +174,7 @@ export function Card({ children, style }: { children: ReactNode; style?: React.C
     <div style={{
       background: tokens.card, borderRadius: tokens.radius.xl, padding: tokens.space[5],
       border: `1.5px solid ${tokens.border}`,
-      boxShadow: "0 2px 16px rgba(0,0,0,0.05)", ...style,
+      boxShadow: tokens.shadow.md, ...style,
     }}>{children}</div>
   );
 }
@@ -626,19 +635,19 @@ export function RevealCover({
     >
       <div
         style={{
-          background: "#FFFFFF",
-          border: `2px dashed ${tokens.border}`,
+          background: tokens.white,
+          border: `2px dashed ${tokens.grey4}`,
           borderRadius: 24,
           padding: "56px 40px",
           textAlign: "center",
-          boxShadow: "0 2px 20px rgba(0,0,0,0.06)",
+          boxShadow: tokens.shadow.lg,
         }}
       >
         <div style={{ fontSize: 12, color: tokens.grey3, marginBottom: 12, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase" }}>
           {label}
         </div>
         <div style={{
-          background: "#F5F5F0",
+          background: tokens.inputBg,
           border: `1.5px solid ${tokens.border}`,
           borderRadius: 16,
           padding: "22px 32px",
@@ -783,7 +792,7 @@ export function GameLobbyScreen({
               {howItWorks.map((s, i) => (
                 <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
                   <div style={{
-                    width: 40, height: 40, borderRadius: 12, background: "#F5F0ED",
+                    width: 40, height: 40, borderRadius: 12, background: tokens.iconBg,
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
                   }}>{s.icon}</div>
                   <div>

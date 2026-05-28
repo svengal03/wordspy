@@ -2,6 +2,7 @@ export type GamePhase =
   | "lobby"
   | "setup"
   | "team-assign"
+  | "get-ready"
   | "clue"
   | "guess"
   | "opposing-bet"

@@ -60,9 +60,7 @@ export async function POST(req: NextRequest) {
       remaining = remaining.map((p, i) => (i === idx ? { ...p, isHost: true } : p));
     }
     const updated = { ...state, players: remaining };
-    const room = await getRoom(roomCode);
-    if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
-    await updateState(room.id, updated);
+    await updateState(row.room_id, updated);
     return NextResponse.json({ gameState: updated });
   }
 
@@ -89,8 +87,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid target" }, { status: 400 });
     }
     const updated = castVote(state, voterId, targetId, false);
-    const room = await getRoom(roomCode);
-    if (room) await updateState(room.id, updated);
+    await updateState(row.room_id, updated);
     return NextResponse.json({ gameState: updated });
   }
 

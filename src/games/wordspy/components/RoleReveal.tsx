@@ -176,7 +176,7 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
                   background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}`,
                   fontSize: 14, color: tokens.grey2, textAlign: "center",
                 }}>
-                  Waiting for the host to start the round…
+                  Waiting for host to start the round…
                 </div>
               )}
 

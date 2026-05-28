@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, Btn, SectionLabel, Toggle, tokens, PlayHubLogo, OptionsMenu, Badge } from "@playhub/ui";
+import { Card, Btn, SectionLabel, Toggle, tokens, PlayHubLogo, OptionsMenu, Badge, useToast, ToastContainer } from "@playhub/ui";
 import RulesModal from "./RulesModal";
 import { WORD_PACKS } from "../wordPacks";
 import { GameConfig, GameState } from "../types";
@@ -20,6 +20,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
   const isHost = localPlayer?.isHost;
   const [copied, setCopied] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const { toasts, toast } = useToast();
 
   function update(partial: Partial<GameConfig>) {
     const next = { ...config, ...partial };
@@ -27,17 +28,27 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
     onUpdateConfig(next);
   }
 
-  function copyCode() {
-    navigator.clipboard.writeText(gameState.roomCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(gameState.roomCode);
+      setCopied(true);
+      toast(`Room code ${gameState.roomCode} copied`, "success");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast("Couldn't copy — copy it manually", "error");
+    }
   }
 
-  function copyLink() {
+  async function copyLink() {
     const link = `${typeof window !== "undefined" ? window.location.origin : ""}/wordspy/room/${gameState.roomCode}`;
-    navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      toast("Link copied", "success");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast("Couldn't copy — copy it manually", "error");
+    }
   }
 
   function shareLink() {
@@ -47,7 +58,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
         title: "Join my Wordspy game",
         text: `Use code ${gameState.roomCode}`,
         url: link,
-      });
+      }).catch(() => {});
     }
   }
 
@@ -57,7 +68,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
       fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
     }}>
       {/* Top bar */}
-      <div style={{ position: "sticky", top: 0, zIndex: 50, padding: "14px 20px", borderBottom: "0.5px solid rgba(0,0,0,0.08)", background: "#FAFAF8", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 50, padding: "14px 20px", borderBottom: `0.5px solid ${tokens.divider}`, background: tokens.bg, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <PlayHubLogo appName="Wordspy" />
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button
@@ -126,7 +137,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
                 {gameState.players.map((p) => (
                   <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{
-                      width: 36, height: 36, borderRadius: 10, background: "#F0EDE9",
+                      width: 36, height: 36, borderRadius: 10, background: tokens.avatarBg,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 13, fontWeight: 700, color: tokens.grey2,
                     }}>{p.name.slice(0, 2).toUpperCase()}</div>
@@ -196,7 +207,12 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
                     fontSize: 18, fontWeight: 600, color: tokens.grey1,
                     display: "flex", alignItems: "center", justifyContent: "center",
                   } as React.CSSProperties;
-                  const disabledStyle = { ...stepperStyle, opacity: 0.3, cursor: "not-allowed" };
+                  const disabledStyle = {
+                    ...stepperStyle,
+                    color: tokens.grey4,
+                    background: tokens.inputBg,
+                    cursor: "not-allowed",
+                  };
                   return (
                     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                       {/* Preview pill row */}
@@ -276,7 +292,7 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
               style={{ padding: "16px", fontSize: 16 }}
             >
               {gameState.players.length < 4
-                ? `Need ${4 - gameState.players.length} more player(s)`
+                ? `Need ${4 - gameState.players.length} more player${4 - gameState.players.length === 1 ? "" : "s"}`
                 : "Start Game →"}
             </Btn>
           </>
@@ -284,10 +300,11 @@ export default function LobbySetup({ gameState, onStart, onUpdateConfig, onRemov
 
         {!isHost && (
           <div style={{ textAlign: "center", color: tokens.grey3, fontSize: 14, padding: "8px 0" }}>
-            ⏳ Waiting for the host to start the game…
+            Waiting for host to start the game…
           </div>
         )}
       </div>
+      <ToastContainer toasts={toasts} />
     </div>
   );
 }

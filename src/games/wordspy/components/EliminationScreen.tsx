@@ -62,7 +62,10 @@ export default function EliminationScreen({ gameState, localPlayer, isOffline = 
 
           <RoleBadge role={eliminated.role} />
 
-          <div style={{ fontSize: 32, fontWeight: 800, color: tokens.black, letterSpacing: -1, marginTop: 14, marginBottom: 4 }}>
+          <div style={{
+            fontSize: 32, fontWeight: 800, color: tokens.black, letterSpacing: -1,
+            marginTop: 14, marginBottom: 4, wordBreak: "break-word", lineHeight: 1.1,
+          }}>
             {eliminated.name}
           </div>
           <div style={{ fontSize: 15, color: tokens.grey2, marginBottom: 20 }}>

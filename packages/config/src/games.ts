@@ -37,7 +37,7 @@ export const GAMES: GameConfig[] = [
     emoji: "🔪",
     description: "Vote out the Mafia before they take over.",
     players: "5–15",
-    themeColor: "#1A1A1A",
+    themeColor: "#CC785C",
     tags: ["deduction", "teams"],
     steps: [
       "Roles are secretly assigned — some are Mafia, others are Village (Villager, Doctor, Police), one is the God (moderator)",
@@ -106,7 +106,7 @@ export const GAMES: GameConfig[] = [
     emoji: "〰️",
     description: "Two teams. One spectrum. Find the wavelength.",
     players: "4–12",
-    themeColor: "#4A90D9",
+    themeColor: "#CC785C",
     tags: ["teams"],
     steps: [
       "Two teams compete — each round one player is the Psychic",

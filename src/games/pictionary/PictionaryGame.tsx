@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback, useEffect } from "react";
-import { TeamSetupScreen, TeamAssignScreen, WordReveal } from "@/games/shared";
+import { TeamSetupScreen, TeamAssignScreen, WordReveal, GetReadyScreen } from "@/games/shared";
 import { DrawingCanvas } from "@/games/pictionary/components/DrawingCanvas";
 import { RulesModal } from "@/games/pictionary/components/RulesModal";
 import { RoundResult } from "@playhub/ui/game";
@@ -49,7 +49,7 @@ export function PictionaryGame() {
   const { dbRowsRef, loading: wordsLoading, error: wordsError } = useWordPackCache("pictionary");
 
   useEffect(() => {
-    if (state.phase === "lobby" || state.phase === "setup" || state.phase === "team-assign") {
+    if (state.phase === "lobby" || state.phase === "setup" || state.phase === "team-assign" || state.phase === "get-ready") {
       sessionStorage.removeItem(SESSION_KEY);
     } else {
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(state));
@@ -72,7 +72,7 @@ export function PictionaryGame() {
     if (pool.length === 0) return;
     const { options, remaining } = pickThree(pool, state.selectedPackIds, dbRowsRef.current, true);
     setState((s) => ({
-      phase: "word-reveal",
+      phase: "get-ready",
       hostName: s.hostName,
       teams,
       currentTeamIdx: 0,
@@ -87,6 +87,10 @@ export function PictionaryGame() {
       lastDifficulty: null,
     }));
   }, [state.selectedPackIds]);
+
+  const handleGetReadyConfirm = useCallback(() => {
+    setState((s) => ({ ...s, phase: "word-reveal" }));
+  }, []);
 
   const handleDrawingStart = useCallback((word: string, difficulty: Difficulty) => {
     setState((s) => ({ ...s, phase: "drawing", currentWord: word, currentDifficulty: difficulty }));
@@ -171,7 +175,7 @@ export function PictionaryGame() {
         icon="⚠️"
         title="Failed to load word packs"
         body={wordsError}
-        action={<Btn onClick={goHome} variant="ghost">Go home</Btn>}
+        action={<Btn onClick={goHome} variant="ghost">← PlayHub</Btn>}
       />
     );
     return (
@@ -205,6 +209,25 @@ export function PictionaryGame() {
         teamPalette={TEAM_PALETTE}
         rulesModal={({ isOpen, onClose }) => <RulesModal isOpen={isOpen} onClose={onClose} />}
         onConfirm={handleTeamAssignConfirm}
+        onNewGame={handleNewGame}
+      />
+    );
+  }
+
+  if (phase === "get-ready" && currentTeam) {
+    return (
+      <GetReadyScreen
+        appName="Pictionary"
+        accentColor={color}
+        title="Time to draw"
+        subtitle={<>First up: <strong style={{ color }}>{currentTeam.name}</strong> — {currentDrawer} is drawing.</>}
+        hints={[
+          { icon: "✏️", text: "Shapes and arrows only — no letters or words." },
+          { icon: "📱", text: "Pass the phone to the drawer when ready." },
+        ]}
+        buttonLabel="Start Round →"
+        rulesModal={({ isOpen, onClose }) => <RulesModal isOpen={isOpen} onClose={onClose} />}
+        onStart={handleGetReadyConfirm}
         onNewGame={handleNewGame}
       />
     );

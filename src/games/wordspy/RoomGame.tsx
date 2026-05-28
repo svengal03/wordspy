@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGameStore } from "@/games/wordspy/store";
 import { useSupabaseRoom } from "@/games/wordspy/useRoom";
@@ -9,9 +9,12 @@ import {
   nextRound, eliminatePlayer,
 } from "@/games/wordspy/engine";
 import { nanoid } from "nanoid";
+import { ConfirmDialog, tokens } from "@playhub/ui";
 
 import LobbySetup from "@/games/wordspy/components/LobbySetup";
 import RoleReveal from "@/games/wordspy/components/RoleReveal";
+import { GetReadyScreen } from "@/games/shared";
+import RulesModal from "@/games/wordspy/components/RulesModal";
 import CluePhase from "@/games/wordspy/components/CluePhase";
 import VotePhase from "@/games/wordspy/components/VotePhase";
 import EliminationScreen from "@/games/wordspy/components/EliminationScreen";
@@ -23,8 +26,11 @@ export function WordspyRoom() {
   const roomCode = params.id as string;
   const router = useRouter();
   const [roomError, setRoomError] = useState<string | null>(null);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   // Supabase room UUID — needed for the Realtime subscription
   const [roomId, setRoomId] = useState<string | null>(null);
+  // Guards against React 18 strict-mode double mount inserting the player twice.
+  const joinedRef = useRef(false);
 
   const {
     localPlayer, gameState, setGameState,
@@ -47,6 +53,8 @@ export function WordspyRoom() {
 
   useEffect(() => {
     if (!roomCode) return;
+    if (joinedRef.current) return;
+    joinedRef.current = true;
     setRoomCode(roomCode);
 
     (async () => {
@@ -172,10 +180,14 @@ export function WordspyRoom() {
     // Supabase Realtime broadcasts the update to other players
   }
 
-  async function handleLeave() {
+  function handleLeave() {
     if (!localPlayer) return;
-    const msg = localPlayer.isHost ? "End game and return home?" : "Leave this game?";
-    if (!window.confirm(msg)) return;
+    setShowLeaveDialog(true);
+  }
+
+  async function confirmLeave() {
+    if (!localPlayer) return;
+    setShowLeaveDialog(false);
     await handleRemovePlayer(localPlayer.id);
     reset();
     router.push("/wordspy");
@@ -209,6 +221,7 @@ export function WordspyRoom() {
     !gameState.players.find((p) => p.id === localPlayer.id);
 
   if (!gameState || !localPlayer || isKicked) {
+    const isError = !!(isKicked || roomError);
     const msg = isKicked
       ? "You were removed from the room by the host."
       : roomError ?? "Loading room…";
@@ -218,35 +231,64 @@ export function WordspyRoom() {
         justifyContent: "center", fontFamily: "system-ui",
         flexDirection: "column", gap: 12,
       }}>
-        <div style={{ fontSize: 32 }}>{(isKicked || roomError) ? "😔" : "🕵️"}</div>
-        <div style={{ color: (isKicked || roomError) ? "#EF4444" : "#888", textAlign: "center", maxWidth: 280, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 32 }}>{isError ? "😔" : "🕵️"}</div>
+        <div style={{ color: isError ? "#EF4444" : "#888", textAlign: "center", maxWidth: 280, lineHeight: 1.5 }}>
           {msg}
         </div>
         {isKicked && (
-          <>
-            <div style={{ fontSize: 13, color: "#AAA", marginTop: 4 }}>
-              Room <strong style={{ color: "#555" }}>{roomCode}</strong> — ask the host to re-invite you.
-            </div>
-            <button
-              onClick={() => router.push("/")}
-              style={{ marginTop: 8, padding: "10px 20px", borderRadius: 10, border: "1.5px solid #E5E0DC", background: "white", cursor: "pointer", fontSize: 14 }}
-            >
-              Back to Home
-            </button>
-          </>
+          <div style={{ fontSize: 13, color: "#AAA", marginTop: 4 }}>
+            Room <strong style={{ color: "#555" }}>{roomCode}</strong> — ask the host to re-invite you.
+          </div>
         )}
+        <button
+          onClick={() => router.push("/wordspy")}
+          style={{ marginTop: 8, padding: "10px 24px", borderRadius: 10, border: "1.5px solid #E5E0DC", background: "white", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
+        >
+          ← PlayHub
+        </button>
       </div>
     );
   }
 
   const phase = gameState.phase;
+  const leaveLabel = localPlayer.isHost ? "End game?" : "Leave this game?";
+
+  let content: React.ReactNode = null;
 
   if (phase === "lobby") {
-    return <LobbySetup gameState={gameState} onStart={handleStart} onUpdateConfig={handleUpdateConfig} onRemovePlayer={handleRemovePlayer} onLeave={handleLeave} />;
-  }
-
-  if (phase === "role-reveal") {
-    return (
+    content = <LobbySetup gameState={gameState} onStart={handleStart} onUpdateConfig={handleUpdateConfig} onRemovePlayer={handleRemovePlayer} onLeave={handleLeave} />;
+  } else if (phase === "get-ready") {
+    const playerCount = gameState.players.length;
+    content = (
+      <GetReadyScreen
+        appName="Wordspy"
+        title="Words are in"
+        subtitle={
+          <>
+            {playerCount} player{playerCount !== 1 ? "s" : ""} · roles are sealed
+          </>
+        }
+        hints={[
+          { icon: "🤫", text: "Each player will privately see their secret word." },
+          { icon: "📱", text: "Pass the phone around — don't peek at others' screens." },
+        ]}
+        buttonLabel="Reveal Words →"
+        rulesModal={({ isOpen, onClose }) => <RulesModal isOpen={isOpen} onClose={onClose} />}
+        onStart={
+          localPlayer.isHost
+            ? async () => {
+                const updated = { ...gameState, phase: "role-reveal" as const };
+                await push(updated);
+              }
+            : undefined
+        }
+        waitingMessage={localPlayer.isHost ? undefined : "Waiting for host to begin…"}
+        onNewGame={localPlayer.isHost ? handlePlayAgain : undefined}
+        onLeave={handleLeave}
+      />
+    );
+  } else if (phase === "role-reveal") {
+    content = (
       <RoleReveal
         gameState={gameState}
         localPlayer={localPlayer}
@@ -260,10 +302,8 @@ export function WordspyRoom() {
         }}
       />
     );
-  }
-
-  if (phase === "clue" || phase === "discussion") {
-    return (
+  } else if (phase === "clue" || phase === "discussion") {
+    content = (
       <CluePhase
         gameState={gameState}
         localPlayer={localPlayer}
@@ -278,10 +318,8 @@ export function WordspyRoom() {
         }}
       />
     );
-  }
-
-  if (phase === "vote") {
-    return (
+  } else if (phase === "vote") {
+    content = (
       <div>
         <VotePhase
           gameState={gameState}
@@ -299,32 +337,26 @@ export function WordspyRoom() {
         </div>
       </div>
     );
-  }
-
-  if (phase === "host-pick") {
+  } else if (phase === "host-pick") {
     const activePlayers = gameState.players.filter((p) => !p.isEliminated);
-    if (activePlayers.length === 0) {
-      push({ ...gameState, phase: "summary", winner: "civilians" });
-      return null;
-    }
-    const maxVotes = Math.max(...activePlayers.map((p) => p.votes));
+    const maxVotes = activePlayers.length > 0 ? Math.max(...activePlayers.map((p) => p.votes)) : 0;
     const tiedPlayers = activePlayers.filter((p) => p.votes === maxVotes);
     const isHost = localPlayer.isHost;
-    return (
+    content = (
       <div style={{
-        minHeight: "100dvh", background: "#FAFAF8",
+        minHeight: "100dvh", background: tokens.bg,
         fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
         display: "flex", flexDirection: "column",
       }}>
-        <div style={{ padding: "16px 20px 14px", borderBottom: "1px solid #F0F0F0", background: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ padding: "16px 20px 14px", borderBottom: `1px solid ${tokens.border}`, background: tokens.white, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#AAA", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>Final Elimination</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#1A1A1A", letterSpacing: -0.5 }}>Votes are tied</div>
-            <div style={{ fontSize: 13, color: "#888", marginTop: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>Final Elimination</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>Votes are tied</div>
+            <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2 }}>
               {isHost ? "Choose who is eliminated" : "Waiting for host to decide…"}
             </div>
           </div>
-          <button onClick={handleLeave} style={{ padding: "7px 14px", borderRadius: 10, border: "1.5px solid #E5E0DC", background: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#888", fontFamily: "inherit" }}>
+          <button onClick={handleLeave} style={{ padding: "7px 14px", borderRadius: 10, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, color: tokens.grey2, fontFamily: "inherit" }}>
             Leave
           </button>
         </div>
@@ -340,8 +372,8 @@ export function WordspyRoom() {
               }}
               style={{
                 display: "flex", alignItems: "center", gap: 14, padding: "16px 18px",
-                borderRadius: 16, border: "1.5px solid #CC785C30",
-                background: isHost ? "#fff" : "#FAFAFA",
+                borderRadius: 16, border: `1.5px solid ${tokens.coralBorder}`,
+                background: isHost ? tokens.white : tokens.inputBg,
                 cursor: isHost ? "pointer" : "default", textAlign: "left",
                 boxShadow: "0 2px 12px rgba(0,0,0,0.05)", width: "100%",
                 opacity: isHost ? 1 : 0.7,
@@ -362,10 +394,8 @@ export function WordspyRoom() {
         </div>
       </div>
     );
-  }
-
-  if (phase === "elimination") {
-    return (
+  } else if (phase === "elimination") {
+    content = (
       <div>
         <EliminationScreen
           gameState={gameState}
@@ -380,10 +410,8 @@ export function WordspyRoom() {
         </div>
       </div>
     );
-  }
-
-  if (phase === "summary") {
-    return (
+  } else if (phase === "summary") {
+    content = (
       <div>
         <SummaryScreen gameState={gameState} localPlayer={localPlayer} onPlayAgain={handlePlayAgain} />
         <div style={{ padding: "0 20px 32px", maxWidth: 480, margin: "0 auto" }}>
@@ -393,5 +421,18 @@ export function WordspyRoom() {
     );
   }
 
-  return null;
+  return (
+    <>
+      {content}
+      <ConfirmDialog
+        open={showLeaveDialog}
+        title={leaveLabel}
+        confirmLabel={localPlayer.isHost ? "End Game" : "Leave"}
+        cancelLabel="Stay"
+        dangerous
+        onConfirm={confirmLeave}
+        onCancel={() => setShowLeaveDialog(false)}
+      />
+    </>
+  );
 }

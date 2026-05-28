@@ -21,13 +21,14 @@ interface Props {
   onNext: () => void;
   onEndGame: () => void;
   onNewGame: () => void;
+  onExit?: () => void;
 }
 
-export function RoundResult({ correct, word, difficulty, teams, teamColors, phases, appName, actingTeamName, actingTeamIdx, onNext, onEndGame, onNewGame }: Props) {
+export function RoundResult({ correct, word, difficulty, teams, teamColors, phases, appName, actingTeamName, actingTeamIdx, onNext, onEndGame, onNewGame, onExit }: Props) {
   const router = useRouter();
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
-      <TopBar appName={appName} right={<OptionsMenu onNewGame={onNewGame} onExit={() => router.push("/")} />} />
+      <TopBar appName={appName} right={<OptionsMenu onNewGame={onNewGame} onExit={onExit ?? (() => router.push("/"))} />} />
       <PhaseTrail phases={phases} current="Results" accentColor={teamColors[actingTeamIdx]} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>

@@ -28,6 +28,71 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
   const isEliminated = myPlayer?.isEliminated ?? false;
   const totalVotes = activePlayers.reduce((a, p) => a + p.votes, 0);
   const isSafeRound = gameState.config.safeRound && gameState.round === 1;
+  const showLiveTally = isOffline || gameState.config?.showVotesLive || hasVoted;
+
+  // Voter rail: round-the-table progress
+  const voterRail = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: tokens.grey2 }}>Voting round</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: tokens.black }}>
+          {totalVotes} <span style={{ color: tokens.grey4, fontWeight: 500 }}>/ {activePlayers.length}</span>
+        </div>
+      </div>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${activePlayers.length}, minmax(0, 1fr))`,
+        gap: 4, paddingTop: 4,
+      }}>
+        {activePlayers.map((p) => {
+          const voted = p.hasVoted;
+          const isCurrent = isOffline ? p.id === localPlayer.id && !voted && !confirmed : false;
+          return (
+            <div key={p.id} style={{
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minWidth: 0,
+            }}>
+              <div style={{
+                position: "relative",
+                opacity: voted || isCurrent ? 1 : 0.4,
+                transition: "opacity .2s",
+              }}>
+                <Avatar name={p.name} size={36} active={isCurrent} />
+                {voted && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                    style={{
+                      position: "absolute", bottom: -2, right: -2,
+                      width: 16, height: 16, borderRadius: 8,
+                      background: tokens.green, border: "2px solid #fff",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: "#fff", fontSize: 9, fontWeight: 800,
+                    }}
+                  >✓</motion.div>
+                )}
+                {isCurrent && (
+                  <motion.div
+                    animate={{ scale: [1, 1.15, 1] }}
+                    transition={{ duration: 1.4, repeat: Infinity }}
+                    style={{
+                      position: "absolute", inset: -4, borderRadius: 12,
+                      border: `2px solid ${tokens.coral}`, pointerEvents: "none",
+                    }}
+                  />
+                )}
+              </div>
+              <div style={{
+                fontSize: 10, fontWeight: 600, lineHeight: 1.2, textAlign: "center",
+                color: voted ? tokens.grey3 : isCurrent ? tokens.coral : tokens.grey4,
+                width: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>{p.name}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     setVoteRevealed(false);
@@ -112,41 +177,37 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
           />
         )}
 
-        {/* Eliminated players only see the progress bar, no voting controls */}
-        {isEliminated ? (
-          totalVotes >= 1 && (
-            <Card style={{ textAlign: "center", padding: "14px" }}>
-              <div style={{ fontSize: 13, color: tokens.grey2 }}>
-                {totalVotes} of {activePlayers.length} player{activePlayers.length > 1 ? "s" : ""} {totalVotes === 1 ? "has" : "have"} voted
-              </div>
-              <div style={{ height: 6, background: tokens.border, borderRadius: 3, marginTop: 8 }}>
-                <div style={{
-                  height: "100%", borderRadius: 3, background: tokens.coral,
-                  width: `${(totalVotes / activePlayers.length) * 100}%`,
-                  transition: "width .3s",
-                }} />
-              </div>
-            </Card>
-          )
-        ) : isOffline && !hasVoted && !voteRevealed ? (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <Card style={{ textAlign: "center", padding: "28px 20px" }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: tokens.black, marginBottom: 14, letterSpacing: -0.3 }}>
-                Pass to {localPlayer.name}
-              </div>
-              <Btn fullWidth onClick={() => setVoteRevealed(true)} style={{ padding: "14px", fontSize: 15 }}>
-                Vote →
-              </Btn>
-            </Card>
+        {voterRail}
+
+        {/* Eliminated players spectate — voter rail above already shows progress */}
+        {isEliminated ? null : isOffline && !hasVoted && !voteRevealed ? (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              padding: "20px 18px", borderRadius: 16,
+              background: tokens.white, border: `1.5px dashed ${tokens.coralBorder}`,
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>
+              Next voter
+            </div>
+            <div style={{
+              fontSize: 20, fontWeight: 800, color: tokens.black, letterSpacing: -0.3,
+              wordBreak: "break-word", lineHeight: 1.2,
+            }}>
+              Pass to {localPlayer.name}
+            </div>
+            <div style={{ fontSize: 12, color: tokens.grey3, marginTop: 4, marginBottom: 14 }}>
+              Their turn to cast a vote
+            </div>
+            <Btn fullWidth onClick={() => setVoteRevealed(true)} style={{ padding: "14px", fontSize: 15 }}>
+              I&apos;m {localPlayer.name} →
+            </Btn>
           </motion.div>
         ) : (
           <>
-            <Card style={{ background: tokens.coralBg, border: `1.5px solid ${tokens.coralBorder}`, textAlign: "center" }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: tokens.coral }}>
-                {localPlayer.name}&apos;s turn
-              </div>
-            </Card>
-
             <Card>
               <SectionLabel>Choose Wisely</SectionLabel>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -175,37 +236,44 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
                           <div style={{ fontSize: 15, fontWeight: 600, color: tokens.black, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
                           {p.clue && (
                             <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              Clue: &quot;{p.clue}&quot;
+                              &ldquo;{p.clue}&rdquo;
+                            </div>
+                          )}
+                          {showLiveTally && p.votes > 0 && (
+                            <div style={{ display: "flex", gap: 4, marginTop: 6, alignItems: "center", flexWrap: "wrap" }}>
+                              <div style={{ display: "flex", gap: 3, alignItems: "center" }}>
+                                {Array.from({ length: p.votes }).map((_, idx) => (
+                                  <motion.div
+                                    key={idx}
+                                    initial={{ scale: 0, y: -4 }}
+                                    animate={{ scale: 1, y: 0 }}
+                                    transition={{ type: "spring", stiffness: 500, damping: 20, delay: idx * 0.04 }}
+                                    style={{
+                                      width: 10, height: 10, borderRadius: 5,
+                                      background: tokens.coral,
+                                      boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: tokens.coral, marginLeft: 2 }}>
+                                {p.votes} vote{p.votes > 1 ? "s" : ""}
+                              </span>
                             </div>
                           )}
                         </div>
-                        {(hasVoted || gameState.config?.showVotesLive) && p.votes > 0 && (
+                        {isSelected && !hasVoted && (
                           <div style={{
-                            background: tokens.coral, color: "#fff",
-                            fontSize: 13, fontWeight: 700, padding: "4px 10px", borderRadius: 8,
-                          }}>{p.votes} vote{p.votes > 1 ? "s" : ""}</div>
+                            width: 24, height: 24, borderRadius: 12, background: tokens.coral,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            color: "#fff", fontSize: 13, fontWeight: 800, flexShrink: 0,
+                          }}>✓</div>
                         )}
-                        {isSelected && !hasVoted && <div style={{ width: 10, height: 10, borderRadius: 5, background: tokens.coral, flexShrink: 0 }} />}
                       </motion.button>
                     );
                   })}
               </div>
             </Card>
-
-            {totalVotes >= 1 && (
-              <Card style={{ textAlign: "center", padding: "14px" }}>
-                <div style={{ fontSize: 13, color: tokens.grey2 }}>
-                  {totalVotes} of {activePlayers.length} player{activePlayers.length > 1 ? "s" : ""} {totalVotes === 1 ? "has" : "have"} voted
-                </div>
-                <div style={{ height: 6, background: tokens.border, borderRadius: 3, marginTop: 8 }}>
-                  <div style={{
-                    height: "100%", borderRadius: 3, background: tokens.coral,
-                    width: `${(totalVotes / activePlayers.length) * 100}%`,
-                    transition: "width .3s",
-                  }} />
-                </div>
-              </Card>
-            )}
 
             {!hasVoted && !confirmed && (
               <Btn
@@ -226,7 +294,7 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
                 <InfoBox
                   icon="✅"
                   title="Vote cast!"
-                  body="Waiting for other players to vote…"
+                  body={isOffline ? "Pass the phone to the next player." : "Waiting for other players to vote…"}
                   color={tokens.green}
                 />
               </motion.div>

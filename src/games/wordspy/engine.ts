@@ -94,7 +94,7 @@ export function startGame(
 
   return {
     ...state,
-    phase: "role-reveal",
+    phase: "get-ready",
     round: 1,
     players: assignedPlayers,
     wordPair: pair,

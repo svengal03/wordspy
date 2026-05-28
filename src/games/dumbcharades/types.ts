@@ -2,6 +2,7 @@ export type Phase =
   | "lobby"
   | "setup"
   | "team-assign"
+  | "get-ready"
   | "word-reveal"
   | "acting"
   | "round-result"

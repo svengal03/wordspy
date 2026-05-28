@@ -94,8 +94,20 @@ export default function GameOverScreen({ gameState, localPlayer, onPlayAgain, on
             Play Again →
           </Btn>
         ) : (
-          <div style={{ textAlign: "center", color: tokens.grey3, fontSize: 14 }}>
-            ⏳ Waiting for host to start a new game…
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", alignItems: "center" }}>
+            <div style={{ textAlign: "center", color: tokens.grey3, fontSize: 14 }}>
+              Waiting for host to start a new game…
+            </div>
+            <button
+              onClick={onLeave}
+              style={{
+                padding: "10px 24px", borderRadius: 10, border: `1.5px solid ${tokens.border}`,
+                background: tokens.white, cursor: "pointer", fontSize: 14, fontWeight: 600,
+                color: tokens.grey1, fontFamily: "'DM Sans', system-ui, sans-serif",
+              }}
+            >
+              Leave Game
+            </button>
           </div>
         )}
       </div>

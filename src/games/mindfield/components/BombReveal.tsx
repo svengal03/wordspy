@@ -1,6 +1,5 @@
 "use client";
 import { motion } from "framer-motion";
-import { tokens } from "@playhub/ui";
 import type { TeamColor } from "../types";
 
 interface Props {
@@ -31,10 +30,18 @@ export default function BombReveal({ triggeredBy, word }: Props) {
         fontFamily: "'DM Sans', system-ui, sans-serif",
       }}
     >
+      {/* Red flash on entry */}
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0.85 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.55, ease: "easeOut" }}
+        style={{ position: "absolute", inset: 0, background: "#B22234", pointerEvents: "none" }}
+      />
       <motion.div
         initial={{ scale: 0 }}
-        animate={{ scale: [0, 1.3, 1] }}
-        transition={{ duration: 0.5, times: [0, 0.6, 1] }}
+        animate={{ scale: [0, 1.3, 1], rotate: [0, -8, 8, -4, 0] }}
+        transition={{ duration: 0.55, times: [0, 0.6, 1] }}
         style={{ fontSize: 80 }}
       >
         💣
@@ -64,9 +71,6 @@ export default function BombReveal({ triggeredBy, word }: Props) {
         </span>{" "}
         wins the round
       </motion.div>
-      <div style={{ marginTop: 8, fontSize: 13, color: "#555" }}>
-        Waiting for host to start next round…
-      </div>
     </motion.div>
   );
 }

@@ -14,8 +14,8 @@ export function RoundBar({ round, sub, current, accentColor }: {
   return (
     <div style={{
       padding: "10px 20px",
-      background: "#FAFAF8",
-      borderBottom: "0.5px solid rgba(0,0,0,0.08)",
+      background: tokens.bg,
+      borderBottom: `0.5px solid ${tokens.divider}`,
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",

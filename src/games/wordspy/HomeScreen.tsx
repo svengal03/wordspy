@@ -34,6 +34,7 @@ export function WordspyHome() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "create" }),
       });
+      if (!res.ok) { setError("Failed to create room. Try again."); return; }
       const data = await res.json();
       const player = createPlayer(name.trim(), true);
       setLocalPlayer(player);
@@ -155,7 +156,7 @@ export function WordspyHome() {
                 ].map((s, i) => (
                   <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
                     <div style={{
-                      width: 40, height: 40, borderRadius: 12, background: "#F5F0ED",
+                      width: 40, height: 40, borderRadius: 12, background: tokens.iconBg,
                       display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
                     }}>{s.icon}</div>
                     <div>
@@ -192,11 +193,18 @@ export function WordspyHome() {
                   placeholder="e.g. ABC123"
                   maxLength={6}
                   autoFocus
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  inputMode="text"
+                  aria-label="Room code"
                   style={{
                     width: "100%", padding: "12px 14px", borderRadius: 10,
                     border: `1.5px solid ${tokens.border}`, fontSize: 20, fontWeight: 700,
-                    letterSpacing: 4, fontFamily: "inherit", background: "#FAFAFA",
+                    letterSpacing: 4, fontFamily: "inherit", background: tokens.inputBg,
                     outline: "none", color: tokens.coral, boxSizing: "border-box",
+                    textTransform: "uppercase",
                   }}
                 />
               </Card>

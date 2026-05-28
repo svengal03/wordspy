@@ -107,6 +107,27 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onFlag
           localTeam={localPlayer.team}
         />
 
+        {/* Interaction hint — only while it's our team's turn to guess */}
+        {canGuess && (
+          <div style={{
+            display: "flex", gap: 8, justifyContent: "center", alignItems: "center",
+            margin: "0 0 8px", fontSize: 11, color: tokens.grey2, fontWeight: 600,
+          }}>
+            <span style={{
+              padding: "4px 10px", borderRadius: 20, background: tokens.white,
+              border: `1px solid ${tokens.border}`,
+            }}>
+              <b style={{ color: tokens.black }}>Hold</b> to reveal
+            </span>
+            <span style={{
+              padding: "4px 10px", borderRadius: 20, background: tokens.white,
+              border: `1px solid ${tokens.border}`,
+            }}>
+              <b style={{ color: tokens.black }}>Tap</b> to flag 🚩
+            </span>
+          </div>
+        )}
+
         {/* Grid */}
         <div style={{
           display: "grid",

@@ -49,7 +49,7 @@ export default function HomePage() {
       <main
         style={{
           minHeight: "100dvh",
-          background: tokens.bg,
+          background: "transparent",
           fontFamily: "'DM Sans', sans-serif",
           maxWidth: 520,
           margin: "0 auto",
@@ -67,8 +67,8 @@ export default function HomePage() {
                 <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: tokens.coral, opacity: 0.55 }} />
                 <span style={{ display: "inline-block", width: 4, height: 4, borderRadius: "50%", background: tokens.coral, opacity: 0.25 }} />
               </span>
-              <span style={{ fontSize: 28, fontWeight: 800, color: tokens.black, letterSpacing: -0.6, lineHeight: 1 }}>play</span>
-              <span style={{ fontSize: 28, fontWeight: 800, color: tokens.coral, letterSpacing: -0.6, lineHeight: 1 }}>hub</span>
+              <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 30, fontWeight: 800, color: tokens.black, letterSpacing: "-0.04em", lineHeight: 1 }}>play</span>
+              <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 30, fontWeight: 800, color: tokens.coral, letterSpacing: "-0.04em", lineHeight: 1 }}>hub</span>
             </div>
             <p style={{ margin: "0", fontSize: 14, color: tokens.grey2, fontWeight: 400 }}>
               Party games for groups
@@ -91,10 +91,12 @@ export default function HomePage() {
                 <button
                   key={f.value}
                   onClick={() => setActiveFilter(f.value)}
+                  aria-pressed={isActive}
                   style={{
                     flexShrink: 0,
                     fontSize: 12, fontWeight: 700,
-                    padding: "5px 13px",
+                    padding: "9px 14px",
+                    minHeight: 36,
                     borderRadius: 20,
                     border: isActive ? `1.5px solid ${tokens.coral}` : `1.5px solid ${tokens.border}`,
                     background: isActive ? tokens.coral : tokens.white,
@@ -117,7 +119,7 @@ export default function HomePage() {
           {filteredGames.map((game) => {
             const isHovered = hoveredGame === game.name;
             const isHtpHovered = hoveredHtp === game.name;
-            const isFeatured = !!game.featured;
+            const theme = game.themeColor || tokens.coral;
             return (
               <Link
                 key={game.name}
@@ -126,46 +128,39 @@ export default function HomePage() {
                 onMouseEnter={() => setHoveredGame(game.name)}
                 onMouseLeave={() => setHoveredGame(null)}
                 style={{
+                  position: "relative",
                   display: "flex",
                   flexDirection: "column",
-                  background: isFeatured ? "#FAECE7" : tokens.white,
-                  border: `1.5px solid ${isFeatured ? "#D85A30" : isHovered ? "#D4CFC9" : tokens.border}`,
+                  background: tokens.white,
+                  border: `1.5px solid ${isHovered ? `${theme}66` : tokens.border}`,
                   borderRadius: tokens.radius.xl,
                   padding: "20px 16px",
                   textDecoration: "none",
-                  transition: "border-color 0.15s ease, transform 0.15s ease",
-                  transform: isHovered ? "translateY(-1px)" : "translateY(0)",
+                  transition: "border-color 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease",
+                  transform: isHovered ? "translateY(-2px)" : "translateY(0)",
+                  boxShadow: isHovered
+                    ? `0 10px 28px -12px ${theme}55, 0 0 0 1px ${theme}22`
+                    : "0 1px 2px rgba(0,0,0,0.03)",
                   boxSizing: "border-box",
                 }}
               >
-                {/* Featured badge */}
-                {isFeatured && (
-                  <div style={{
-                    display: "inline-flex", alignItems: "center", gap: 4,
-                    fontSize: 10, fontWeight: 800, color: "#D85A30",
-                    background: "#F5C4B3", borderRadius: 20,
-                    padding: "2px 8px", marginBottom: 10,
-                    alignSelf: "flex-start", letterSpacing: "0.04em",
-                  }}>
-                    ⭐ Popular
-                  </div>
-                )}
-
                 {/* Emoji icon */}
                 <div style={{
                   width: 52, height: 52, borderRadius: 14,
-                  background: isFeatured ? "#F5C4B3" : tokens.coralBg,
-                  border: `1.5px solid ${tokens.coral}20`,
+                  background: `${theme}15`,
+                  border: `1.5px solid ${theme}30`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 26, marginBottom: 14, flexShrink: 0,
+                  transition: "transform 0.2s ease",
+                  transform: isHovered ? "scale(1.06) rotate(-3deg)" : "none",
                 }}>
                   <span aria-hidden="true">{game.emoji}</span>
                 </div>
 
                 {/* Name */}
-                <div style={{ fontSize: 14, fontWeight: 800, color: tokens.black, letterSpacing: -0.3, marginBottom: 4 }}>
+                <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 16, fontWeight: 800, color: tokens.black, letterSpacing: "-0.03em", marginBottom: 4 }}>
                   <span>{game.split[0]}</span>
-                  <span style={{ color: tokens.coral }}>{game.split[1]}</span>
+                  <span style={{ color: theme }}>{game.split[1]}</span>
                 </div>
 
                 {/* Description */}
@@ -190,9 +185,9 @@ export default function HomePage() {
                     onMouseLeave={() => setHoveredHtp(null)}
                     style={{
                       fontSize: 11, fontWeight: 700,
-                      color: isHtpHovered ? "#D85A30" : tokens.grey2,
+                      color: isHtpHovered ? tokens.coralStrong : tokens.grey2,
                       background: tokens.inputBg,
-                      border: `1px solid ${isHtpHovered ? "#D85A30" : tokens.border}`,
+                      border: `1px solid ${isHtpHovered ? tokens.coralStrong : tokens.border}`,
                       borderRadius: tokens.radius.sm, padding: "3px 8px", letterSpacing: "0.04em",
                       textTransform: "uppercase", cursor: "pointer",
                       fontFamily: "inherit",
@@ -285,7 +280,7 @@ export default function HomePage() {
                   {activeGame.emoji}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div id="sheet-title" style={{ fontSize: 17, fontWeight: 800, color: tokens.black, letterSpacing: -0.3, lineHeight: 1.2 }}>
+                  <div id="sheet-title" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 19, fontWeight: 800, color: tokens.black, letterSpacing: "-0.03em", lineHeight: 1.2 }}>
                     <span>{activeGame.split[0]}</span>
                     <span style={{ color: activeGame.themeColor }}>{activeGame.split[1]}</span>
                   </div>

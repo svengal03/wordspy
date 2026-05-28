@@ -112,7 +112,7 @@ export function TeamSetupScreen<T>({ appName, game, teamPalette, defaultPackIds,
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
         {hostName && (
           <div style={{ paddingTop: 8, fontSize: 13, color: tokens.grey2, fontWeight: 500 }}>
-            Hi {hostName}, let&apos;s set up your game.
+            Hi <span style={{ color: tokens.coral, fontWeight: 700 }}>{hostName}</span>, let&apos;s set up your game.
           </div>
         )}
         <div style={{ paddingTop: hostName ? 4 : 8, fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.2, lineHeight: 1.15, marginBottom: 10 }}>

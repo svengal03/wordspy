@@ -7,7 +7,7 @@ import OpposingBetScreen from "@/games/wavelength/components/OpposingBetScreen";
 import RevealScreen from "@/games/wavelength/components/RevealScreen";
 import GameOverScreen from "@/games/wavelength/components/GameOverScreen";
 import RulesModal from "@/games/wavelength/components/RulesModal";
-import { TeamAssignScreen } from "@/games/shared";
+import { TeamAssignScreen, GetReadyScreen } from "@/games/shared";
 import { startGame } from "@/games/wavelength/engine";
 import { WAVELENGTH_TEAM_META } from "@playhub/core";
 import type { Player, TeamId } from "@/games/wavelength/types";
@@ -59,7 +59,7 @@ export function WavelengthGame() {
         teamId: (reassigned[0]!.players.includes(p.name) ? "A" : "B") as TeamId,
       }));
       const newState = await startGame(updatedPlayers, game.config);
-      set(newState);
+      set({ ...newState, phase: "get-ready" });
     };
 
     return (
@@ -75,6 +75,31 @@ export function WavelengthGame() {
     );
   }
 
+  if (game.phase === "get-ready") {
+    const startingTeam = WAVELENGTH_TEAM_META[game.currentTeamId];
+    const psychic = game.players.find((p) => p.id === game.currentPsychicId);
+    return (
+      <GetReadyScreen
+        appName="Wavelength"
+        accentColor={startingTeam.color}
+        title="Tune the wavelength"
+        subtitle={
+          <>
+            <strong style={{ color: startingTeam.color }}>{startingTeam.label}</strong> goes first
+            {psychic && <> — {psychic.name} is the psychic.</>}
+          </>
+        }
+        hints={[
+          { icon: "📡", text: "Psychic sees the target, gives one clue word." },
+          { icon: "🔮", text: "Teammates slide the needle to where they think it lands." },
+        ]}
+        buttonLabel="Start Round →"
+        rulesModal={({ isOpen, onClose }) => <RulesModal isOpen={isOpen} onClose={onClose} />}
+        onStart={() => set({ phase: "clue" })}
+        onNewGame={restartGame}
+      />
+    );
+  }
   if (game.phase === "clue") return <ClueScreen />;
   if (game.phase === "guess") return <GuessScreen />;
   if (game.phase === "opposing-bet") return <OpposingBetScreen />;

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Btn, Card, NavBtn, Toggle, tokens, TopBar, Screen, Avatar, ErrorBox, OptionsMenu, PlayerNameInput, useGoHome } from "@playhub/ui";
+import { GetReadyScreen } from "@/games/shared";
 import { useGame } from "@/games/mafia/store";
 import { createPlayer, assignRoles, getMafiaCount } from "@/games/mafia/engine";
 import { DEFAULT_CONFIG, GameConfig } from "@/games/mafia/types";
@@ -13,9 +14,33 @@ import GameOverScreen from "@/games/mafia/components/GameOverScreen";
 import RulesModal from "@/games/mafia/components/RulesModal";
 
 export function MafiaGame() {
-  const { game, restartGame } = useGame();
+  const { game, restartGame, set } = useGame();
 
   // ─── Phase switcher ───────────────────────────────────────────────────────
+  if (game.phase === "get-ready") {
+    const host = game.players[0];
+    const playerCount = game.players.length;
+    return (
+      <GetReadyScreen
+        appName="Mafia"
+        accentColor={tokens.coral}
+        title="The town awakens"
+        subtitle={
+          <>
+            {host && <><strong style={{ color: tokens.coral }}>{host.name}</strong> is hosting · </>}
+            {playerCount} player{playerCount !== 1 ? "s" : ""}
+          </>
+        }
+        hints={[
+          { icon: "🤫", text: "Each player will privately see their secret role." },
+          { icon: "📱", text: "Pass the phone around — don't peek at others' screens." },
+        ]}
+        buttonLabel="Reveal Roles →"
+        onStart={() => set({ phase: "role-reveal" })}
+        onNewGame={restartGame}
+      />
+    );
+  }
   if (game.phase === "role-reveal") return <RoleReveal />;
   if (game.phase === "night") return <NightScreen />;
   if (game.phase === "day") return <DayScreen />;
@@ -77,7 +102,7 @@ function SetupScreen() {
     const players = allNames.map((n) => createPlayer(n));
     const withRoles = assignRoles(players, config);
     set({
-      phase: "role-reveal",
+      phase: "get-ready",
       round: 1,
       players: withRoles,
       config,
@@ -167,7 +192,7 @@ function SetupScreen() {
               ].map((s, i) => (
                 <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
                   <div style={{
-                    width: 40, height: 40, borderRadius: 12, background: "#F5F0ED",
+                    width: 40, height: 40, borderRadius: 12, background: tokens.iconBg,
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
                   }}>{s.icon}</div>
                   <div>
@@ -350,8 +375,8 @@ function SetupScreen() {
                   style={{
                     flex: 1, padding: "10px 0", borderRadius: 10, fontSize: 14, fontWeight: 600,
                     border: `1.5px solid ${config.discussionTimerSeconds === opt.value ? tokens.coral : tokens.border}`,
-                    background: config.discussionTimerSeconds === opt.value ? "#FAECE7" : "transparent",
-                    color: config.discussionTimerSeconds === opt.value ? "#993C1D" : tokens.grey1,
+                    background: config.discussionTimerSeconds === opt.value ? tokens.accentBg : "transparent",
+                    color: config.discussionTimerSeconds === opt.value ? tokens.coralDark : tokens.grey1,
                     cursor: "pointer",
                   }}
                 >{opt.label}</button>
@@ -382,8 +407,8 @@ function SetupScreen() {
                     style={{
                       flex: 1, padding: "10px 0", borderRadius: 10, fontSize: 14, fontWeight: 600,
                       border: `1.5px solid ${config.votingTimerSeconds === opt.value ? tokens.coral : tokens.border}`,
-                      background: config.votingTimerSeconds === opt.value ? "#FAECE7" : "transparent",
-                      color: config.votingTimerSeconds === opt.value ? "#993C1D" : tokens.grey1,
+                      background: config.votingTimerSeconds === opt.value ? tokens.accentBg : "transparent",
+                      color: config.votingTimerSeconds === opt.value ? tokens.coralDark : tokens.grey1,
                       cursor: "pointer", fontFamily: "inherit",
                     }}
                   >{opt.label}</button>

@@ -7,13 +7,14 @@ import {
   nextRound, createInitialGameState, createPlayer, eliminatePlayer,
 } from "@/games/wordspy/engine";
 import { GameConfig } from "@/games/wordspy/types";
-import { tokens, Btn, Card, SectionLabel, Toggle, OptionsMenu, Screen, TopBar, NavBtn } from "@playhub/ui";
+import { tokens, Btn, Card, SectionLabel, Toggle, OptionsMenu, Screen, TopBar, NavBtn, ConfirmDialog } from "@playhub/ui";
 import RulesModal from "@/games/wordspy/components/RulesModal";
 import { motion } from "framer-motion";
 import { useGoHome } from "@playhub/ui";
 import { packEmoji, type WordPackRow, type WordRow } from "@/server/db/wordpacks";
 
 import RoleReveal from "@/games/wordspy/components/RoleReveal";
+import { GetReadyScreen } from "@/games/shared";
 import CluePhase from "@/games/wordspy/components/CluePhase";
 import VotePhase from "@/games/wordspy/components/VotePhase";
 import EliminationScreen from "@/games/wordspy/components/EliminationScreen";
@@ -31,6 +32,7 @@ export function WordspyOffline() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [showRoundStart, setShowRoundStart] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
   // ── Supabase word packs (read-only, no realtime needed) ────────────────────
   const [packs, setPacks] = useState<WordPackRow[]>([]);
@@ -63,9 +65,13 @@ export function WordspyOffline() {
   }, [config.packId]);
 
   function handleLeave() {
-    if (!window.confirm("Exit game?")) return;
+    setShowLeaveDialog(true);
+  }
+
+  function confirmLeave() {
+    setShowLeaveDialog(false);
     goHome();
-    reset(); // reset after navigation to avoid a loading-screen flash before unmount
+    reset();
   }
 
   function handleNewGame() {
@@ -102,11 +108,26 @@ export function WordspyOffline() {
     setGameState({ ...state, players: [{ ...localPlayer, isHost: true }] });
   }, []);
 
+  const leaveDialog = (
+    <ConfirmDialog
+      open={showLeaveDialog}
+      title="Exit game?"
+      confirmLabel="Exit"
+      cancelLabel="Stay"
+      dangerous
+      onConfirm={confirmLeave}
+      onCancel={() => setShowLeaveDialog(false)}
+    />
+  );
+
   if (!gameState || !localPlayer) {
     return (
-      <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui", color: "#888" }}>
-        Loading…
-      </div>
+      <>
+        <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui", color: "#888" }}>
+          Loading…
+        </div>
+        {leaveDialog}
+      </>
     );
   }
 
@@ -145,6 +166,7 @@ export function WordspyOffline() {
     };
 
     return (
+      <>
       <Screen>
         <TopBar
           appName="Wordspy"
@@ -224,7 +246,7 @@ export function WordspyOffline() {
                     </span>
                     {ghosts > 0 && (
                       <span style={{ padding: "4px 12px", borderRadius: 20, background: "#F3F0FF", color: "#7C3AED", fontSize: 13, fontWeight: 600 }}>
-                        👻 {ghosts} Phantom
+                        👻 {ghosts} Mr. Phantom
                       </span>
                     )}
                   </div>
@@ -307,13 +329,42 @@ export function WordspyOffline() {
             {gameState.players.length < 3
               ? `Need ${3 - gameState.players.length} more player(s)`
               : packWords.filter(w => w.word_b !== null).length === 0
-              ? "Loading words…"
+              ? "Loading word packs…"
               : "Start Game →"}
           </Btn>
         </div>
       </Screen>
+      {leaveDialog}
+    </>
     );
   }
+  if (gameState.phase === "get-ready") {
+    const playerCount = gameState.players.length;
+    return (
+      <>
+      <GetReadyScreen
+        appName="Wordspy"
+        title="Words are in"
+        subtitle={
+          <>
+            {playerCount} player{playerCount !== 1 ? "s" : ""} · roles are sealed
+          </>
+        }
+        hints={[
+          { icon: "🤫", text: "Each player will privately see their secret word." },
+          { icon: "📱", text: "Pass the phone around — don't peek at others' screens." },
+        ]}
+        buttonLabel="Reveal Words →"
+        rulesModal={({ isOpen, onClose }) => <RulesModal isOpen={isOpen} onClose={onClose} />}
+        onStart={() => setGameState({ ...gameState, phase: "role-reveal" })}
+        onNewGame={handleNewGame}
+        onLeave={handleLeave}
+      />
+      {leaveDialog}
+      </>
+    );
+  }
+
   if (gameState.phase === "role-reveal") {
     const isLast = revealIndex >= gameState.players.length - 1;
     const handleRevealDone = () => {
@@ -324,6 +375,7 @@ export function WordspyOffline() {
       }
     };
     return (
+      <>
       <RoleReveal
         gameState={gameState}
         localPlayer={gameState.players[revealIndex]}
@@ -333,6 +385,8 @@ export function WordspyOffline() {
         onLeave={handleLeave}
         onNewGame={handleNewGame}
       />
+      {leaveDialog}
+      </>
     );
   }
 
@@ -341,6 +395,7 @@ export function WordspyOffline() {
     const activePlayers = gameState.players.filter((p) => !p.isEliminated);
     const eliminated = gameState.players.filter((p) => p.isEliminated);
     return (
+      <>
       <Screen>
         <TopBar
           appName="Wordspy"
@@ -392,6 +447,8 @@ export function WordspyOffline() {
         </motion.div>
         </div>
       </Screen>
+      {leaveDialog}
+      </>
     );
   }
 
@@ -408,6 +465,7 @@ export function WordspyOffline() {
       setGameState(allClued ? { ...result.state, phase: "discussion" } : result.state);
     };
     return (
+      <>
       <CluePhase
         gameState={gameState}
         localPlayer={currentPlayer}
@@ -418,6 +476,8 @@ export function WordspyOffline() {
         onLeave={handleLeave}
         onNewGame={handleNewGame}
       />
+      {leaveDialog}
+      </>
     );
   }
 
@@ -431,6 +491,7 @@ export function WordspyOffline() {
       setGameState(castVote(gameState, currentVoter.id, targetId, true));
     };
     return (
+      <>
       <VotePhase
         gameState={gameState}
         localPlayer={currentVoter}
@@ -440,12 +501,15 @@ export function WordspyOffline() {
         onLeave={handleLeave}
         onNewGame={handleNewGame}
       />
+      {leaveDialog}
+      </>
     );
   }
 
   // ─── Elimination ──────────────────────────────────────────────────────────
   if (gameState.phase === "elimination") {
     return (
+      <>
       <EliminationScreen
         gameState={gameState}
         localPlayer={localPlayer}
@@ -461,6 +525,8 @@ export function WordspyOffline() {
         onLeave={handleLeave}
         onNewGame={handleNewGame}
       />
+      {leaveDialog}
+      </>
     );
   }
 
@@ -470,6 +536,7 @@ export function WordspyOffline() {
     const maxVotes = Math.max(...activePlayers.map((p) => p.votes));
     const tiedPlayers = activePlayers.filter((p) => p.votes === maxVotes);
     return (
+      <>
       <Screen>
         <TopBar
           appName="Wordspy"
@@ -508,6 +575,8 @@ export function WordspyOffline() {
           </div>
         </div>
       </Screen>
+      {leaveDialog}
+      </>
     );
   }
 
@@ -530,7 +599,12 @@ export function WordspyOffline() {
       });
       setRevealIndex(0);
     };
-    return <SummaryScreen gameState={gameState} localPlayer={localPlayer} onPlayAgain={handlePlayAgain} />;
+    return (
+      <>
+      <SummaryScreen gameState={gameState} localPlayer={localPlayer} onPlayAgain={handlePlayAgain} />
+      {leaveDialog}
+      </>
+    );
   }
 
   return null;

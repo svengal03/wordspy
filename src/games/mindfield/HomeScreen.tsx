@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Btn, Card, tokens, PlayerNameInput, useGoHome, PlayHubLogo } from "@playhub/ui";
+import { Btn, Card, tokens, PlayerNameInput, useGoHome, Screen, TopBar, NavBtn } from "@playhub/ui";
 import RulesModal from "./components/RulesModal";
 import { useMindFieldStore } from "./store";
 import { createPlayer } from "./engine";
@@ -84,25 +84,16 @@ export function MindFieldHome() {
   ];
 
   return (
-    <div style={{
-      minHeight: "100dvh", background: tokens.bg,
-      fontFamily: "'DM Sans', system-ui, sans-serif",
-      display: "flex", flexDirection: "column",
-    }}>
-      {/* TopBar */}
-      <div style={{ padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <PlayHubLogo />
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            onClick={() => setShowRules(true)}
-            style={{
-              padding: "7px 14px", borderRadius: 10, border: `1.5px solid ${tokens.border}`,
-              background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600,
-              color: tokens.grey1, fontFamily: "inherit",
-            }}
-          >Rules</button>
-        </div>
-      </div>
+    <Screen style={{ display: "flex", flexDirection: "column" }}>
+      <TopBar
+        appName="Mindfield"
+        right={
+          <div style={{ display: "flex", gap: 8 }}>
+            <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
+            <NavBtn onClick={goHome}>Exit</NavBtn>
+          </div>
+        }
+      />
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
 
@@ -146,7 +137,7 @@ export function MindFieldHome() {
               {HOW_IT_WORKS.map((s, i) => (
                 <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
                   <div style={{
-                    width: 40, height: 40, borderRadius: 12, background: "#F5F0ED",
+                    width: 40, height: 40, borderRadius: 12, background: tokens.iconBg,
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
                   }}>{s.icon}</div>
                   <div>
@@ -170,7 +161,7 @@ export function MindFieldHome() {
                 onKeyDown={e => e.key === "Enter" && handleCreate()}
                 placeholder="Your name…"
               />
-              {error && <div style={{ fontSize: 13, color: "#DC2626", marginTop: 6 }}>{error}</div>}
+              {error && <div style={{ fontSize: 13, color: tokens.red, marginTop: 6 }}>{error}</div>}
               <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
                 <Btn variant="ghost" onClick={back} style={{ flex: 1, padding: "13px" }}>← Back</Btn>
                 <Btn onClick={handleCreate} disabled={loading || !name.trim()} style={{ flex: 2, padding: "13px" }}>
@@ -210,7 +201,7 @@ export function MindFieldHome() {
                 onKeyDown={e => e.key === "Enter" && handleJoin()}
                 placeholder="Your name…"
               />
-              {error && <div style={{ fontSize: 13, color: "#DC2626", marginTop: 6 }}>{error}</div>}
+              {error && <div style={{ fontSize: 13, color: tokens.red, marginTop: 6 }}>{error}</div>}
               <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
                 <Btn variant="ghost" onClick={back} style={{ flex: 1, padding: "13px" }}>← Back</Btn>
                 <Btn onClick={handleJoin} disabled={loading || !name.trim() || !joinCode.trim()} style={{ flex: 2, padding: "13px" }}>
@@ -221,6 +212,6 @@ export function MindFieldHome() {
           </motion.div>
         )}
       </div>
-    </div>
+    </Screen>
   );
 }

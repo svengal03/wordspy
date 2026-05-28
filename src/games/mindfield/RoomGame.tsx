@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMindFieldStore } from "./store";
 import { useMindFieldRoom } from "./useRoom";
 import { submitClue, endTurn, toggleFlag, revealTile, resetForPlayAgain } from "./engine";
 import type { GameState, TeamColor, PlayerRole } from "./types";
 
+import { ConfirmDialog } from "@playhub/ui";
 import LobbyScreen from "./components/LobbyScreen";
 import SpymasterView from "./components/SpymasterView";
 import AgentView from "./components/AgentView";
@@ -26,6 +27,7 @@ export function MindFieldRoom() {
 
   const [roomId, setRoomId] = useState<string | null>(null);
   const [roomError, setRoomError] = useState<string | null>(null);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [showBomb, setShowBomb] = useState(false);
   const [isLoadingRoom, setIsLoadingRoom] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
@@ -271,10 +273,14 @@ export function MindFieldRoom() {
     await push(resetForPlayAgain(gameState));
   }
 
-  async function handleLeave() {
+  function handleLeave() {
     if (!localPlayer) return;
-    const msg = localPlayer.isHost ? "End game and return home?" : "Leave this game?";
-    if (!window.confirm(msg)) return;
+    setShowLeaveDialog(true);
+  }
+
+  async function confirmLeave() {
+    if (!localPlayer) return;
+    setShowLeaveDialog(false);
     leavingRef.current = true;
     await handleRemovePlayer(localPlayer.id);
     reset();
@@ -289,7 +295,7 @@ export function MindFieldRoom() {
     && !gameState.players.find(p => p.id === localPlayer.id);
 
   if (isLoadingRoom || !gameState || !localPlayer || isKicked) {
-    const isError = !!roomError || isKicked;
+    const isError = !!roomError || !!isKicked;
     const msg = isKicked
       ? "You were removed from the room."
       : roomError ?? "Loading room…";
@@ -300,30 +306,30 @@ export function MindFieldRoom() {
       }}>
         <div style={{ fontSize: 32 }}>{isError ? "😔" : "🧠"}</div>
         <div style={{ color: isError ? "#EF4444" : "#888", textAlign: "center", maxWidth: 280, lineHeight: 1.5 }}>{msg}</div>
-        {isError && (
-          <button
-            onClick={() => router.push("/mindfield")}
-            style={{
-              marginTop: 8, padding: "10px 24px", borderRadius: 10, border: "1.5px solid #ddd",
-              background: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 600, fontFamily: "inherit",
-            }}
-          >
-            Go Home
-          </button>
-        )}
+        <button
+          onClick={() => router.push("/mindfield")}
+          style={{
+            marginTop: 8, padding: "10px 24px", borderRadius: 10, border: "1.5px solid #ddd",
+            background: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 600, fontFamily: "inherit",
+          }}
+        >
+          ← PlayHub
+        </button>
       </div>
     );
   }
 
   const { phase } = gameState;
+  const leaveLabel = localPlayer.isHost ? "End game?" : "Leave this game?";
+
+  let content: React.ReactNode = null;
 
   // ── Bomb overlay ──────────────────────────────────────────────────────────
   if (showBomb && gameState.bombTriggeredBy) {
     const bombTile = gameState.tiles.find(t => t.color === "bomb" && t.revealed);
-    return (
+    content = (
       <>
         <BombReveal triggeredBy={gameState.bombTriggeredBy} word={bombTile?.word ?? "???"} />
-        {/* Host still needs to advance — show next round button beneath overlay if host */}
         <div style={{ position: "fixed", bottom: 40, left: "50%", transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, zIndex: 300 }}>
           {localPlayer.isHost ? (
             <button
@@ -352,11 +358,9 @@ export function MindFieldRoom() {
         </div>
       </>
     );
-  }
-
-  // ── Lobby ─────────────────────────────────────────────────────────────────
-  if (phase === "lobby") {
-    return (
+  } else if (phase === "lobby") {
+    // ── Lobby ─────────────────────────────────────────────────────────────
+    content = (
       <LobbyScreen
         gameState={gameState}
         localPlayer={localPlayer}
@@ -370,15 +374,12 @@ export function MindFieldRoom() {
         onLeave={handleLeave}
       />
     );
-  }
+  } else if (effectivePlayer) {
+    // ── Playing ─────────────────────────────────────────────────────────────
+    const newGame = effectivePlayer.isHost ? handlePlayAgain : undefined;
 
-  // ── Playing ───────────────────────────────────────────────────────────────
-  if (!effectivePlayer) return null;
-  const newGame = effectivePlayer.isHost ? handlePlayAgain : undefined;
-
-  if (phase === "playing") {
-    if (effectivePlayer.role === "spymaster") {
-      return (
+    if (phase === "playing") {
+      content = effectivePlayer.role === "spymaster" ? (
         <SpymasterView
           gameState={gameState}
           localPlayer={effectivePlayer}
@@ -386,45 +387,51 @@ export function MindFieldRoom() {
           onLeave={handleLeave}
           onNewGame={newGame}
         />
+      ) : (
+        <AgentView
+          gameState={gameState}
+          localPlayer={effectivePlayer}
+          onRevealTile={handleRevealTile}
+          onFlagTile={handleFlagTile}
+          onPass={handlePass}
+          onLeave={handleLeave}
+          onNewGame={newGame}
+        />
+      );
+    } else if (phase === "round-over") {
+      content = (
+        <RoundOverScreen
+          gameState={gameState}
+          localPlayer={effectivePlayer}
+          onNextRound={handleNextRound}
+          onLeave={handleLeave}
+          onNewGame={newGame}
+        />
+      );
+    } else if (phase === "game-over") {
+      content = (
+        <GameOverScreen
+          gameState={gameState}
+          localPlayer={effectivePlayer}
+          onPlayAgain={handlePlayAgain}
+          onLeave={handleLeave}
+        />
       );
     }
-    return (
-      <AgentView
-        gameState={gameState}
-        localPlayer={effectivePlayer}
-        onRevealTile={handleRevealTile}
-        onFlagTile={handleFlagTile}
-        onPass={handlePass}
-        onLeave={handleLeave}
-        onNewGame={newGame}
-      />
-    );
   }
 
-  // ── Round over ────────────────────────────────────────────────────────────
-  if (phase === "round-over") {
-    return (
-      <RoundOverScreen
-        gameState={gameState}
-        localPlayer={effectivePlayer}
-        onNextRound={handleNextRound}
-        onLeave={handleLeave}
-        onNewGame={newGame}
+  return (
+    <>
+      {content}
+      <ConfirmDialog
+        open={showLeaveDialog}
+        title={leaveLabel}
+        confirmLabel={localPlayer.isHost ? "End Game" : "Leave"}
+        cancelLabel="Stay"
+        dangerous
+        onConfirm={confirmLeave}
+        onCancel={() => setShowLeaveDialog(false)}
       />
-    );
-  }
-
-  // ── Game over ─────────────────────────────────────────────────────────────
-  if (phase === "game-over") {
-    return (
-      <GameOverScreen
-        gameState={gameState}
-        localPlayer={effectivePlayer}
-        onPlayAgain={handlePlayAgain}
-        onLeave={handleLeave}
-      />
-    );
-  }
-
-  return null;
+    </>
+  );
 }

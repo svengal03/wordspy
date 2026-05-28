@@ -1,5 +1,5 @@
 export type MafiaRole = "mafia" | "villager" | "doctor" | "police" | "god";
-export type GamePhase = "setup" | "role-reveal" | "night" | "day" | "vote" | "game-over";
+export type GamePhase = "setup" | "get-ready" | "role-reveal" | "night" | "day" | "vote" | "game-over";
 export type NightSubPhase = "sleeping" | "mafia-wake" | "doctor-wake" | "police-wake" | "resolving";
 
 export interface Player {
