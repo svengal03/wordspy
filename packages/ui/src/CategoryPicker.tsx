@@ -2,6 +2,7 @@
 import React from "react";
 import { WORD_PACKS } from "@playhub/core";
 import type { GameId } from "@playhub/core";
+import { tokens } from "./tokens";
 
 interface Props {
   selected: string[];
@@ -60,9 +61,9 @@ export function CategoryPicker({ selected, onChange, game }: Props) {
               style={{
                 padding: "6px 12px",
                 borderRadius: 20,
-                border: active ? "1.5px solid #CC785C" : "1.5px solid #E8E5E1",
-                background: active ? "#FAECE7" : "#fff",
-                color: active ? "#993C1D" : "#666",
+                border: active ? `1.5px solid ${tokens.coral}` : `1.5px solid ${tokens.border}`,
+                background: active ? tokens.accentBg : tokens.white,
+                color: active ? tokens.coralDark : tokens.grey1,
                 fontSize: 13,
                 fontWeight: active ? 600 : 400,
                 cursor: "pointer",

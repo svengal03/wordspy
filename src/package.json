@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev --turbopack -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint"
@@ -12,11 +12,10 @@
     "@playhub/config": "*",
     "@playhub/core": "*",
     "@playhub/ui": "*",
+    "@supabase/supabase-js": "^2.106.1",
     "framer-motion": "^11.3.0",
     "nanoid": "^5.0.7",
     "next": "^15.5.18",
-    "pusher": "^5.3.3",
-    "pusher-js": "^8.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^4.5.4"

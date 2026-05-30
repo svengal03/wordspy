@@ -7,6 +7,8 @@ export type GameConfig = {
   players: string;
   themeColor: string;
   steps: string[];
+  tags: string[];
+  featured?: boolean;
 };
 
 export const GAMES: GameConfig[] = [
@@ -18,6 +20,8 @@ export const GAMES: GameConfig[] = [
     description: "Find the spy before they fool everyone.",
     players: "4–10",
     themeColor: "#CC785C",
+    tags: ["deduction", "small"],
+    featured: true,
     steps: [
       "Everyone secretly gets a word — 1 Undercover gets a similar but different word, 1 Mr. Phantom gets nothing",
       "Go around: each player gives one one-word clue hinting at their word without saying it",
@@ -33,7 +37,8 @@ export const GAMES: GameConfig[] = [
     emoji: "🔪",
     description: "Vote out the Mafia before they take over.",
     players: "5–15",
-    themeColor: "#1A1A1A",
+    themeColor: "#CC785C",
+    tags: ["deduction", "teams"],
     steps: [
       "Roles are secretly assigned — some are Mafia, others are Village (Villager, Doctor, Police), one is the God (moderator)",
       "Night: everyone closes eyes, Mafia silently picks a target — Doctor protects one player, Police investigates one",
@@ -50,6 +55,7 @@ export const GAMES: GameConfig[] = [
     description: "Mime it, flail it, crack up everyone.",
     players: "4+",
     themeColor: "#CC785C",
+    tags: ["acting", "teams", "small"],
     steps: [
       "Split into teams — each round one player is the actor",
       "Actor privately picks Easy (1 pt), Medium (1–3 pts), or Hard (2–5 pts)",
@@ -66,6 +72,7 @@ export const GAMES: GameConfig[] = [
     description: "Draw a word, watch them lose their minds.",
     players: "4+",
     themeColor: "#CC785C",
+    tags: ["drawing", "teams", "small"],
     steps: [
       "Split into teams — each round one player is the drawer",
       "Drawer privately picks Easy (1 pt), Medium (1–3 pts), or Hard (2–5 pts)",
@@ -75,13 +82,32 @@ export const GAMES: GameConfig[] = [
     ],
   },
   {
+    slug: "mindfield",
+    name: "Mind Field",
+    split: ["Mind", " Field"],
+    emoji: "🧠",
+    description: "Spymasters hint. Agents guess. Don't hit the bomb.",
+    players: "4–16",
+    themeColor: "#CC785C",
+    tags: ["deduction", "teams", "online"],
+    featured: false,
+    steps: [
+      "Two teams — Red (9 words) and Blue (8 words) — compete on a shared 5×5 grid",
+      "Each team has one Spymaster who sees the full colour-coded grid on their own device",
+      "Spymaster gives a one-word clue + a number hinting at multiple words — e.g. 'River, 3'",
+      "Field Agents tap words they think match the clue — wrong colour ends your turn",
+      "One word is the Bomb — tap it and your team instantly loses the round. First to targetWins rounds wins",
+    ],
+  },
+  {
     slug: "wavelength",
     name: "Wavelength",
     split: ["Wave", "length"],
     emoji: "〰️",
     description: "Two teams. One spectrum. Find the wavelength.",
     players: "4–12",
-    themeColor: "#4A90D9",
+    themeColor: "#CC785C",
+    tags: ["teams"],
     steps: [
       "Two teams compete — each round one player is the Psychic",
       "Psychic alone sees the spectrum card (e.g. Cold ↔ Hot) and a hidden target on it",

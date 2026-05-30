@@ -4,6 +4,7 @@
 
 html {
   overflow-x: hidden;
+  color-scheme: light;
 }
 
 html, body {
@@ -22,6 +23,79 @@ button, input, textarea {
   font-family: inherit;
 }
 
+a {
+  color: inherit;
+}
+
+/* Focus rings — keyboard users only */
+:focus-visible {
+  outline: 2px solid #CC785C;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+[role="switch"]:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #CC785C;
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #CC785C;
+  outline-offset: 0;
+  border-color: #CC785C !important;
+}
+
+/* Suppress focus ring on mouse clicks */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Animated mesh gradient background */
+.ph-mesh-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(at 18% 22%, #EAD9D0 0px, transparent 45%),
+    radial-gradient(at 82% 18%, #EDE0D8 0px, transparent 50%),
+    radial-gradient(at 75% 78%, #EFE5E0 0px, transparent 55%),
+    radial-gradient(at 22% 85%, #EBE0D8 0px, transparent 50%),
+    #FAF8F5;
+  background-size: 200% 200%;
+  animation: phMeshDrift 28s ease-in-out infinite alternate;
+}
+
+@keyframes phMeshDrift {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 30% 100%; }
+}
+
+/* Grain overlay — kills the flat feel */
+.ph-grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
 ::-webkit-scrollbar {
   width: 4px;
 }
@@ -32,3 +106,57 @@ button, input, textarea {
   background: #E5E5E5;
   border-radius: 2px;
 }
+
+/* ─── Responsive layout helpers ─────────────────────────────────────────────── */
+
+/* TopBar inner — keeps logo+actions aligned with page content on wide screens */
+.ph-topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 20px;
+}
+
+/* Generic page content wrapper */
+.ph-content {
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 24px 40px;
+  box-sizing: border-box;
+}
+
+/* Lobby screens: hero+CTA left, how-it-works right on desktop */
+.ph-lobby-body {
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 24px 40px;
+  box-sizing: border-box;
+}
+.ph-lobby-primary { width: 100%; }
+.ph-lobby-secondary { margin-top: 32px; }
+.ph-hiw-inline { display: block; }
+.ph-hiw-sidebar { display: none; }
+
+/* Home page wrappers */
+.ph-home-main {
+  max-width: 520px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.ph-game-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+.ph-filter-inner {
+  display: flex;
+  gap: 7px;
+  padding: 0 20px;
+  width: max-content;
+}
+

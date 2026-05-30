@@ -1,10 +1,10 @@
-import type { Metadata, Viewport } from "next";
+﻿import type { Metadata, Viewport } from "next";
 import { GAME_BY_SLUG } from "@playhub/config";
 
 const game = GAME_BY_SLUG["wavelength"];
 
 export const metadata: Metadata = {
-  title: `${game.name} — PlayHub`,
+  title: `${game.name} – PlayHub`,
   description: game.description,
   icons: { icon: "/favicons/favicon-wavelength.svg" },
 };

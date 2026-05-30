@@ -1,0 +1,1 @@
+export { WavelengthGame } from "./WavelengthGame";

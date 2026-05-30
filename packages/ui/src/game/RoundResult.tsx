@@ -21,13 +21,14 @@ interface Props {
   onNext: () => void;
   onEndGame: () => void;
   onNewGame: () => void;
+  onExit?: () => void;
 }
 
-export function RoundResult({ correct, word, difficulty, teams, teamColors, phases, appName, actingTeamName, actingTeamIdx, onNext, onEndGame, onNewGame }: Props) {
+export function RoundResult({ correct, word, difficulty, teams, teamColors, phases, appName, actingTeamName, actingTeamIdx, onNext, onEndGame, onNewGame, onExit }: Props) {
   const router = useRouter();
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
-      <TopBar appName={appName} right={<OptionsMenu onNewGame={onNewGame} onExit={() => router.push("/")} />} />
+      <TopBar appName={appName} right={<OptionsMenu onNewGame={onNewGame} onExit={onExit ?? (() => router.push("/"))} />} />
       <PhaseTrail phases={phases} current="Results" accentColor={teamColors[actingTeamIdx]} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>
@@ -40,9 +41,19 @@ export function RoundResult({ correct, word, difficulty, teams, teamColors, phas
               border: `1.5px solid ${correct ? "#BBF7D0" : tokens.border}`,
             }}>
               <div style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
                 fontSize: 22, fontWeight: 800, letterSpacing: -0.3, marginBottom: 6,
                 color: correct ? tokens.green : tokens.black,
               }}>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+                    background: correct ? tokens.green : tokens.grey4,
+                    color: "#fff", fontSize: 14, fontWeight: 700,
+                  }}
+                >{correct ? "✓" : "—"}</span>
                 {correct ? "Correct!" : "Skipped"}
               </div>
               {correct && actingTeamName && (
