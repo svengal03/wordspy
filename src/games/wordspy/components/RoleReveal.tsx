@@ -22,14 +22,14 @@ const roleInfo = {
     color: "#2563EB",
     bg: "#EDF6FF",
     border: "#BFDBFE",
-    tip: "Give clues that prove you know this word — but stay vague enough that Mr. Phantom can't guess it. Find your allies!",
+    tip: "Give a one-word clue that relates to your word. Don't make it too obvious!",
   },
   undercover: {
     label: "Undercover",
     color: "#CC4E00",
     bg: "#FFF3EE",
     border: "#FECDB0",
-    tip: "Your word is similar but different. Blend in with the Civilians — don't expose yourself too early!",
+    tip: "Give a one-word clue that relates to your word. Don't make it too obvious!",
   },
   ghost: {
     label: "Mr. Phantom",
@@ -108,27 +108,11 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
               animate={{ opacity: 1, y: 0 }}
               style={{ textAlign: "center", width: "100%", maxWidth: 440 }}
             >
-              {/* Role badge */}
-              <div style={{ marginBottom: 12 }}>
-                <span style={{
-                  display: "inline-block",
-                  padding: "4px 14px", borderRadius: 20,
-                  background: roleInfo[currentPlayer.role].bg,
-                  border: `1.5px solid ${roleInfo[currentPlayer.role].border}`,
-                  fontSize: 12, fontWeight: 700,
-                  color: roleInfo[currentPlayer.role].color,
-                  letterSpacing: 0.5,
-                  textTransform: "uppercase",
-                }}>
-                  {roleInfo[currentPlayer.role].label}
-                </span>
-              </div>
-
               {/* Word box */}
               <div style={{
                 margin: "0 0 16px",
-                background: roleInfo[currentPlayer.role].bg,
-                border: `2px solid ${roleInfo[currentPlayer.role].border}`,
+                background: currentPlayer.role === "ghost" ? roleInfo.ghost.bg : "#F8F8F8",
+                border: `2px solid ${currentPlayer.role === "ghost" ? roleInfo.ghost.border : "#E5E5E5"}`,
                 borderRadius: 20,
                 padding: "32px 32px",
                 textAlign: "center",
@@ -137,10 +121,9 @@ export default function RoleReveal({ gameState, localPlayer, isOffline, revealIn
                 gap: 6,
               }}>
                 {currentPlayer.role === "ghost" ? (
-                  <>
-                    <div style={{ fontSize: 32 }}>👻</div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: roleInfo.ghost.color }}>No Word</div>
-                  </>
+                  <div style={{ fontSize: 40, fontWeight: 800, color: roleInfo.ghost.color, letterSpacing: -0.8 }}>
+                    Mr. Phantom
+                  </div>
                 ) : (
                   <div style={{
                     fontSize: 40, fontWeight: 800,

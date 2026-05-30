@@ -31,6 +31,8 @@ export interface NightResult {
   killedName: string | null;
   killedRole: MafiaRole | null;
   savedByDoctor: boolean;
+  mafiaTargetName: string | null;
+  doctorTargetName: string | null;
   policeResult: { targetName: string; isMafia: boolean } | null;
 }
 
@@ -39,6 +41,19 @@ export interface EliminationRecord {
   phase: "night" | "day";
   playerName: string;
   role: MafiaRole;
+}
+
+export interface RoundEvent {
+  round: number;
+  mafiaTargeted: string | null;
+  savedByDoctor: boolean;
+  doctorProtected: string | null;
+  policeInvestigated: string | null;
+  policeFoundMafia: boolean | null;
+  nightKilled: string | null;
+  nightKilledRole: MafiaRole | null;
+  dayVotedOut: string | null;
+  dayVotedOutRole: MafiaRole | null;
 }
 
 export interface GameState {
@@ -54,6 +69,7 @@ export interface GameState {
   voteNo: number;
   lastNightResult: NightResult | null;
   eliminationHistory: EliminationRecord[];
+  roundHistory: RoundEvent[];
   winner: "mafia" | "villager" | null;
   revealIndex: number; // which player is currently doing role reveal
 }

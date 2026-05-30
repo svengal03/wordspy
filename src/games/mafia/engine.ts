@@ -51,18 +51,22 @@ export function checkWin(players: Player[]): "mafia" | "villager" | null {
 
 export function resolveNight(state: GameState): NightResult {
   const { mafiaTarget, doctorTarget, policeTarget } = state.nightActions;
-  // Police result
+  const mafiaTargetPlayer = mafiaTarget ? state.players.find((p) => p.id === mafiaTarget) : null;
+  const doctorTargetPlayer = doctorTarget ? state.players.find((p) => p.id === doctorTarget) : null;
+  const mafiaTargetName = mafiaTargetPlayer?.name ?? null;
+  const doctorTargetName = doctorTargetPlayer?.name ?? null;
+
   let policeResult: NightResult["policeResult"] = null;
   if (state.config.policeEnabled && policeTarget) {
     const t = state.players.find((p) => p.id === policeTarget);
     if (t) policeResult = { targetName: t.name, isMafia: t.role === "mafia" };
   }
-  if (!mafiaTarget) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: false, policeResult };
+  if (!mafiaTarget) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: false, mafiaTargetName, doctorTargetName, policeResult };
   const savedByDoctor = state.config.doctorEnabled && mafiaTarget === doctorTarget;
-  if (savedByDoctor) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: true, policeResult };
+  if (savedByDoctor) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: true, mafiaTargetName, doctorTargetName, policeResult };
   const target = state.players.find((p) => p.id === mafiaTarget);
-  if (!target || target.isEliminated) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: false, policeResult };
-  return { killedId: target.id, killedName: target.name, killedRole: target.role, savedByDoctor: false, policeResult };
+  if (!target || target.isEliminated) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: false, mafiaTargetName, doctorTargetName, policeResult };
+  return { killedId: target.id, killedName: target.name, killedRole: target.role, savedByDoctor: false, mafiaTargetName, doctorTargetName, policeResult };
 }
 
 export function eliminatePlayer(players: Player[], id: string): Player[] {

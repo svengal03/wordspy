@@ -113,6 +113,7 @@ function SetupScreen() {
       voteNo: 0,
       lastNightResult: null,
       eliminationHistory: [],
+      roundHistory: [],
       winner: null,
     });
   }
@@ -132,6 +133,32 @@ function SetupScreen() {
   const specialCount = (config.doctorEnabled ? 1 : 0) + (config.policeEnabled ? 1 : 0);
   const villagerCount = Math.max(0, playingCount - mafiaCount - specialCount);
 
+  const howItWorks = (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
+        How it works
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {[
+          { icon: "🎭", title: "Get your role", desc: "Mafia, Civilian, Doctor, or Detective. The God runs the game." },
+          { icon: "🌙", title: "Night falls", desc: "Mafia strikes in secret. Doctor protects. Police investigates." },
+          { icon: "☀️", title: "Day breaks", desc: "Discuss, accuse, and vote them out. Find the Mafia before it's too late." },
+        ].map((s, i) => (
+          <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12, background: tokens.iconBg,
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
+            }}>{s.icon}</div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{s.title}</div>
+              <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+
   // ── Name entry step (like wordspy) ──────────────────────────────────────────
   if (!hostConfirmed) {
     return (
@@ -146,63 +173,44 @@ function SetupScreen() {
           }
         />
 
-      <div style={{ flex: 1, maxWidth: 480, margin: "0 auto", width: "100%", padding: "0 24px 40px", boxSizing: "border-box" }}>
-
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ paddingTop: 32, marginBottom: 24 }}>
-            <div style={{ fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.2, lineHeight: 1.15, marginBottom: 10 }}>
-              Lies, betrayal,<br />
-              <span style={{ color: tokens.coral }}>mafia</span>.
-            </div>
-            <div style={{ fontSize: 15, color: tokens.grey2, lineHeight: 1.6, marginBottom: 32, maxWidth: 300 }}>
-              Social deduction for 5–15 players. Vote out the Mafia before they take over.
-            </div>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
-                Your Name (Host)
+        <div className="ph-lobby-body" style={{ flex: 1 }}>
+          <div className="ph-lobby-primary">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ paddingTop: 32, marginBottom: 24 }}>
+              <div style={{ fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.2, lineHeight: 1.15, marginBottom: 10 }}>
+                Lies, betrayal,<br />
+                <span style={{ color: tokens.coral }}>mafia</span>.
               </div>
-              <PlayerNameInput
-                value={hostName}
-                onChange={(val) => { setHostName(val); setError(""); }}
-                onKeyDown={handleKey}
-                placeholder="e.g. Rahul, Priya…"
-                autoFocus
-                style={{ fontSize: 15, padding: "12px 14px" }}
-              />
-            </Card>
+              <div style={{ fontSize: 15, color: tokens.grey2, lineHeight: 1.6, marginBottom: 32, maxWidth: 320 }}>
+                Social deduction for 5–15 players. Vote out the Mafia before they take over.
+              </div>
+            </motion.div>
 
-            {error && <ErrorBox>{error}</ErrorBox>}
-
-            <Btn fullWidth onClick={confirmHost} style={{ padding: "15px 24px", fontSize: 16 }}>
-              Set Up Game →
-            </Btn>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} style={{ marginTop: 32 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
-              How it works
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {[
-                { icon: "🎭", title: "Get your role", desc: "Mafia, Civilian, Doctor, or Detective. The God runs the game." },
-                { icon: "🌙", title: "Night falls", desc: "Mafia strikes in secret. Doctor protects. Police investigates." },
-                { icon: "☀️", title: "Day breaks", desc: "Discuss, accuse, and vote them out. Find the Mafia before it's too late." },
-              ].map((s, i) => (
-                <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 12, background: tokens.iconBg,
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
-                  }}>{s.icon}</div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{s.title}</div>
-                    <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
-                  </div>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+              <Card style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
+                  Your Name (Host)
                 </div>
-              ))}
-            </div>
-          </motion.div>
+                <PlayerNameInput
+                  value={hostName}
+                  onChange={(val) => { setHostName(val); setError(""); }}
+                  onKeyDown={handleKey}
+                  placeholder="e.g. Rahul, Priya…"
+                  autoFocus
+                  style={{ fontSize: 15, padding: "12px 14px" }}
+                />
+              </Card>
+
+              {error && <ErrorBox>{error}</ErrorBox>}
+
+              <Btn fullWidth onClick={confirmHost} style={{ padding: "15px 24px", fontSize: 16, marginTop: error ? 12 : 0 }}>
+                Set Up Game →
+              </Btn>
+            </motion.div>
+
+            <div className="ph-hiw-inline" style={{ marginTop: 32 }}>{howItWorks}</div>
+          </div>
+
+          <div className="ph-lobby-secondary ph-hiw-sidebar">{howItWorks}</div>
         </div>
         <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
       </Screen>
@@ -221,7 +229,7 @@ function SetupScreen() {
         }
       />
 
-      <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="ph-content" style={{ display: "flex", flexDirection: "column", gap: 16, paddingTop: 20 }}>
 
         {/* Player entry */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>

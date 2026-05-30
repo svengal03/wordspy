@@ -247,19 +247,21 @@ export function TopBar({ title, sub, right, appName }: { title?: string; sub?: s
   return (
     <>
       <div style={{
-        padding: "14px 20px",
         borderBottom: `0.5px solid ${tokens.divider}`,
         background: tokens.bg,
         position: "sticky", top: 0, zIndex: tokens.zIndex.topbar,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <PlayHubLogo appName={appName} />
-        {right}
+        <div className="ph-topbar-inner">
+          <PlayHubLogo appName={appName} />
+          {right}
+        </div>
       </div>
       {(title || sub) && (
-        <div style={{ padding: "14px 20px 12px", background: tokens.bg, borderBottom: `0.5px solid ${tokens.divider}` }}>
-          {title && <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>{title}</div>}
-          {sub && <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2 }}>{sub}</div>}
+        <div style={{ background: tokens.bg, borderBottom: `0.5px solid ${tokens.divider}` }}>
+          <div className="ph-topbar-inner" style={{ flexDirection: "column", alignItems: "flex-start", paddingTop: 10, paddingBottom: 10 }}>
+            {title && <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>{title}</div>}
+            {sub && <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2 }}>{sub}</div>}
+          </div>
         </div>
       )}
     </>
@@ -744,6 +746,28 @@ export function GameLobbyScreen({
     onSubmit(trimmed);
   }
 
+  const howItWorksSection = howItWorks && howItWorks.length > 0 ? (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
+        How it works
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {howItWorks.map((s, i) => (
+          <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12, background: tokens.iconBg,
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
+            }}>{s.icon}</div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{s.title}</div>
+              <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  ) : null;
+
   return (
     <Screen>
       <TopBar
@@ -756,54 +780,37 @@ export function GameLobbyScreen({
         }
       />
       {rulesModal?.({ isOpen: showRules, onClose: () => setShowRules(false) })}
-      <div style={{ flex: 1, maxWidth: 480, margin: "0 auto", width: "100%", padding: "0 24px 40px", boxSizing: "border-box" }}>
-        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.4, ease: "easeOut" }} style={{ paddingTop: 32, marginBottom: 24 }}>
-          <div style={{ fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 10 }}>
-            {tagline}
-          </div>
-          <div style={{ fontSize: 15, color: tokens.grey2, lineHeight: 1.6, marginBottom: 32, maxWidth: 300 }}>{description}</div>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}>
-          <Card style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
-              Your Name (Host)
+      <div className="ph-lobby-body">
+        <div className="ph-lobby-primary">
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.4, ease: "easeOut" }} style={{ paddingTop: 32, marginBottom: 24 }}>
+            <div style={{ fontSize: 36, fontWeight: 800, color: tokens.black, letterSpacing: -1.5, lineHeight: 1.1, marginBottom: 10 }}>
+              {tagline}
             </div>
-            <PlayerNameInput
-              value={name}
-              onChange={setName}
-              onKeyDown={(e) => e.key === "Enter" && submit()}
-              placeholder="e.g. Rahul, Priya…"
-              autoFocus
-              style={{ fontSize: 15, padding: "12px 14px" }}
-            />
-          </Card>
-          <Btn fullWidth onClick={submit} disabled={!name.trim()} style={{ padding: "15px 24px", fontSize: 16, marginBottom: 32 }}>
-            Set Up Game →
-          </Btn>
-        </motion.div>
-
-        {howItWorks && howItWorks.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
-              How it works
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {howItWorks.map((s, i) => (
-                <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 12, background: tokens.iconBg,
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
-                  }}>{s.icon}</div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{s.title}</div>
-                    <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <div style={{ fontSize: 15, color: tokens.grey2, lineHeight: 1.6, marginBottom: 32, maxWidth: 320 }}>{description}</div>
           </motion.div>
-        )}
+
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.4, ease: "easeOut" }}>
+            <Card style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: tokens.grey3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
+                Your Name (Host)
+              </div>
+              <PlayerNameInput
+                value={name}
+                onChange={setName}
+                onKeyDown={(e) => e.key === "Enter" && submit()}
+                placeholder="e.g. Rahul, Priya…"
+                autoFocus
+                style={{ fontSize: 15, padding: "12px 14px" }}
+              />
+            </Card>
+            <Btn fullWidth onClick={submit} disabled={!name.trim()} style={{ padding: "15px 24px", fontSize: 16, marginBottom: 32 }}>
+              Set Up Game →
+            </Btn>
+          </motion.div>
+
+          <div className="ph-hiw-inline">{howItWorksSection}</div>
+        </div>
+
       </div>
     </Screen>
   );

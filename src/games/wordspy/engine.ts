@@ -45,9 +45,9 @@ export function assignRoles(
     ...player,
     role: shuffledRoles[i],
     word:
-      roles[i] === "civilian"
+      shuffledRoles[i] === "civilian"
         ? wordPair.civilian
-        : roles[i] === "undercover"
+        : shuffledRoles[i] === "undercover"
         ? wordPair.undercover
         : null,
     clue: null,

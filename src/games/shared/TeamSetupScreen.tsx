@@ -109,7 +109,7 @@ export function TeamSetupScreen<T>({ appName, game, teamPalette, defaultPackIds,
         </div>
       } />
       {rulesModal({ isOpen: showRules, onClose: () => setShowRules(false) })}
-      <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="ph-content" style={{ display: "flex", flexDirection: "column", gap: 16, paddingTop: 20 }}>
         {hostName && (
           <div style={{ paddingTop: 8, fontSize: 13, color: tokens.grey2, fontWeight: 500 }}>
             Hi <span style={{ color: tokens.coral, fontWeight: 700 }}>{hostName}</span>, let&apos;s set up your game.

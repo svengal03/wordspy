@@ -21,6 +21,7 @@ export default function RevealScreen() {
   const goHome = useGoHome();
   const resolvedRef = useRef(false);
   const [showRules, setShowRules] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
 
   useEffect(() => {
     // useRef survives React Strict Mode double-invoke; useState would reset and score twice
@@ -44,7 +45,8 @@ export default function RevealScreen() {
   const needle = result.needlePosition;
 
   async function handleNext() {
-    if (game.winner) return;
+    if (game.winner || advancing) return;
+    setAdvancing(true);
     set(await nextRound(game));
   }
 
@@ -137,8 +139,8 @@ export default function RevealScreen() {
             See Final Results →
           </Btn>
         ) : (
-          <Btn fullWidth onClick={handleNext} style={{ padding: "16px", fontSize: 16 }}>
-            Next Round →
+          <Btn fullWidth onClick={handleNext} disabled={advancing} style={{ padding: "16px", fontSize: 16 }}>
+            {advancing ? "Loading…" : "Next Round →"}
           </Btn>
         )}
       </div>

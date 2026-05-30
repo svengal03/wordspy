@@ -60,7 +60,7 @@ export function GetReadyScreen({
       {rulesModal?.({ isOpen: showRules, onClose: () => setShowRules(false) })}
 
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ width: "100%", maxWidth: 440, textAlign: "center" }}>
+        <div style={{ width: "100%", maxWidth: 560, textAlign: "center" }}>
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}

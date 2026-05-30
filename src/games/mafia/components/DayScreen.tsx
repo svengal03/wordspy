@@ -1,21 +1,24 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, Btn, tokens, Avatar, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { useGame } from "../store";
 import { getLiving, MAFIA_PHASES } from "../engine";
 import { RoleBadge } from "./ui";
 import RulesModal from "./RulesModal";
+import GameLogModal from "./GameLogModal";
 
 export default function DayScreen() {
   const { game, set, restartGame } = useGame();
   const goHome = useGoHome();
-  const { players, lastNightResult, round, config } = game;
+  const { players, lastNightResult, round, config, roundHistory, eliminationHistory } = game;
   const living = getLiving(players);
+  const votedThisRound = eliminationHistory.some((e) => e.round === round && e.phase === "day");
   const dead = players.filter((p) => p.isEliminated);
   const [timerActive, setTimerActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(config.discussionTimerSeconds);
   const [showRules, setShowRules] = useState(false);
+  const [showLog, setShowLog] = useState(false);
 
   useEffect(() => {
     if (!timerActive || timeLeft <= 0) return;
@@ -43,6 +46,12 @@ export default function DayScreen() {
       lastNightResult: null,
     });
   }
+
+  const recapBtnStyle: React.CSSProperties = {
+    position: "absolute", right: 16, top: "50%", transform: "translateY(-50%) translateY(6px)",
+    fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 0.4,
+    background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
+  };
 
   const roleLabel = (role: string | null) => {
     if (role === "villager") return "Villager";
@@ -78,7 +87,12 @@ export default function DayScreen() {
         }
       />
 
-      <PhaseTrail phases={MAFIA_PHASES} current="Day" accentColor={tokens.coral} />
+      <div style={{ position: "relative" }}>
+        <PhaseTrail phases={MAFIA_PHASES} current="Day" accentColor={tokens.coral} />
+        {roundHistory.length > 0 && (
+          <button onClick={() => setShowLog(true)} style={recapBtnStyle}>≡ Recap</button>
+        )}
+      </div>
 
       <div style={{ padding: "16px 20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
 
@@ -93,7 +107,7 @@ export default function DayScreen() {
               {lastNightResult.killedId ? (
                 <>
                   <div style={{ fontSize: 14, fontWeight: 700, color: tokens.red, marginBottom: 2 }}>
-                    {lastNightResult.killedName} was eliminated during the night
+                    {lastNightResult.killedName} was killed by Mafia
                   </div>
                   <div style={{ fontSize: 13, color: tokens.grey2 }}>
                     They were a <strong>{roleLabel(lastNightResult.killedRole)}</strong>
@@ -106,6 +120,30 @@ export default function DayScreen() {
                     : "Nobody was eliminated last night"}
                 </div>
               )}
+
+              {/* Round log — no emojis */}
+              <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4, borderTop: `1px solid ${lastNightResult.killedId ? "#FECACA" : "#BBF7D0"}`, paddingTop: 10 }}>
+                {lastNightResult.mafiaTargetName && (
+                  <div style={{ fontSize: 12, color: tokens.grey1 }}>
+                    Mafia targeted <strong>{lastNightResult.mafiaTargetName}</strong>
+                    {lastNightResult.savedByDoctor ? " — saved by Doctor" : lastNightResult.killedId ? " — killed" : ""}
+                  </div>
+                )}
+                {lastNightResult.doctorTargetName && (
+                  <div style={{ fontSize: 12, color: tokens.grey1 }}>
+                    Doctor protected <strong>{lastNightResult.doctorTargetName}</strong>
+                    {lastNightResult.savedByDoctor ? " — save successful" : ""}
+                  </div>
+                )}
+                {lastNightResult.policeResult && (
+                  <div style={{ fontSize: 12, color: tokens.grey1 }}>
+                    Police investigated <strong>{lastNightResult.policeResult.targetName}</strong> —{" "}
+                    <span style={{ fontWeight: 700, color: lastNightResult.policeResult.isMafia ? tokens.red : tokens.green }}>
+                      {lastNightResult.policeResult.isMafia ? "Mafia" : "Not Mafia"}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
@@ -146,9 +184,11 @@ export default function DayScreen() {
           </Card>
         )}
 
-        <Btn fullWidth variant="danger" onClick={goToVote} style={{ padding: "16px", fontSize: 16 }}>
-          Eliminate a Player →
-        </Btn>
+        {!votedThisRound && (
+          <Btn fullWidth variant="danger" onClick={goToVote} style={{ padding: "16px", fontSize: 16 }}>
+            Eliminate a Player →
+          </Btn>
+        )}
 
         <Btn fullWidth variant="secondary" onClick={startNight} style={{ padding: "16px", fontSize: 16 }}>
           Start Night
@@ -156,6 +196,7 @@ export default function DayScreen() {
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+      <GameLogModal isOpen={showLog} onClose={() => setShowLog(false)} roundHistory={roundHistory} />
     </Screen>
   );
 }

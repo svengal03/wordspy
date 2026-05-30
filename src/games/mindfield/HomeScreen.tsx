@@ -83,6 +83,28 @@ export function MindFieldHome() {
     { icon: "💣", title: "Avoid the bomb to win", desc: "First team to find all their words wins — unless someone hits the bomb, which ends the game instantly." },
   ];
 
+  const howItWorksSection = (
+    <motion.div {...fadeUp(0.15)}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
+        How it works
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {HOW_IT_WORKS.map((s, i) => (
+          <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12, background: tokens.iconBg,
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
+            }}>{s.icon}</div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{s.title}</div>
+              <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
       <TopBar
@@ -97,120 +119,98 @@ export function MindFieldHome() {
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "24px 20px 32px", maxWidth: 480, margin: "0 auto", width: "100%" }}>
-        {/* Hero */}
-        {!mode && (
-          <motion.div {...fadeUp(0)} style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ fontSize: 56, marginBottom: 12 }}>🧠</div>
-            <h1 style={{ fontSize: 36, fontWeight: 800, color: tokens.black, margin: 0, letterSpacing: -1 }}>
-              mind<span style={{ color: tokens.coral }}>field</span>
-            </h1>
-            <p style={{ color: tokens.grey2, fontSize: 15, marginTop: 10, lineHeight: 1.5 }}>
-              Two-team word deduction. Spymaster hints, agents guess. Don&rsquo;t hit the bomb.
-            </p>
-          </motion.div>
-        )}
+      <div className="ph-lobby-body" style={{ flex: 1 }}>
+        <div className="ph-lobby-primary">
+          {!mode && (
+            <>
+              <motion.div {...fadeUp(0)} style={{ paddingTop: 32, marginBottom: 32 }}>
+                <div style={{ fontSize: 56, marginBottom: 12 }}>🧠</div>
+                <h1 style={{ fontSize: 36, fontWeight: 800, color: tokens.black, margin: "0 0 10px", letterSpacing: -1 }}>
+                  mind<span style={{ color: tokens.coral }}>field</span>
+                </h1>
+                <p style={{ color: tokens.grey2, fontSize: 15, margin: 0, lineHeight: 1.5, maxWidth: 320 }}>
+                  Two-team word deduction. Spymaster hints, agents guess. Don&rsquo;t hit the bomb.
+                </p>
+              </motion.div>
 
-        {/* Mode selector */}
-        {!mode && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <motion.div {...fadeUp(0.05)}>
-              <Btn fullWidth onClick={() => setMode("create")} style={{ padding: "15px", fontSize: 16 }}>
-                Create Room
-              </Btn>
-            </motion.div>
-            <motion.div {...fadeUp(0.1)}>
-              <Btn variant="ghost" fullWidth onClick={() => setMode("join")} style={{ padding: "15px", fontSize: 16 }}>
-                Join with Code
-              </Btn>
-            </motion.div>
-          </div>
-        )}
-
-        {/* How it works */}
-        {!mode && (
-          <motion.div {...fadeUp(0.15)} style={{ marginTop: 36 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
-              How it works
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {HOW_IT_WORKS.map((s, i) => (
-                <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: 12, background: tokens.iconBg,
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
-                  }}>{s.icon}</div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{s.title}</div>
-                    <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Create form */}
-        {mode === "create" && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-            <Card>
-              <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, marginBottom: 16 }}>Create Room</div>
-              <PlayerNameInput
-                value={name}
-                onChange={setName}
-                onKeyDown={e => e.key === "Enter" && handleCreate()}
-                placeholder="Your name…"
-              />
-              {error && <div style={{ fontSize: 13, color: tokens.red, marginTop: 6 }}>{error}</div>}
-              <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                <Btn variant="ghost" onClick={back} style={{ flex: 1, padding: "13px" }}>← Back</Btn>
-                <Btn onClick={handleCreate} disabled={loading || !name.trim()} style={{ flex: 2, padding: "13px" }}>
-                  {loading ? "Creating…" : "Create →"}
-                </Btn>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 36 }}>
+                <motion.div {...fadeUp(0.05)}>
+                  <Btn fullWidth onClick={() => setMode("create")} style={{ padding: "15px", fontSize: 16 }}>
+                    Create Room
+                  </Btn>
+                </motion.div>
+                <motion.div {...fadeUp(0.1)}>
+                  <Btn variant="ghost" fullWidth onClick={() => setMode("join")} style={{ padding: "15px", fontSize: 16 }}>
+                    Join with Code
+                  </Btn>
+                </motion.div>
               </div>
-            </Card>
-          </motion.div>
-        )}
 
-        {/* Join form */}
-        {mode === "join" && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-            <Card>
-              <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, marginBottom: 16 }}>Join Room</div>
-              <div style={{ marginBottom: 10 }}>
-                <input
-                  type="text"
-                  placeholder="Room code (e.g. AB3X7Z)"
-                  value={joinCode}
-                  onChange={e => { setJoinCode(e.target.value.toUpperCase()); setError(""); }}
-                  maxLength={6}
-                  style={{
-                    width: "100%", padding: "12px 14px", borderRadius: 10,
-                    border: `1.5px solid ${tokens.border}`, fontSize: 18, fontWeight: 700,
-                    fontFamily: "'DM Sans', system-ui, sans-serif", letterSpacing: 3,
-                    background: tokens.inputBg, color: tokens.black, outline: "none",
-                    boxSizing: "border-box",
-                  }}
-                  autoCapitalize="characters"
-                  autoComplete="off"
+              <div className="ph-hiw-inline">{howItWorksSection}</div>
+            </>
+          )}
+
+          {mode === "create" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ paddingTop: 32 }}>
+              <Card>
+                <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, marginBottom: 16 }}>Create Room</div>
+                <PlayerNameInput
+                  value={name}
+                  onChange={setName}
+                  onKeyDown={e => e.key === "Enter" && handleCreate()}
+                  placeholder="Your name…"
                 />
-              </div>
-              <PlayerNameInput
-                value={name}
-                onChange={setName}
-                onKeyDown={e => e.key === "Enter" && handleJoin()}
-                placeholder="Your name…"
-              />
-              {error && <div style={{ fontSize: 13, color: tokens.red, marginTop: 6 }}>{error}</div>}
-              <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                <Btn variant="ghost" onClick={back} style={{ flex: 1, padding: "13px" }}>← Back</Btn>
-                <Btn onClick={handleJoin} disabled={loading || !name.trim() || !joinCode.trim()} style={{ flex: 2, padding: "13px" }}>
-                  {loading ? "Joining…" : "Join →"}
-                </Btn>
-              </div>
-            </Card>
-          </motion.div>
-        )}
+                {error && <div style={{ fontSize: 13, color: tokens.red, marginTop: 6 }}>{error}</div>}
+                <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+                  <Btn variant="ghost" onClick={back} style={{ flex: 1, padding: "13px" }}>← Back</Btn>
+                  <Btn onClick={handleCreate} disabled={loading || !name.trim()} style={{ flex: 2, padding: "13px" }}>
+                    {loading ? "Creating…" : "Create →"}
+                  </Btn>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+
+          {mode === "join" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ paddingTop: 32 }}>
+              <Card>
+                <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, marginBottom: 16 }}>Join Room</div>
+                <div style={{ marginBottom: 10 }}>
+                  <input
+                    type="text"
+                    placeholder="Room code (e.g. AB3X7Z)"
+                    value={joinCode}
+                    onChange={e => { setJoinCode(e.target.value.toUpperCase()); setError(""); }}
+                    maxLength={6}
+                    style={{
+                      width: "100%", padding: "12px 14px", borderRadius: 10,
+                      border: `1.5px solid ${tokens.border}`, fontSize: 18, fontWeight: 700,
+                      fontFamily: "'DM Sans', system-ui, sans-serif", letterSpacing: 3,
+                      background: tokens.inputBg, color: tokens.black, outline: "none",
+                      boxSizing: "border-box",
+                    }}
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                  />
+                </div>
+                <PlayerNameInput
+                  value={name}
+                  onChange={setName}
+                  onKeyDown={e => e.key === "Enter" && handleJoin()}
+                  placeholder="Your name…"
+                />
+                {error && <div style={{ fontSize: 13, color: tokens.red, marginTop: 6 }}>{error}</div>}
+                <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+                  <Btn variant="ghost" onClick={back} style={{ flex: 1, padding: "13px" }}>← Back</Btn>
+                  <Btn onClick={handleJoin} disabled={loading || !name.trim() || !joinCode.trim()} style={{ flex: 2, padding: "13px" }}>
+                    {loading ? "Joining…" : "Join →"}
+                  </Btn>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </div>
+
       </div>
     </Screen>
   );

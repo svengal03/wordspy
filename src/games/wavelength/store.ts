@@ -49,7 +49,7 @@ export const useGame = create<GameStore>()(
         if (fromVersion < 3) return { game: { ...INITIAL_STATE } };
         const s = persisted as { game: GameState };
         // Also fix any lingering slug-style packId at runtime
-        if (s?.game?.config?.packId && !s.game.config.packId.includes("-") === false) {
+        if (s?.game?.config?.packId && !s.game.config.packId.includes("-")) {
           const looksLikeUuid = /^[0-9a-f-]{36}$/i.test(s.game.config.packId);
           if (!looksLikeUuid) s.game.config.packId = "";
         }

@@ -14,6 +14,7 @@ const INITIAL_STATE: GameState = {
   voteNo: 0,
   lastNightResult: null,
   eliminationHistory: [],
+  roundHistory: [],
   winner: null,
   revealIndex: 0,
 };

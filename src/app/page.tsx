@@ -46,19 +46,13 @@ export default function HomePage() {
 
   return (
     <>
-      <main
-        style={{
-          minHeight: "100dvh",
-          background: "transparent",
-          fontFamily: "'DM Sans', sans-serif",
-          maxWidth: 520,
-          margin: "0 auto",
-          boxSizing: "border-box",
-          overflow: "hidden",
-        }}
-      >
+      <main className="ph-home-main" style={{
+        minHeight: "100dvh",
+        background: "transparent",
+        fontFamily: "'DM Sans', sans-serif",
+      }}>
         {/* Inner padded content */}
-        <div style={{ padding: "32px 20px 0" }}>
+        <div style={{ padding: "32px 20px 0", maxWidth: 940, margin: "0 auto", boxSizing: "border-box" }}>
           {/* Header */}
           <header style={{ marginBottom: 32 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 3, marginBottom: 6 }}>
@@ -76,7 +70,7 @@ export default function HomePage() {
           </header>
         </div>
 
-        {/* Filter bar — full bleed with side padding so it scrolls edge-to-edge */}
+        {/* Filter bar */}
         <div style={{
           overflowX: "auto",
           overflowY: "visible",
@@ -84,7 +78,7 @@ export default function HomePage() {
           WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
           marginBottom: 20,
         }}>
-          <div style={{ display: "flex", gap: 7, padding: "0 20px", width: "max-content" }}>
+          <div className="ph-filter-inner" style={{ display: "flex", gap: 7, padding: "0 20px", width: "max-content" }}>
             {FILTERS.map((f) => {
               const isActive = activeFilter === f.value;
               return (
@@ -114,8 +108,8 @@ export default function HomePage() {
         </div>
 
         {/* Padded game grid + footer */}
-        <div style={{ padding: "0 20px 32px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "stretch" }}>
+        <div style={{ padding: "0 20px 32px", maxWidth: 940, margin: "0 auto", boxSizing: "border-box" }}>
+        <div className="ph-game-grid">
           {filteredGames.map((game) => {
             const isHovered = hoveredGame === game.name;
             const isHtpHovered = hoveredHtp === game.name;

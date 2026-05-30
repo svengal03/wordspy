@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Btn, Card, Avatar, tokens, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { useGame } from "../store";
-import { Player, NightSubPhase } from "../types";
+import { Player, NightSubPhase, RoundEvent } from "../types";
 import { getLiving, resolveNight, eliminatePlayer, checkWin, MAFIA_PHASES } from "../engine";
 import RulesModal from "./RulesModal";
+import GameLogModal from "./GameLogModal";
 
 export default function NightScreen() {
   const { game, set, restartGame } = useGame();
@@ -16,6 +17,13 @@ export default function NightScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [policeResult, setPoliceResult] = useState<{ name: string; isMafia: boolean } | null>(null);
   const [showRules, setShowRules] = useState(false);
+  const [showLog, setShowLog] = useState(false);
+  const { roundHistory } = game;
+  const recapBtnStyle: React.CSSProperties = {
+    position: "absolute", right: 16, top: "50%", transform: "translateY(-50%) translateY(6px)",
+    fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 0.4,
+    background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
+  };
 
   function goToSubPhase(sub: NightSubPhase) {
     setSelectedId(null);
@@ -80,20 +88,36 @@ export default function NightScreen() {
   }
 
   function endNight() {
-    const result = resolveNight(game);
-    let updatedPlayers = players;
-    const history = [...game.eliminationHistory];
+    // Read fresh state — nightActions was updated via set() just before this runs
+    // (same synchronous call stack), so the closure `game` is stale.
+    const freshGame = useGame.getState().game;
+    const result = resolveNight(freshGame);
+    let updatedPlayers = freshGame.players;
+    const history = [...freshGame.eliminationHistory];
     if (result.killedId) {
-      updatedPlayers = eliminatePlayer(players, result.killedId);
-      history.push({ round, phase: "night" as const, playerName: result.killedName!, role: result.killedRole! });
+      updatedPlayers = eliminatePlayer(freshGame.players, result.killedId);
+      history.push({ round: freshGame.round, phase: "night" as const, playerName: result.killedName!, role: result.killedRole! });
     }
+    const newEvent: RoundEvent = {
+      round: freshGame.round,
+      mafiaTargeted: result.mafiaTargetName,
+      savedByDoctor: result.savedByDoctor,
+      doctorProtected: result.doctorTargetName,
+      policeInvestigated: result.policeResult?.targetName ?? null,
+      policeFoundMafia: result.policeResult ? result.policeResult.isMafia : null,
+      nightKilled: result.killedName,
+      nightKilledRole: result.killedRole,
+      dayVotedOut: null,
+      dayVotedOutRole: null,
+    };
     const winner = checkWin(updatedPlayers);
     set({
       nightSubPhase: "resolving",
       players: updatedPlayers,
       lastNightResult: result,
       eliminationHistory: history,
-      nightActions: { ...nightActions, doctorLastTarget: nightActions.doctorTarget },
+      roundHistory: [...freshGame.roundHistory, newEvent],
+      nightActions: { ...freshGame.nightActions, doctorLastTarget: freshGame.nightActions.doctorTarget },
       winner,
       phase: winner ? "game-over" : "day",
     });
@@ -127,14 +151,19 @@ export default function NightScreen() {
           </div>
         }
       />
-      <PhaseTrail phases={MAFIA_PHASES} current="Night" accentColor={tokens.coral} />
+      <div style={{ position: "relative" }}>
+        <PhaseTrail phases={MAFIA_PHASES} current="Night" accentColor={tokens.coral} />
+        {roundHistory.length > 0 && (
+          <button onClick={() => setShowLog(true)} style={recapBtnStyle}>≡ Recap</button>
+        )}
+      </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "24px 20px", boxSizing: "border-box" }}>
 
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 28, paddingTop: 8 }}>
         <motion.div key={nightSubPhase} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
           <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, letterSpacing: -0.5 }}>
-            {info.label}
+            {policeResult ? "Everyone awake" : info.label}
           </div>
           <div style={{ fontSize: 13, color: tokens.grey3, marginTop: 4 }}>Round {round}</div>
         </motion.div>
@@ -202,7 +231,7 @@ export default function NightScreen() {
             <motion.div key="police-result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
               <Card>
                 <div style={{ fontSize: 12, fontWeight: 700, color: tokens.purple, letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>
-                  Investigation result
+                  🚔 Police Investigation
                 </div>
                 <div style={{
                   background: policeResult.isMafia ? tokens.redBg : tokens.greenBg,
@@ -210,10 +239,10 @@ export default function NightScreen() {
                   borderRadius: 14, padding: "16px", marginBottom: 16,
                 }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: policeResult.isMafia ? tokens.red : tokens.green }}>
-                    {policeResult.name} is {policeResult.isMafia ? "MAFIA" : "NOT Mafia"}
+                    {policeResult.name} is {policeResult.isMafia ? "MAFIA 🔴" : "NOT Mafia ✅"}
                   </div>
                   <div style={{ fontSize: 12, color: tokens.grey2, marginTop: 4 }}>
-                    Remember this. Don&apos;t tell anyone.
+                    Whisper this result to Police only — don&apos;t reveal to others.
                   </div>
                 </div>
                 <Btn fullWidth onClick={continueAfterPolice} style={{ padding: "16px", fontSize: 16 }}>
@@ -236,6 +265,7 @@ export default function NightScreen() {
 
       </div>
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+      <GameLogModal isOpen={showLog} onClose={() => setShowLog(false)} roundHistory={roundHistory} />
     </Screen>
   );
 }

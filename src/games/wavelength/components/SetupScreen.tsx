@@ -29,7 +29,7 @@ export default function SetupScreen() {
       if (packs.length > 0 && !config.packId) {
         setConfig((c) => ({ ...c, packId: packs[0]!.id }));
       }
-    }).catch(console.error);
+    }).catch(() => {});
   }, []);
 
   function addPlayer() {

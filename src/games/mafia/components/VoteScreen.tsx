@@ -1,10 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, Btn, tokens, Avatar, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { useGame } from "../store";
 import { getLiving, eliminatePlayer, checkWin, MAFIA_PHASES } from "../engine";
 import RulesModal from "./RulesModal";
+import GameLogModal from "./GameLogModal";
 
 export default function VoteScreen() {
   const { game, set, restartGame } = useGame();
@@ -13,6 +14,13 @@ export default function VoteScreen() {
   const living = getLiving(players).filter((p) => p.role !== "god");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showRules, setShowRules] = useState(false);
+  const [showLog, setShowLog] = useState(false);
+  const { roundHistory } = game;
+  const recapBtnStyle: React.CSSProperties = {
+    position: "absolute", right: 16, top: "50%", transform: "translateY(-50%) translateY(6px)",
+    fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 0.4,
+    background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
+  };
   const [timeLeft, setTimeLeft] = useState(config.votingTimerSeconds);
 
   useEffect(() => {
@@ -30,8 +38,11 @@ export default function VoteScreen() {
     if (!nominated) return;
     const updatedPlayers = eliminatePlayer(players, selectedId);
     const history = [...game.eliminationHistory, { round, phase: "day" as const, playerName: nominated.name, role: nominated.role! }];
+    const roundHistory = game.roundHistory.map((e) =>
+      e.round === round ? { ...e, dayVotedOut: nominated.name, dayVotedOutRole: nominated.role } : e
+    );
     const winner = checkWin(updatedPlayers);
-    set({ players: updatedPlayers, eliminationHistory: history, winner, phase: winner ? "game-over" : "day", nominatedPlayerId: null, voteYes: 0, voteNo: 0, lastNightResult: null });
+    set({ players: updatedPlayers, eliminationHistory: history, roundHistory, winner, phase: winner ? "game-over" : "day", nominatedPlayerId: null, voteYes: 0, voteNo: 0, lastNightResult: null });
   }
 
   function cancel() {
@@ -60,7 +71,12 @@ export default function VoteScreen() {
         }
       />
 
-      <PhaseTrail phases={MAFIA_PHASES} current="Vote" accentColor={tokens.coral} />
+      <div style={{ position: "relative" }}>
+        <PhaseTrail phases={MAFIA_PHASES} current="Vote" accentColor={tokens.coral} />
+        {roundHistory.length > 0 && (
+          <button onClick={() => setShowLog(true)} style={recapBtnStyle}>≡ Recap</button>
+        )}
+      </div>
 
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
 
@@ -126,6 +142,7 @@ export default function VoteScreen() {
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+      <GameLogModal isOpen={showLog} onClose={() => setShowLog(false)} roundHistory={roundHistory} />
     </Screen>
   );
 }
