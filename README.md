@@ -8,10 +8,11 @@ Turborepo monorepo hosting all party games as a single Next.js app. No accounts,
 
 | App | Description | Players | Mode |
 |---|---|---|---|
-| 🕵️ **Wordspy** | Social deduction word game — find allies, expose infiltrators | 4–10 | Online + Offline |
+| 🕵️ **Wordspy** | Social deduction word game — find allies, expose infiltrators | 3–10 | Online + Offline |
 | 🔪 **Mafia** | Hidden Mafia vs the town — night kills, day votes | 5–15 | Offline |
 | 🎨 **Pictionary** | Draw it, guess it — team competition with difficulty tiers | 4+ | Offline |
 | 🎬 **Dumb Charades** | Act it out silently — Bollywood and more | 4+ | Offline |
+| 🧠 **Mind Field** | Two-team word deduction — Spymasters give clues, agents tap words | 4–16 | Online |
 | 〰️ **Wavelength** | Two teams, one spectrum dial — guide your team to the target | 4–12 | Offline |
 
 ---
