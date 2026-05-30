@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Btn, Card, Avatar, tokens, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { useGame } from "../store";
@@ -19,11 +19,6 @@ export default function NightScreen() {
   const [showRules, setShowRules] = useState(false);
   const [showLog, setShowLog] = useState(false);
   const { roundHistory } = game;
-  const recapBtnStyle: React.CSSProperties = {
-    position: "absolute", right: 16, top: "50%", transform: "translateY(-50%) translateY(6px)",
-    fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 0.4,
-    background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
-  };
 
   function goToSubPhase(sub: NightSubPhase) {
     setSelectedId(null);
@@ -146,17 +141,13 @@ export default function NightScreen() {
         appName="Mafia"
         right={
           <div style={{ display: "flex", gap: 8 }}>
+            {roundHistory.length > 0 && <NavBtn onClick={() => setShowLog(true)}>Recap</NavBtn>}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
             <OptionsMenu onNewGame={restartGame} onExit={goHome} />
           </div>
         }
       />
-      <div style={{ position: "relative" }}>
-        <PhaseTrail phases={MAFIA_PHASES} current="Night" accentColor={tokens.coral} />
-        {roundHistory.length > 0 && (
-          <button onClick={() => setShowLog(true)} style={recapBtnStyle}>≡ Recap</button>
-        )}
-      </div>
+      <PhaseTrail phases={MAFIA_PHASES} current="Night" accentColor={tokens.coral} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "24px 20px", boxSizing: "border-box" }}>
 
       {/* Header */}

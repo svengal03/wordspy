@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, Btn, tokens, Avatar, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { useGame } from "../store";
@@ -47,11 +47,6 @@ export default function DayScreen() {
     });
   }
 
-  const recapBtnStyle: React.CSSProperties = {
-    position: "absolute", right: 16, top: "50%", transform: "translateY(-50%) translateY(6px)",
-    fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 0.4,
-    background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
-  };
 
   const roleLabel = (role: string | null) => {
     if (role === "villager") return "Villager";
@@ -68,31 +63,14 @@ export default function DayScreen() {
         title={`Day ${round} · Discussion`}
         right={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {timerActive ? (
-              <div style={{
-                fontSize: 18, fontWeight: 800, color: timerColor,
-                fontVariantNumeric: "tabular-nums",
-                background: timerColor + "15", padding: "6px 14px", borderRadius: 10,
-              }}>
-                {fmt(timeLeft)}
-              </div>
-            ) : (
-              <Btn variant="secondary" onClick={() => setTimerActive(true)} style={{ padding: "7px 14px", fontSize: 13 }}>
-                Start timer
-              </Btn>
-            )}
+            {roundHistory.length > 0 && <NavBtn onClick={() => setShowLog(true)}>Recap</NavBtn>}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
             <OptionsMenu onNewGame={restartGame} onExit={goHome} />
           </div>
         }
       />
 
-      <div style={{ position: "relative" }}>
-        <PhaseTrail phases={MAFIA_PHASES} current="Day" accentColor={tokens.coral} />
-        {roundHistory.length > 0 && (
-          <button onClick={() => setShowLog(true)} style={recapBtnStyle}>≡ Recap</button>
-        )}
-      </div>
+      <PhaseTrail phases={MAFIA_PHASES} current="Day" accentColor={tokens.coral} />
 
       <div style={{ padding: "16px 20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
 
@@ -183,6 +161,19 @@ export default function DayScreen() {
             </div>
           </Card>
         )}
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderRadius: 14, background: timerActive ? timerColor + "12" : tokens.bg, border: `1.5px solid ${timerActive ? timerColor + "40" : tokens.border}`, transition: "all 0.3s" }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: tokens.grey2 }}>Discussion timer</div>
+          {timerActive ? (
+            <div style={{ fontSize: 22, fontWeight: 800, color: timerColor, fontVariantNumeric: "tabular-nums" }}>
+              {fmt(timeLeft)}
+            </div>
+          ) : (
+            <Btn variant="secondary" onClick={() => setTimerActive(true)} style={{ padding: "7px 16px", fontSize: 13 }}>
+              Start timer
+            </Btn>
+          )}
+        </div>
 
         {!votedThisRound && (
           <Btn fullWidth variant="danger" onClick={goToVote} style={{ padding: "16px", fontSize: 16 }}>

@@ -7,6 +7,7 @@ import { useGame } from "../store";
 import { resolveReveal, nextRound } from "../engine";
 import { RoundBar, SectionLabel } from "./ui";
 import RulesModal from "./RulesModal";
+import RecapModal from "./RecapModal";
 import SpectrumDial from "./SpectrumDial";
 
 const ZONE_LABELS: Record<string, string> = {
@@ -21,6 +22,7 @@ export default function RevealScreen() {
   const goHome = useGoHome();
   const resolvedRef = useRef(false);
   const [showRules, setShowRules] = useState(false);
+  const [showRecap, setShowRecap] = useState(false);
   const [advancing, setAdvancing] = useState(false);
 
   useEffect(() => {
@@ -56,6 +58,7 @@ export default function RevealScreen() {
         appName="Wavelength"
         right={
           <div style={{ display: "flex", gap: 8 }}>
+            {game.history.length > 0 && <NavBtn onClick={() => setShowRecap(true)}>Recap</NavBtn>}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
             <OptionsMenu onNewGame={restartGame} onExit={goHome} />
           </div>
@@ -146,6 +149,7 @@ export default function RevealScreen() {
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+      <RecapModal isOpen={showRecap} onClose={() => setShowRecap(false)} history={game.history} />
     </Screen>
   );
 }

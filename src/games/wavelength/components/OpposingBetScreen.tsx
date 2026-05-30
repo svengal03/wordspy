@@ -8,6 +8,7 @@ import { submitOpposingBet } from "../engine";
 import { OpposingBet, TeamId } from "../types";
 import { RoundBar, SectionLabel } from "./ui";
 import RulesModal from "./RulesModal";
+import RecapModal from "./RecapModal";
 import SpectrumDial from "./SpectrumDial";
 
 export default function OpposingBetScreen() {
@@ -15,6 +16,7 @@ export default function OpposingBetScreen() {
   const goHome = useGoHome();
   const [bet, setBet] = useState<OpposingBet | null>(null);
   const [showRules, setShowRules] = useState(false);
+  const [showRecap, setShowRecap] = useState(false);
   const betRef = useRef<OpposingBet | null>(null);
   const gameRef = useRef(game);
   gameRef.current = game;
@@ -67,6 +69,7 @@ export default function OpposingBetScreen() {
         appName="Wavelength"
         right={
           <div style={{ display: "flex", gap: 8 }}>
+            {game.history.length > 0 && <NavBtn onClick={() => setShowRecap(true)}>Recap</NavBtn>}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
             <OptionsMenu onNewGame={restartGame} onExit={goHome} />
           </div>
@@ -153,6 +156,7 @@ export default function OpposingBetScreen() {
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+      <RecapModal isOpen={showRecap} onClose={() => setShowRecap(false)} history={game.history} />
     </Screen>
   );
 }

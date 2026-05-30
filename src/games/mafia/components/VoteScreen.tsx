@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, Btn, tokens, Avatar, Screen, TopBar, NavBtn, OptionsMenu, PhaseTrail, useGoHome } from "@playhub/ui";
 import { useGame } from "../store";
@@ -16,11 +16,6 @@ export default function VoteScreen() {
   const [showRules, setShowRules] = useState(false);
   const [showLog, setShowLog] = useState(false);
   const { roundHistory } = game;
-  const recapBtnStyle: React.CSSProperties = {
-    position: "absolute", right: 16, top: "50%", transform: "translateY(-50%) translateY(6px)",
-    fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 0.4,
-    background: "none", border: "none", cursor: "pointer", padding: "4px 6px",
-  };
   const [timeLeft, setTimeLeft] = useState(config.votingTimerSeconds);
 
   useEffect(() => {
@@ -65,18 +60,14 @@ export default function VoteScreen() {
                 transition: "all 0.3s",
               }}>{timeLeft}s</div>
             )}
+            {roundHistory.length > 0 && <NavBtn onClick={() => setShowLog(true)}>Recap</NavBtn>}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
             <OptionsMenu onNewGame={restartGame} onExit={goHome} />
           </div>
         }
       />
 
-      <div style={{ position: "relative" }}>
-        <PhaseTrail phases={MAFIA_PHASES} current="Vote" accentColor={tokens.coral} />
-        {roundHistory.length > 0 && (
-          <button onClick={() => setShowLog(true)} style={recapBtnStyle}>≡ Recap</button>
-        )}
-      </div>
+      <PhaseTrail phases={MAFIA_PHASES} current="Vote" accentColor={tokens.coral} />
 
       <div style={{ padding: "20px", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
 

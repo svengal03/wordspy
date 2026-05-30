@@ -7,6 +7,7 @@ import { useGame } from "../store";
 import { lockNeedle } from "../engine";
 import { RoundBar, SectionLabel } from "./ui";
 import RulesModal from "./RulesModal";
+import RecapModal from "./RecapModal";
 import SpectrumDial from "./SpectrumDial";
 
 export default function GuessScreen() {
@@ -14,6 +15,7 @@ export default function GuessScreen() {
   const goHome = useGoHome();
   const [needle, setNeedle] = useState(50);
   const [showRules, setShowRules] = useState(false);
+  const [showRecap, setShowRecap] = useState(false);
   const needleRef = useRef(50);
   const gameRef = useRef(game);
   gameRef.current = game;
@@ -64,6 +66,7 @@ export default function GuessScreen() {
         appName="Wavelength"
         right={
           <div style={{ display: "flex", gap: 8 }}>
+            {game.history.length > 0 && <NavBtn onClick={() => setShowRecap(true)}>Recap</NavBtn>}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
             <OptionsMenu onNewGame={restartGame} onExit={goHome} />
           </div>
@@ -141,6 +144,7 @@ export default function GuessScreen() {
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+      <RecapModal isOpen={showRecap} onClose={() => setShowRecap(false)} history={game.history} />
     </Screen>
   );
 }

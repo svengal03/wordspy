@@ -7,6 +7,7 @@ import { useGame } from "../store";
 import { MAFIA_PHASES } from "../engine";
 import { RoleBadge } from "./ui";
 import RulesModal from "./RulesModal";
+import GameLogModal from "./GameLogModal";
 
 interface Props {
   onPlayAgain: () => void;
@@ -15,8 +16,9 @@ interface Props {
 export default function GameOverScreen({ onPlayAgain }: Props) {
   const { game } = useGame();
   const goHome = useGoHome();
-  const { winner, players, eliminationHistory } = game;
+  const { winner, players, eliminationHistory, roundHistory } = game;
   const [showRules, setShowRules] = useState(false);
+  const [showLog, setShowLog] = useState(false);
 
   return (
     <Screen>
@@ -24,6 +26,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
         appName="Mafia"
         right={
           <div style={{ display: "flex", gap: 8 }}>
+            {roundHistory.length > 0 && <NavBtn onClick={() => setShowLog(true)}>Recap</NavBtn>}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
             <OptionsMenu onNewGame={onPlayAgain} onExit={goHome} />
           </div>
@@ -136,6 +139,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
         </motion.div>
       </div>
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+      <GameLogModal isOpen={showLog} onClose={() => setShowLog(false)} roundHistory={roundHistory} />
     </Screen>
   );
 }

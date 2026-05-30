@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Screen, TopBar, Card, Btn, tokens, NavBtn, OptionsMenu, useGoHome } from "@playhub/ui";
 import RulesModal from "./RulesModal";
+import RecapModal from "./RecapModal";
 import { WAVELENGTH_TEAM_META, WAVELENGTH_ZONE_COLORS } from "@playhub/core";
 import { useGame } from "../store";
 import { SectionLabel } from "./ui";
@@ -16,6 +17,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
   const goHome = useGoHome();
   const winner = game.winner;
   const [showRules, setShowRules] = useState(false);
+  const [showRecap, setShowRecap] = useState(false);
   const winnerMeta = winner ? WAVELENGTH_TEAM_META[winner] : null;
 
   return (
@@ -25,6 +27,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
         title="Game Over"
         right={
           <div style={{ display: "flex", gap: 8 }}>
+            {game.history.length > 0 && <NavBtn onClick={() => setShowRecap(true)}>Recap</NavBtn>}
             <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
             <OptionsMenu onNewGame={onPlayAgain} onExit={goHome} />
           </div>
@@ -110,6 +113,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
         </Btn>
       </div>
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+      <RecapModal isOpen={showRecap} onClose={() => setShowRecap(false)} history={game.history} />
     </Screen>
   );
 }

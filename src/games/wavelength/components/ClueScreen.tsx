@@ -7,6 +7,7 @@ import { useGame } from "../store";
 import { submitClue } from "../engine";
 import { RoundBar, SectionLabel } from "./ui";
 import RulesModal from "./RulesModal";
+import RecapModal from "./RecapModal";
 import SpectrumDial from "./SpectrumDial";
 
 export default function ClueScreen() {
@@ -16,6 +17,7 @@ export default function ClueScreen() {
   const [spun, setSpun] = useState(false);
   const [clue, setClue] = useState("");
   const [showRules, setShowRules] = useState(false);
+  const [showRecap, setShowRecap] = useState(false);
 
   const psychic = game.players.find((p) => p.id === game.currentPsychicId);
   const teamMeta = WAVELENGTH_TEAM_META[game.currentTeamId];
@@ -33,6 +35,7 @@ export default function ClueScreen() {
           appName="Wavelength"
           right={
             <div style={{ display: "flex", gap: 8 }}>
+              {game.history.length > 0 && <NavBtn onClick={() => setShowRecap(true)}>Recap</NavBtn>}
               <NavBtn onClick={() => setShowRules(true)}>Rules</NavBtn>
               <OptionsMenu onNewGame={restartGame} onExit={goHome} />
             </div>
@@ -51,6 +54,7 @@ export default function ClueScreen() {
           />
         </div>
         <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+      <RecapModal isOpen={showRecap} onClose={() => setShowRecap(false)} history={game.history} />
       </Screen>
     );
   }
@@ -121,6 +125,7 @@ export default function ClueScreen() {
       </div>
 
       <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
+      <RecapModal isOpen={showRecap} onClose={() => setShowRecap(false)} history={game.history} />
     </Screen>
   );
 }
