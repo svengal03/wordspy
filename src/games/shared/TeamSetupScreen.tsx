@@ -25,13 +25,14 @@ interface Props<T> {
   hostName?: string;
   rulesModal: (props: { isOpen: boolean; onClose: () => void }) => ReactNode;
   initialTeams?: Array<{ name: string; players: string[] }>;
+  extraOptions?: ReactNode;
 }
 
 function makeTeam(idx: number): TeamDraft {
   return { id: Math.random().toString(36).slice(2), name: `Team ${idx + 1}`, players: [""] };
 }
 
-export function TeamSetupScreen<T>({ appName, game, teamPalette, defaultPackIds, tagline, description, buildTeam, onStart, onNewGame, hostName, rulesModal, initialTeams }: Props<T>) {
+export function TeamSetupScreen<T>({ appName, game, teamPalette, defaultPackIds, tagline, description, buildTeam, onStart, onNewGame, hostName, rulesModal, initialTeams, extraOptions }: Props<T>) {
   const goHome = useGoHome();
   const [teams, setTeams] = useState<TeamDraft[]>(() =>
     initialTeams && initialTeams.length >= 2
@@ -209,6 +210,12 @@ export function TeamSetupScreen<T>({ appName, game, teamPalette, defaultPackIds,
             <CategoryPicker selected={selectedPackIds} onChange={setSelectedPackIds} game={game} />
           </Card>
         </motion.div>
+
+        {extraOptions && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
+            {extraOptions}
+          </motion.div>
+        )}
 
         {startError && (
           <div style={{ padding: "10px 14px", borderRadius: 10, background: "#FFF0EE", border: "1.5px solid #FECACA", fontSize: 13, fontWeight: 600, color: "#E84040" }}>

@@ -42,8 +42,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
             background: winnerMeta ? winnerMeta.bg : tokens.bg,
             borderTop: `4px solid ${winnerMeta?.color ?? tokens.grey2}`,
           }}>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>🏆</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: winnerMeta?.color ?? tokens.black, letterSpacing: -0.5 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: winnerMeta?.color ?? tokens.black, letterSpacing: -0.5, marginBottom: 4 }}>
               {winnerMeta ? `${winnerMeta.label} wins!` : "It's a draw!"}
             </div>
             <div style={{ fontSize: 14, color: tokens.grey2, marginTop: 6 }}>
@@ -65,7 +64,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
                     background: meta.bg,
                     border: winner === t.id ? `2px solid ${meta.color}` : "1.5px solid transparent",
                   }}>
-                    {winner === t.id && <div style={{ fontSize: 16, marginBottom: 4 }}>🏆</div>}
+                    {winner === t.id && <div style={{ width: 8, height: 8, borderRadius: "50%", background: meta.color, margin: "0 auto 6px" }} />}
                     <div style={{ fontSize: 12, fontWeight: 700, color: meta.color, marginBottom: 4 }}>{meta.label}</div>
                     <div style={{ fontSize: 36, fontWeight: 800, color: tokens.black }}>{t.score}</div>
                   </div>

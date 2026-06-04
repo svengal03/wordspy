@@ -18,6 +18,15 @@ export interface Team {
 import type { Difficulty } from "@playhub/core";
 export type { Difficulty };
 
+export interface DrawingStroke {
+  type: "start" | "move" | "end";
+  x: number;
+  y: number;
+  color: string;
+  size: number;
+  eraser: boolean;
+}
+
 export interface GameState {
   phase: Phase;
   hostName: string;
@@ -29,6 +38,9 @@ export interface GameState {
   wordOptions: [string, string, string];
   wordPool: string[];
   lastRoundCorrect: boolean | null;
+  pointsLastRound: number | null;
+  lastDrawingStrokes: DrawingStroke[];
+  drawingReplayEnabled: boolean;
   roundNumber: number;
   currentDifficulty: Difficulty;
   lastDifficulty: Difficulty | null;

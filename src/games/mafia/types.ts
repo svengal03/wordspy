@@ -11,8 +11,9 @@ export interface Player {
 }
 
 export interface GameConfig {
-  doctorEnabled: boolean;
-  policeEnabled: boolean;
+  mafiaCount: number;
+  doctorCount: number;
+  policeCount: number;
   doctorCanSelfSave: boolean;
   votingTimerEnabled: boolean;
   votingTimerSeconds: number;
@@ -75,8 +76,9 @@ export interface GameState {
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
-  doctorEnabled: true,
-  policeEnabled: true,
+  mafiaCount: 1,
+  doctorCount: 1,
+  policeCount: 1,
   doctorCanSelfSave: true,
   votingTimerEnabled: false,
   votingTimerSeconds: 60,

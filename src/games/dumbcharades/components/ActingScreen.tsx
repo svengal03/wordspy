@@ -84,7 +84,7 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
 
       {wordVisible && (
         <div style={{
-          background: teamColor, color: "#fff", textAlign: "center",
+          background: teamColor, color: tokens.white, textAlign: "center",
           padding: "10px 16px", fontSize: 15, fontWeight: 700,
         }}>{word}</div>
       )}
@@ -130,9 +130,9 @@ export function ActingScreen({ timerDuration, word, actorName, teamName, teamCol
         <Btn
           fullWidth
           variant="success"
-          onClick={() => onCorrect(timeLeft)}
+          onClick={() => { if (!fired.current) { fired.current = true; onCorrect(timeLeft); } }}
           style={{ padding: "16px", fontSize: 16 }}
-        >Correct ✓</Btn>
+        >Correct</Btn>
         <Btn
           fullWidth
           variant="ghost"

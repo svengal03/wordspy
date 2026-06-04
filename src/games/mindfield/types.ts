@@ -41,11 +41,15 @@ export interface RoundRecord {
 export interface GameConfig {
   packId: string;
   targetWins: number;
+  clueTimerSecs: 60 | 120 | 180 | null;  // null = off
+  guessTimerSecs: 30 | 60 | null;         // null = off
 }
 
 export const DEFAULT_CONFIG: GameConfig = {
   packId: "",
   targetWins: 3,
+  clueTimerSecs: null,
+  guessTimerSecs: null,
 };
 
 export interface GameState {

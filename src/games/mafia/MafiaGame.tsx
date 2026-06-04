@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Btn, Card, NavBtn, Toggle, tokens, TopBar, Screen, Avatar, ErrorBox, OptionsMenu, PlayerNameInput, useGoHome } from "@playhub/ui";
 import { GetReadyScreen } from "@/games/shared";
 import { useGame } from "@/games/mafia/store";
-import { createPlayer, assignRoles, getMafiaCount } from "@/games/mafia/engine";
+import { createPlayer, assignRoles } from "@/games/mafia/engine";
 import { DEFAULT_CONFIG, GameConfig } from "@/games/mafia/types";
 import RoleReveal from "@/games/mafia/components/RoleReveal";
 import NightScreen from "@/games/mafia/components/NightScreen";
@@ -49,6 +49,29 @@ export function MafiaGame() {
 
   // ─── Setup screen ─────────────────────────────────────────────────────────
   return <SetupScreen />;
+}
+
+// ─── Role stepper ─────────────────────────────────────────────────────────────
+function RoleStepper({ label, value, onSet, min = 0, max }: {
+  label: string; value: number; onSet: (v: number) => void; min?: number; max: number;
+}) {
+  const btnStyle = (disabled: boolean): React.CSSProperties => ({
+    width: 40, height: 40, borderRadius: 10, border: `1.5px solid ${tokens.border}`,
+    background: "transparent", fontSize: 18, lineHeight: 1, flexShrink: 0,
+    color: disabled ? tokens.grey4 : tokens.grey1,
+    cursor: disabled ? "default" : "pointer", fontFamily: "inherit",
+    display: "flex", alignItems: "center", justifyContent: "center",
+  });
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{label}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <button onClick={() => onSet(value - 1)} disabled={value <= min} style={btnStyle(value <= min)}>−</button>
+        <div style={{ minWidth: 28, textAlign: "center", fontSize: 16, fontWeight: 700, color: tokens.black }}>{value}</div>
+        <button onClick={() => onSet(value + 1)} disabled={value >= max} style={btnStyle(value >= max)}>+</button>
+      </div>
+    </div>
+  );
 }
 
 // ─── Setup screen ─────────────────────────────────────────────────────────────
@@ -99,6 +122,9 @@ function SetupScreen() {
 
   function startGame() {
     if (allNames.length < 5) return setError("Need at least 5 players");
+    const vc = playingCount - config.mafiaCount - config.doctorCount - config.policeCount;
+    if (vc < 1) return setError("Need at least 1 villager — reduce special roles or add more players");
+    if (config.mafiaCount >= playingCount - config.mafiaCount) return setError("Mafia outnumbers the town — reduce mafia count");
     const players = allNames.map((n) => createPlayer(n));
     const withRoles = assignRoles(players, config);
     set({
@@ -129,9 +155,11 @@ function SetupScreen() {
   const count = allNames.length;
   // 1 god always assigned; mafiaCount based on playing players (count - 1)
   const playingCount = Math.max(count - 1, 0);
-  const mafiaCount = getMafiaCount(playingCount);
-  const specialCount = (config.doctorEnabled ? 1 : 0) + (config.policeEnabled ? 1 : 0);
-  const villagerCount = Math.max(0, playingCount - mafiaCount - specialCount);
+  const specialCount = config.doctorCount + config.policeCount;
+  const villagerCount = playingCount - config.mafiaCount - specialCount;
+  const maxMafia = Math.max(1, playingCount - specialCount - 1);
+  const maxDoctor = Math.max(0, playingCount - config.mafiaCount - config.policeCount - 1);
+  const maxPolice = Math.max(0, playingCount - config.mafiaCount - config.doctorCount - 1);
 
   const howItWorks = (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
@@ -288,89 +316,55 @@ function SetupScreen() {
           </Card>
         </motion.div>
 
-        {/* Role distribution preview */}
-        {count >= 2 && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-            <Card>
-              <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>
-                Role Distribution
-              </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ padding: "4px 12px", borderRadius: 20, background: tokens.yellowBg, color: tokens.yellow, fontSize: 13, fontWeight: 600 }}>
-                  ⚡ 1 God
-                </span>
-                <span style={{ padding: "4px 12px", borderRadius: 20, background: tokens.redBg, color: tokens.red, fontSize: 13, fontWeight: 600 }}>
-                  🔪 {count >= 5 ? mafiaCount : `~${mafiaCount}`} Mafia
-                </span>
-                {config.doctorEnabled && (
-                  <span style={{ padding: "4px 12px", borderRadius: 20, background: tokens.blueBg, color: tokens.blue, fontSize: 13, fontWeight: 600 }}>
-                    💊 1 Doctor
-                  </span>
-                )}
-                {config.policeEnabled && (
-                  <span style={{ padding: "4px 12px", borderRadius: 20, background: tokens.purpleBg, color: tokens.purple, fontSize: 13, fontWeight: 600 }}>
-                    🚔 1 Police
-                  </span>
-                )}
-                <span style={{ padding: "4px 12px", borderRadius: 20, background: tokens.greenBg, color: tokens.green, fontSize: 13, fontWeight: 600 }}>
-                  🏘️ {count >= 5 ? villagerCount : "?"} Villagers
-                </span>
-              </div>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Special roles */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        {/* Role Config */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <Card>
-            <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
-              Special Roles
+            <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 16 }}>
+              Role Config
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {[
-                { key: "doctorEnabled", label: "Doctor 💊", desc: "Each night secretly protects one player" },
-                { key: "policeEnabled", label: "Police 🚔", desc: "Each night secretly investigates one player" },
-              ].map((opt) => (
-                <div key={opt.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>{opt.label}</div>
-                    <div style={{ fontSize: 12, color: tokens.grey3, marginTop: 2 }}>{opt.desc}</div>
-                  </div>
-                  <Toggle
-                    value={config[opt.key as keyof GameConfig] as boolean}
-                    onChange={(v) => setConfigState((c) => ({ ...c, [opt.key]: v }))}
-                  />
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <RoleStepper label="Mafia" value={config.mafiaCount} onSet={(v) => setConfigState((c) => ({ ...c, mafiaCount: v }))} min={1} max={maxMafia} />
+              <RoleStepper label="Doctor" value={config.doctorCount} onSet={(v) => setConfigState((c) => ({ ...c, doctorCount: v }))} min={0} max={maxDoctor} />
+              <RoleStepper label="Police" value={config.policeCount} onSet={(v) => setConfigState((c) => ({ ...c, policeCount: v }))} min={0} max={maxPolice} />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 10, borderTop: `1px solid ${tokens.border}` }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: tokens.grey2 }}>Villagers</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: villagerCount < 1 ? tokens.red : tokens.grey2 }}>
+                  {playingCount > 0 ? Math.max(0, villagerCount) : "—"}
                 </div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* House Rules */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
-          <Card>
-            <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 14 }}>
-              House Rules
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {config.doctorEnabled && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              </div>
+              {config.doctorCount > 0 && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, paddingTop: 4, borderTop: `1px solid ${tokens.border}` }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Doctor Self-Save 💊</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Doctor Self-Save</div>
                     <div style={{ fontSize: 12, color: tokens.grey3, marginTop: 2 }}>Allow doctor to protect themselves each night</div>
                   </div>
-                  <Toggle
-                    value={config.doctorCanSelfSave}
-                    onChange={(v) => setConfigState((c) => ({ ...c, doctorCanSelfSave: v }))}
-                  />
+                  <Toggle value={config.doctorCanSelfSave} onChange={(v) => setConfigState((c) => ({ ...c, doctorCanSelfSave: v }))} />
                 </div>
               )}
             </div>
           </Card>
         </motion.div>
 
+        {/* Role distribution */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { bg: tokens.yellowBg, color: tokens.yellow, label: "1 God" },
+              { bg: tokens.redBg, color: tokens.red, label: `${config.mafiaCount} Mafia` },
+              ...(config.doctorCount > 0 ? [{ bg: tokens.blueBg, color: tokens.blue, label: `${config.doctorCount} Doctor` }] : []),
+              ...(config.policeCount > 0 ? [{ bg: tokens.purpleBg, color: tokens.purple, label: `${config.policeCount} Police` }] : []),
+              { bg: tokens.greenBg, color: tokens.green, label: `${playingCount > 0 ? Math.max(0, villagerCount) : "?"} Villagers` },
+            ].map((chip) => (
+              <span key={chip.label} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 12px", borderRadius: 20, background: chip.bg, color: chip.color, fontSize: 13, fontWeight: 600 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: chip.color, flexShrink: 0, display: "inline-block" }} />
+                {chip.label}
+              </span>
+            ))}
+          </div>
+        </motion.div>
+
         {/* Discussion timer */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <Card>
             <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 12 }}>
               Discussion Timer
@@ -394,7 +388,7 @@ function SetupScreen() {
         </motion.div>
 
         {/* Voting timer */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
           <Card>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: config.votingTimerEnabled ? 14 : 0 }}>
               <div>

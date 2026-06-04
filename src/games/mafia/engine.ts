@@ -8,22 +8,14 @@ export function createPlayer(name: string): Player {
   return { id: nanoid(6), name, role: null, isEliminated: false, hasSeenRole: false };
 }
 
-export function getMafiaCount(playerCount: number): number {
-  // playerCount excludes god
-  return Math.max(1, Math.floor(playerCount / 4));
-}
-
 export function assignRoles(players: Player[], config: GameConfig): Player[] {
   const count = players.length;
-  // Build roles for non-god players only
   const playingCount = count - 1; // god doesn't play
-  const mafiaCount = getMafiaCount(playingCount);
   const playingRoles: MafiaRole[] = [];
-  for (let i = 0; i < mafiaCount; i++) playingRoles.push("mafia");
-  if (config.policeEnabled) playingRoles.push("police");
-  if (config.doctorEnabled) playingRoles.push("doctor");
+  for (let i = 0; i < config.mafiaCount; i++) playingRoles.push("mafia");
+  for (let i = 0; i < config.policeCount; i++) playingRoles.push("police");
+  for (let i = 0; i < config.doctorCount; i++) playingRoles.push("doctor");
   while (playingRoles.length < playingCount) playingRoles.push("villager");
-  // First player is always god; rest get shuffled playing roles
   const shuffledRoles = shuffle(playingRoles);
   return players.map((p, i) => ({
     ...p,
@@ -57,12 +49,12 @@ export function resolveNight(state: GameState): NightResult {
   const doctorTargetName = doctorTargetPlayer?.name ?? null;
 
   let policeResult: NightResult["policeResult"] = null;
-  if (state.config.policeEnabled && policeTarget) {
+  if (state.config.policeCount > 0 && policeTarget) {
     const t = state.players.find((p) => p.id === policeTarget);
     if (t) policeResult = { targetName: t.name, isMafia: t.role === "mafia" };
   }
   if (!mafiaTarget) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: false, mafiaTargetName, doctorTargetName, policeResult };
-  const savedByDoctor = state.config.doctorEnabled && mafiaTarget === doctorTarget;
+  const savedByDoctor = state.config.doctorCount > 0 && mafiaTarget === doctorTarget;
   if (savedByDoctor) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: true, mafiaTargetName, doctorTargetName, policeResult };
   const target = state.players.find((p) => p.id === mafiaTarget);
   if (!target || target.isEliminated) return { killedId: null, killedName: null, killedRole: null, savedByDoctor: false, mafiaTargetName, doctorTargetName, policeResult };

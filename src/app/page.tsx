@@ -52,7 +52,7 @@ export default function HomePage() {
         fontFamily: "'DM Sans', sans-serif",
       }}>
         {/* Inner padded content */}
-        <div style={{ padding: "32px 20px 0", maxWidth: 940, margin: "0 auto", boxSizing: "border-box" }}>
+        <div style={{ padding: "40px 20px 0", maxWidth: 520, margin: "0 auto", boxSizing: "border-box" }}>
           {/* Header */}
           <header style={{ marginBottom: 32 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 3, marginBottom: 6 }}>
@@ -76,9 +76,9 @@ export default function HomePage() {
           overflowY: "visible",
           scrollbarWidth: "none",
           WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
-          marginBottom: 20,
+          marginBottom: 28,
         }}>
-          <div className="ph-filter-inner" style={{ display: "flex", gap: 7, padding: "0 20px", width: "max-content" }}>
+          <div className="ph-filter-inner" style={{ display: "flex", gap: 8, padding: "0 20px", width: "max-content" }}>
             {FILTERS.map((f) => {
               const isActive = activeFilter === f.value;
               return (
@@ -88,7 +88,7 @@ export default function HomePage() {
                   aria-pressed={isActive}
                   style={{
                     flexShrink: 0,
-                    fontSize: 12, fontWeight: 700,
+                    fontSize: 13, fontWeight: 700,
                     padding: "9px 14px",
                     minHeight: 36,
                     borderRadius: 20,
@@ -108,7 +108,7 @@ export default function HomePage() {
         </div>
 
         {/* Padded game grid + footer */}
-        <div style={{ padding: "0 20px 32px", maxWidth: 940, margin: "0 auto", boxSizing: "border-box" }}>
+        <div style={{ padding: "0 20px 40px", maxWidth: 520, margin: "0 auto", boxSizing: "border-box" }}>
         <div className="ph-game-grid">
           {filteredGames.map((game) => {
             const isHovered = hoveredGame === game.name;
@@ -128,7 +128,7 @@ export default function HomePage() {
                   background: tokens.white,
                   border: `1.5px solid ${isHovered ? `${theme}66` : tokens.border}`,
                   borderRadius: tokens.radius.xl,
-                  padding: "20px 16px",
+                  padding: "22px 18px",
                   textDecoration: "none",
                   transition: "border-color 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease",
                   transform: isHovered ? "translateY(-2px)" : "translateY(0)",
@@ -168,9 +168,8 @@ export default function HomePage() {
                     fontSize: 11, fontWeight: 700, color: tokens.coral,
                     background: tokens.accentBg, border: `1px solid ${tokens.coral}40`,
                     borderRadius: tokens.radius.sm, padding: "3px 8px", letterSpacing: "0.04em",
-                    textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: 4,
+                    textTransform: "uppercase",
                   }}>
-                    <span aria-hidden="true">👥</span>
                     {game.players}
                   </span>
                   <button
@@ -198,9 +197,8 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer style={{
-          marginTop: 32,
-          paddingTop: 20,
-          paddingBottom: "max(20px, env(safe-area-inset-bottom))",
+          marginTop: 40,
+          padding: "28px 0 max(28px, env(safe-area-inset-bottom))",
           borderTop: `1px solid ${tokens.border}`,
           textAlign: "center",
         }}>
@@ -261,7 +259,7 @@ export default function HomePage() {
               {/* Modal header */}
               <div style={{
                 display: "flex", alignItems: "center", gap: 12,
-                padding: "12px 20px 16px", flexShrink: 0,
+                padding: "16px 20px", flexShrink: 0,
                 borderBottom: `1px solid ${tokens.border}`,
               }}>
                 <div style={{

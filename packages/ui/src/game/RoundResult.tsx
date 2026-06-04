@@ -1,4 +1,5 @@
 "use client";
+import { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Btn, Card, OptionsMenu, Screen, TopBar, tokens } from "../index";
@@ -18,13 +19,15 @@ interface Props {
   appName?: string;
   actingTeamName?: string;
   actingTeamIdx: number;
+  pointsEarned?: number | null;
+  drawingReplay?: ReactNode;
   onNext: () => void;
   onEndGame: () => void;
   onNewGame: () => void;
   onExit?: () => void;
 }
 
-export function RoundResult({ correct, word, difficulty, teams, teamColors, phases, appName, actingTeamName, actingTeamIdx, onNext, onEndGame, onNewGame, onExit }: Props) {
+export function RoundResult({ correct, word, difficulty, teams, teamColors, phases, appName, actingTeamName, actingTeamIdx, pointsEarned, drawingReplay, onNext, onEndGame, onNewGame, onExit }: Props) {
   const router = useRouter();
   return (
     <Screen style={{ display: "flex", flexDirection: "column" }}>
@@ -51,7 +54,7 @@ export function RoundResult({ correct, word, difficulty, teams, teamColors, phas
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
                     background: correct ? tokens.green : tokens.grey4,
-                    color: "#fff", fontSize: 14, fontWeight: 700,
+                    color: tokens.white, fontSize: 14, fontWeight: 700,
                   }}
                 >{correct ? "✓" : "—"}</span>
                 {correct ? "Correct!" : "Skipped"}
@@ -78,21 +81,34 @@ export function RoundResult({ correct, word, difficulty, teams, teamColors, phas
             </Card>
           </motion.div>
 
+          {drawingReplay && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}>
+              {drawingReplay}
+            </motion.div>
+          )}
+
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
             <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-              {teams.map((team, i) => (
-                <div
-                  key={i}
-                  style={{
-                    flex: 1, background: tokens.white,
-                    border: `1.5px solid ${teamColors[i]}30`,
-                    borderRadius: 14, padding: "16px 12px", textAlign: "center",
-                  }}
-                >
-                  <div style={{ fontSize: 12, color: tokens.grey2, fontWeight: 500, marginBottom: 4 }}>{team.name}</div>
-                  <div style={{ fontSize: 32, fontWeight: 800, color: teamColors[i] }}>{team.score}</div>
-                </div>
-              ))}
+              {teams.map((team, i) => {
+                const isActing = i === actingTeamIdx;
+                const earned = isActing && correct && pointsEarned != null ? pointsEarned : null;
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      flex: 1, background: tokens.white,
+                      border: `1.5px solid ${teamColors[i]}30`,
+                      borderRadius: 14, padding: "16px 12px", textAlign: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: 12, color: tokens.grey2, fontWeight: 500, marginBottom: 4 }}>{team.name}</div>
+                    <div style={{ fontSize: 32, fontWeight: 800, color: teamColors[i] }}>{team.score}</div>
+                    {earned != null && (
+                      <div style={{ fontSize: 12, fontWeight: 700, color: tokens.green, marginTop: 2 }}>+{earned} this round</div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </motion.div>
 

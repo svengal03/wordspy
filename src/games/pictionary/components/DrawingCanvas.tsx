@@ -2,6 +2,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { PhaseTrail, OptionsMenu, TopBar, NavBtn, tokens, useGoHome } from "@playhub/ui";
 import { RulesModal } from "./RulesModal";
+import type { DrawingStroke } from "../types";
 
 const PIC_PHASES = ["Word Reveal", "Drawing", "Results"];
 
@@ -11,20 +12,22 @@ interface Props {
   difficulty?: string;
   drawerName: string;
   teamColor: string;
-  onCorrect: (timeLeft: number) => void;
-  onSkip: () => void;
+  replayEnabled?: boolean;
+  onCorrect: (timeLeft: number, strokes: DrawingStroke[]) => void;
+  onSkip: (strokes: DrawingStroke[]) => void;
   onNewGame: () => void;
 }
 
 const COLORS = [tokens.black, tokens.red, "#4A6CF7", tokens.green, "#F59E0B", tokens.purple, tokens.white];
 const SIZES = [3, 6, 12];
 
-export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, teamColor, onCorrect, onSkip, onNewGame }: Props) {
+export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, teamColor, replayEnabled, onCorrect, onSkip, onNewGame }: Props) {
   const goHome = useGoHome();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const snapshots = useRef<ImageData[]>([]);
   const redoStack = useRef<ImageData[]>([]);
+  const strokes = useRef<DrawingStroke[]>([]);
   const done = useRef(false);
   const onSkipRef = useRef(onSkip);
   onSkipRef.current = onSkip;
@@ -43,7 +46,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
         if (t <= 1) {
           done.current = true;
           clearInterval(tick);
-          onSkipRef.current();
+          onSkipRef.current(strokes.current);
           return 0;
         }
         return t - 1;
@@ -83,6 +86,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
     ctx.lineWidth = eraser ? size * 3 : size;
     ctx.beginPath();
     ctx.moveTo(x, y);
+    if (replayEnabled) strokes.current.push({ type: "start", x, y, color, size, eraser });
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -93,12 +97,14 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
     const { x, y } = getPos(e);
     ctx.lineTo(x, y);
     ctx.stroke();
+    if (replayEnabled) strokes.current.push({ type: "move", x, y, color, size, eraser });
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     e.preventDefault();
     if (!drawing.current) return;
     drawing.current = false;
+    const { x, y } = getPos(e);
     const canvas = canvasRef.current;
     const ctx = getCtx();
     if (canvas && ctx) {
@@ -106,6 +112,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
       if (snapshots.current.length > 10) snapshots.current.shift();
       redoStack.current = [];
     }
+    if (replayEnabled) strokes.current.push({ type: "end", x, y, color, size, eraser });
   };
 
   const handleUndo = () => {
@@ -330,7 +337,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
         {/* Action buttons */}
         <div style={{ display: "flex", gap: 8 }}>
           <button
-            onClick={onSkip}
+            onClick={() => onSkip(strokes.current)}
             style={{
               flex: 1,
               padding: "12px 0",
@@ -347,7 +354,7 @@ export function DrawingCanvas({ timerDuration, word, difficulty, drawerName, tea
             Skip →
           </button>
           <button
-            onClick={() => { done.current = true; onCorrect(timeLeft); }}
+            onClick={() => { done.current = true; onCorrect(timeLeft, strokes.current); }}
             style={{
               flex: 2,
               padding: "12px 0",

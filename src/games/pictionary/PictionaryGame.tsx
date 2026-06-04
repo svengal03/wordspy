@@ -5,9 +5,10 @@ import { DrawingCanvas } from "@/games/pictionary/components/DrawingCanvas";
 import { RulesModal } from "@/games/pictionary/components/RulesModal";
 import { RoundResult } from "@playhub/ui/game";
 import { GameOver } from "@playhub/ui/game";
-import { useGoHome, GameLobbyScreen, tokens, LoadingScreen, EmptyState, Btn } from "@playhub/ui";
+import { useGoHome, GameLobbyScreen, tokens, LoadingScreen, EmptyState, Btn, Card, Toggle } from "@playhub/ui";
+import { DrawingReplay } from "@/games/pictionary/components/DrawingReplay";
 import { TEAM_PALETTE_PICTIONARY as TEAM_PALETTE } from "@playhub/core";
-import type { GameState, Team, Difficulty } from "@/games/pictionary/types";
+import type { GameState, Phase, Team, Difficulty, DrawingStroke } from "@/games/pictionary/types";
 import { calcScore } from "@/lib/scoringUtils";
 import { buildWordPool, pickThree } from "@/lib/wordPoolUtils";
 import { useWordPackCache } from "@/hooks/useWordPackCache";
@@ -27,6 +28,9 @@ const defaultState: GameState = {
   wordOptions: ["", "", ""],
   wordPool: [],
   lastRoundCorrect: null,
+  pointsLastRound: null,
+  lastDrawingStrokes: [],
+  drawingReplayEnabled: false,
   roundNumber: 0,
   currentDifficulty: "medium",
   lastDifficulty: null,
@@ -40,7 +44,11 @@ export function PictionaryGame() {
     if (typeof window === "undefined") return defaultState;
     try {
       const saved = sessionStorage.getItem(SESSION_KEY);
-      return saved ? (JSON.parse(saved) as GameState) : defaultState;
+      if (!saved) return defaultState;
+      const parsed = JSON.parse(saved) as GameState;
+      const validPhases: Phase[] = ["lobby", "setup", "team-assign", "get-ready", "word-reveal", "drawing", "round-result", "game-over"];
+      if (!validPhases.includes(parsed.phase)) { sessionStorage.removeItem(SESSION_KEY); return defaultState; }
+      return parsed;
     } catch {
       return defaultState;
     }
@@ -61,6 +69,7 @@ export function PictionaryGame() {
       ...defaultState,
       phase: "team-assign",
       hostName: s.hostName,
+      drawingReplayEnabled: s.drawingReplayEnabled,
       teams,
       timerDuration,
       selectedPackIds,
@@ -82,6 +91,9 @@ export function PictionaryGame() {
       wordOptions: options,
       wordPool: remaining,
       lastRoundCorrect: null,
+      pointsLastRound: null,
+      lastDrawingStrokes: [],
+      drawingReplayEnabled: s.drawingReplayEnabled,
       roundNumber: 1,
       currentDifficulty: "medium",
       lastDifficulty: null,
@@ -96,13 +108,13 @@ export function PictionaryGame() {
     setState((s) => ({ ...s, phase: "drawing", currentWord: word, currentDifficulty: difficulty }));
   }, []);
 
-  const handleRoundEnd = useCallback((correct: boolean, timeLeft = 0) => {
+  const handleRoundEnd = useCallback((correct: boolean, timeLeft = 0, roundStrokes: DrawingStroke[] = []) => {
     setState((s) => {
       const points = correct ? calcScore(timeLeft, s.timerDuration, s.currentDifficulty) : 0;
       const newTeams = s.teams.map((team, i) =>
         i === s.currentTeamIdx && correct ? { ...team, score: team.score + points } : team
       );
-      return { ...s, phase: "round-result", lastRoundCorrect: correct, teams: newTeams, lastDifficulty: s.currentDifficulty };
+      return { ...s, phase: "round-result", lastRoundCorrect: correct, pointsLastRound: points, lastDrawingStrokes: roundStrokes, teams: newTeams, lastDifficulty: s.currentDifficulty };
     });
   }, []);
 
@@ -124,6 +136,8 @@ export function PictionaryGame() {
         wordOptions: options,
         wordPool: remaining,
         lastRoundCorrect: null,
+        pointsLastRound: null,
+        lastDrawingStrokes: [],
         roundNumber: s.roundNumber + 1,
         lastDifficulty: null,
       };
@@ -131,7 +145,7 @@ export function PictionaryGame() {
   }, []);
 
   const handleEndGame = useCallback(() => {
-    setState((s) => ({ ...s, phase: "game-over" }));
+    setState((s) => ({ ...s, phase: "game-over", lastDrawingStrokes: [] }));
   }, []);
 
   const handleNewGame = useCallback(() => {
@@ -139,13 +153,14 @@ export function PictionaryGame() {
       ...defaultState,
       phase: "setup",
       hostName: s.hostName,
+      drawingReplayEnabled: s.drawingReplayEnabled,
       teams: s.teams.map((t) => ({ ...t, score: 0, drawerIdx: 0 })),
     }));
   }, []);
 
-  const handleSkip = useCallback(() => handleRoundEnd(false), [handleRoundEnd]);
+  const handleSkip = useCallback((strokes: DrawingStroke[]) => handleRoundEnd(false, 0, strokes), [handleRoundEnd]);
 
-  const { phase, teams, currentTeamIdx, timerDuration, currentWord, wordOptions, lastRoundCorrect, lastDifficulty } = state;
+  const { phase, teams, currentTeamIdx, timerDuration, currentWord, wordOptions, lastRoundCorrect, lastDifficulty, pointsLastRound, lastDrawingStrokes, drawingReplayEnabled } = state;
   const currentTeam = teams[currentTeamIdx];
   const currentDrawer = currentTeam?.players[currentTeam.drawerIdx] ?? "Drawer";
   const color = teamColor(currentTeamIdx);
@@ -197,6 +212,20 @@ export function PictionaryGame() {
         hostName={state.hostName}
         initialTeams={teams.length > 0 ? teams : undefined}
         rulesModal={({ isOpen, onClose }) => <RulesModal isOpen={isOpen} onClose={onClose} />}
+        extraOptions={
+          <Card>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Drawing Replay</div>
+                <div style={{ fontSize: 12, color: tokens.grey3, marginTop: 2 }}>After each round, watch the drawing play back from start to finish</div>
+              </div>
+              <Toggle
+                value={drawingReplayEnabled}
+                onChange={(v) => setState((s) => ({ ...s, drawingReplayEnabled: v }))}
+              />
+            </div>
+          </Card>
+        }
       />
     );
   }
@@ -259,7 +288,8 @@ export function PictionaryGame() {
         difficulty={state.currentDifficulty}
         drawerName={currentDrawer}
         teamColor={color}
-        onCorrect={(tl) => handleRoundEnd(true, tl)}
+        replayEnabled={drawingReplayEnabled}
+        onCorrect={(tl, strokes) => handleRoundEnd(true, tl, strokes)}
         onSkip={handleSkip}
         onNewGame={handleNewGame}
       />
@@ -278,6 +308,11 @@ export function PictionaryGame() {
         appName="Pictionary"
         actingTeamName={currentTeam?.name}
         actingTeamIdx={currentTeamIdx}
+        pointsEarned={pointsLastRound}
+        drawingReplay={drawingReplayEnabled && lastDrawingStrokes.length > 0
+          ? <DrawingReplay strokes={lastDrawingStrokes} teamColor={color} />
+          : undefined
+        }
         onNext={handleNextRound}
         onEndGame={handleEndGame}
         onNewGame={handleNewGame}

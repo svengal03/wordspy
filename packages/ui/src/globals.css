@@ -150,12 +150,12 @@ textarea:focus-visible {
 .ph-game-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 16px;
   align-items: stretch;
 }
 .ph-filter-inner {
   display: flex;
-  gap: 7px;
+  gap: 8px;
   padding: 0 20px;
   width: max-content;
 }
