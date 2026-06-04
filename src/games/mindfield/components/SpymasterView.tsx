@@ -25,7 +25,7 @@ export default function SpymasterView({ gameState, localPlayer, onSubmitClue, on
   const showInput = isMyTurn && isGivingClue;
 
   const clueTimerSecs = gameState.config.clueTimerSecs ?? null;
-  const [clueTimeLeft, setClueTimeLeft] = useState(clueTimerSecs);
+  const [clueTimeLeft, setClueTimeLeft] = useState<number | null>(clueTimerSecs);
   const clueTimerExpiredRef = useRef(false);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function SpymasterView({ gameState, localPlayer, onSubmitClue, on
         if (t === null || t <= 1) {
           clearInterval(tick);
           if (!clueTimerExpiredRef.current) { clueTimerExpiredRef.current = true; onSkipTurn?.(); }
-          return 0;
+          return null;
         }
         return t - 1;
       });
