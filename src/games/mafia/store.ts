@@ -39,7 +39,7 @@ export const useGame = create<GameStore>()(
     }),
     {
       name: "mafia-store",
-      version: 1, // bumped — clears stale pre-fix data from localStorage
+      version: 2, // bumped — clears stale config shape (customMafiaCount → mafiaCount etc)
       // Persist full game state so accidental browser close can be resumed.
       // Reset only if the stored game was already finished.
       onRehydrateStorage: () => (state) => {

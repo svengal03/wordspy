@@ -61,16 +61,16 @@ export default function NightScreen() {
   function advanceAfterRole(sub: NightSubPhase) {
     if (sub === "mafia-wake") {
       const doctorAlive = players.some(p => p.role === "doctor" && !p.isEliminated);
-      if (config.doctorEnabled && doctorAlive && getDoctorTargets().length > 0) {
+      if (config.doctorCount > 0 && doctorAlive && getDoctorTargets().length > 0) {
         goToSubPhase("doctor-wake");
       } else {
         const policeAlive = players.some(p => p.role === "police" && !p.isEliminated);
-        if (config.policeEnabled && policeAlive) goToSubPhase("police-wake");
+        if (config.policeCount > 0 && policeAlive) goToSubPhase("police-wake");
         else endNight();
       }
     } else if (sub === "doctor-wake") {
       const policeAlive = players.some(p => p.role === "police" && !p.isEliminated);
-      if (config.policeEnabled && policeAlive) goToSubPhase("police-wake");
+      if (config.policeCount > 0 && policeAlive) goToSubPhase("police-wake");
       else endNight();
     } else if (sub === "police-wake") {
       endNight();
@@ -222,15 +222,15 @@ export default function NightScreen() {
             <motion.div key="police-result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
               <Card>
                 <div style={{ fontSize: 12, fontWeight: 700, color: tokens.purple, letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>
-                  🚔 Police Investigation
+                  Police Investigation
                 </div>
                 <div style={{
                   background: policeResult.isMafia ? tokens.redBg : tokens.greenBg,
-                  border: `1px solid ${policeResult.isMafia ? "#FECACA" : "#BBF7D0"}`,
+                  border: `1px solid ${policeResult.isMafia ? `${tokens.red}40` : `${tokens.green}40`}`,
                   borderRadius: 14, padding: "16px", marginBottom: 16,
                 }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: policeResult.isMafia ? tokens.red : tokens.green }}>
-                    {policeResult.name} is {policeResult.isMafia ? "MAFIA 🔴" : "NOT Mafia ✅"}
+                    {policeResult.name} is {policeResult.isMafia ? "MAFIA" : "NOT Mafia"}
                   </div>
                   <div style={{ fontSize: 12, color: tokens.grey2, marginTop: 4 }}>
                     Whisper this result to Police only — don&apos;t reveal to others.

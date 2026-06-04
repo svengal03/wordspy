@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { Btn, tokens, PlayHubLogo, OptionsMenu } from "@playhub/ui";
 import WordCard from "./WordCard";
 import RulesModal from "./RulesModal";
@@ -19,6 +19,30 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onFlag
   const [showRules, setShowRules] = useState(false);
   const isMyTeam = gameState.currentTeam === localPlayer.team;
   const canGuess = isMyTeam && gameState.turnPhase === "guessing";
+
+  const guessTimerSecs = gameState.config.guessTimerSecs ?? null;
+  const [guessTimeLeft, setGuessTimeLeft] = useState(guessTimerSecs);
+  const guessTimerExpiredRef = useRef(false);
+  const onPassRef = useRef(onPass);
+  onPassRef.current = onPass;
+
+  useEffect(() => {
+    if (!canGuess || !guessTimerSecs) { setGuessTimeLeft(guessTimerSecs); guessTimerExpiredRef.current = false; return; }
+    setGuessTimeLeft(guessTimerSecs);
+    guessTimerExpiredRef.current = false;
+    const tick = setInterval(() => {
+      setGuessTimeLeft((t) => {
+        if (t === null || t <= 1) {
+          clearInterval(tick);
+          if (!guessTimerExpiredRef.current) { guessTimerExpiredRef.current = true; onPassRef.current(); }
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canGuess, guessTimerSecs, gameState.clue]);
 
   const { redLeft, blueLeft } = useMemo(() => {
     let r = 0, b = 0;
@@ -153,9 +177,20 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onFlag
 
         {/* Pass button */}
         {canGuess && (
-          <Btn variant="ghost" fullWidth onClick={onPass} style={{ padding: "13px", fontSize: 14 }}>
-            Pass Turn
-          </Btn>
+          <>
+            {guessTimerSecs && guessTimeLeft !== null && (
+              <div style={{
+                textAlign: "center", marginBottom: 6,
+                fontSize: 13, fontWeight: 700,
+                color: guessTimeLeft <= 10 ? "#DC2626" : tokens.grey2,
+              }}>
+                {guessTimeLeft <= 10 ? "⚠ " : "⏱ "}Guess timer: {guessTimeLeft}s
+              </div>
+            )}
+            <Btn variant="ghost" fullWidth onClick={onPass} style={{ padding: "13px", fontSize: 14 }}>
+              Pass Turn
+            </Btn>
+          </>
         )}
 
         {/* Turn status */}

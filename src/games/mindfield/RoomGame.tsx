@@ -6,7 +6,7 @@ import { useMindFieldRoom } from "./useRoom";
 import { submitClue, endTurn, toggleFlag, revealTile, resetForPlayAgain } from "./engine";
 import type { GameState, TeamColor, PlayerRole } from "./types";
 
-import { ConfirmDialog } from "@playhub/ui";
+import { ConfirmDialog, tokens } from "@playhub/ui";
 import LobbyScreen from "./components/LobbyScreen";
 import SpymasterView from "./components/SpymasterView";
 import AgentView from "./components/AgentView";
@@ -156,6 +156,11 @@ export function MindFieldRoom() {
     await push({ ...gameState, config: { ...gameState.config, targetWins: n } });
   }
 
+  async function handleUpdateTimers(clueTimerSecs: 60 | 120 | 180 | null, guessTimerSecs: 30 | 60 | null) {
+    if (!gameState) return;
+    await push({ ...gameState, config: { ...gameState.config, clueTimerSecs, guessTimerSecs } });
+  }
+
   async function handleStart() {
     if (!gameState || isStarting) return;
     setIsStarting(true);
@@ -240,6 +245,15 @@ export function MindFieldRoom() {
     sendFlagBroadcast(newState.flaggedTiles);
   }
 
+  async function handleSkipTurn() {
+    if (!gameState || !effectivePlayer) return;
+    if (effectivePlayer.role !== "spymaster") return;
+    if (gameState.currentTeam !== effectivePlayer.team) return;
+    if (gameState.turnPhase !== "giving-clue") return;
+    const updated = endTurn(gameState);
+    await push(updated);
+  }
+
   async function handlePass() {
     if (!gameState || !effectivePlayer) return;
     if (effectivePlayer.role !== "agent") return;
@@ -294,7 +308,7 @@ export function MindFieldRoom() {
     && gameState.phase === "lobby"
     && !gameState.players.find(p => p.id === localPlayer.id);
 
-  if (isLoadingRoom || !gameState || !localPlayer || isKicked) {
+  if (isLoadingRoom || !gameState || isKicked) {
     const isError = !!roomError || !!isKicked;
     const msg = isKicked
       ? "You were removed from the room."
@@ -304,19 +318,24 @@ export function MindFieldRoom() {
         minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center",
         flexDirection: "column", gap: 12, fontFamily: "system-ui",
       }}>
-        <div style={{ fontSize: 32 }}>{isError ? "😔" : "🧠"}</div>
-        <div style={{ color: isError ? "#EF4444" : "#888", textAlign: "center", maxWidth: 280, lineHeight: 1.5 }}>{msg}</div>
+        <div style={{ width: 12, height: 12, borderRadius: "50%", background: isError ? tokens.red : tokens.coral }} />
+        <div style={{ color: isError ? tokens.red : tokens.grey2, textAlign: "center", maxWidth: 280, lineHeight: 1.5 }}>{msg}</div>
         <button
           onClick={() => router.push("/mindfield")}
           style={{
-            marginTop: 8, padding: "10px 24px", borderRadius: 10, border: "1.5px solid #ddd",
-            background: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 600, fontFamily: "inherit",
+            marginTop: 8, padding: "10px 24px", borderRadius: 10, border: `1.5px solid ${tokens.border}`,
+            background: tokens.white, cursor: "pointer", fontSize: 14, fontWeight: 600, fontFamily: "inherit",
           }}
         >
           ← PlayHub
         </button>
       </div>
     );
+  }
+
+  // Spectator: no localPlayer but game is loaded — show read-only view
+  if (!localPlayer) {
+    return <SpectatorView gameState={gameState} onLeave={() => router.push("/mindfield")} />;
   }
 
   const { phase } = gameState;
@@ -336,7 +355,7 @@ export function MindFieldRoom() {
               onClick={phase === "game-over" ? handlePlayAgain : handleNextRound}
               disabled={isStarting}
               style={{
-                padding: "14px 32px", borderRadius: 14, background: "#CC785C", color: "#fff",
+                padding: "14px 32px", borderRadius: 14, background: tokens.coral, color: tokens.white,
                 border: "none", fontSize: 16, fontWeight: 700, cursor: isStarting ? "default" : "pointer",
                 fontFamily: "inherit", opacity: isStarting ? 0.6 : 1,
               }}
@@ -368,6 +387,7 @@ export function MindFieldRoom() {
         onAssignSpymaster={handleAssignSpymaster}
         onUpdatePackId={handleUpdatePackId}
         onUpdateTargetWins={handleUpdateTargetWins}
+        onUpdateTimers={handleUpdateTimers}
         onStart={handleStart}
         isStarting={isStarting}
         onRemovePlayer={handleRemovePlayer}
@@ -384,6 +404,7 @@ export function MindFieldRoom() {
           gameState={gameState}
           localPlayer={effectivePlayer}
           onSubmitClue={handleSubmitClue}
+          onSkipTurn={handleSkipTurn}
           onLeave={handleLeave}
           onNewGame={newGame}
         />
@@ -433,5 +454,74 @@ export function MindFieldRoom() {
         onCancel={() => setShowLeaveDialog(false)}
       />
     </>
+  );
+}
+
+// ── Spectator View ─────────────────────────────────────────────────────────────
+function SpectatorView({ gameState, onLeave }: { gameState: import("./types").GameState; onLeave: () => void }) {
+  const teamColor = (t: "red" | "blue") => t === "red" ? "#DC2626" : "#2563EB";
+  const tc = teamColor(gameState.currentTeam);
+  return (
+    <div style={{ minHeight: "100dvh", background: tokens.bg, fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+      <div style={{
+        position: "sticky", top: 0, zIndex: 50, padding: "12px 16px",
+        borderBottom: `1px solid ${tokens.border}`, background: tokens.bg,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: tokens.black, display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: tokens.coral }} />
+          Mind Field
+          <span style={{ fontSize: 11, fontWeight: 600, color: tokens.grey3, marginLeft: 4 }}>SPECTATOR</span>
+        </div>
+        <button onClick={onLeave} style={{ padding: "6px 14px", borderRadius: 8, border: `1.5px solid ${tokens.border}`, background: tokens.white, cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit", color: tokens.grey1 }}>Leave</button>
+      </div>
+      <div style={{ padding: "12px 12px 28px", maxWidth: 480, margin: "0 auto" }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "center", justifyContent: "center" }}>
+          {(["red", "blue"] as const).map((team) => {
+            const c = teamColor(team);
+            const active = gameState.currentTeam === team;
+            return (
+              <div key={team} style={{ padding: "8px 16px", borderRadius: 10, border: `1.5px solid ${active ? c + "50" : tokens.border}`, background: active ? c + "10" : tokens.white, textAlign: "center", minWidth: 90 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: c, display: "flex", alignItems: "center", gap: 4 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: c, display: "inline-block" }} />
+                  {team === "red" ? "Red" : "Blue"}
+                </div>
+                <div style={{ fontSize: 10, color: tokens.grey3 }}>{team === "red" ? gameState.redWins : gameState.blueWins}W · {team === "red" ? gameState.redPoints : gameState.bluePoints}pt</div>
+              </div>
+            );
+          })}
+        </div>
+        {gameState.clue && (
+          <div style={{ background: tc + "10", border: `1.5px solid ${tc}30`, borderRadius: 12, padding: "10px 14px", marginBottom: 10, display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: tc, display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: tc, display: "inline-block" }} />
+              {gameState.currentTeam === "red" ? "Red" : "Blue"} clue
+            </div>
+            <div style={{ flex: 1, fontSize: 20, fontWeight: 900, color: tokens.black }}>{gameState.clue} <span style={{ fontSize: 14, color: tokens.grey2, fontWeight: 600 }}>{gameState.clueNumber}</span></div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: tc }}>{gameState.guessesRemaining} left</div>
+          </div>
+        )}
+        {!gameState.clue && (
+          <div style={{ textAlign: "center", color: tokens.grey2, fontSize: 13, marginBottom: 10 }}>
+            {gameState.currentTeam === "red" ? "Red" : "Blue"} Spymaster is giving a clue…
+          </div>
+        )}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 7, marginBottom: 12 }}>
+          {gameState.tiles.map(tile => {
+            const revealed = tile.revealed;
+            const bg = revealed
+              ? tile.color === "red" ? tokens.redBg : tile.color === "blue" ? tokens.blueBg : tile.color === "bomb" ? tokens.black : "#F5F5F5"
+              : tokens.white;
+            const textColor = revealed && tile.color === "bomb" ? tokens.white : revealed && tile.color === "red" ? tokens.red : revealed && tile.color === "blue" ? tokens.blue : tokens.black;
+            return (
+              <div key={tile.id} style={{ borderRadius: 8, border: `1.5px solid ${tokens.border}`, background: bg, padding: "8px 4px", textAlign: "center", fontSize: 11, fontWeight: 600, color: revealed ? textColor : tokens.grey1, opacity: revealed ? 0.7 : 1, lineHeight: 1.2 }}>
+                {tile.word}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ textAlign: "center", color: tokens.grey4, fontSize: 12 }}>Round {gameState.round} · Watching as spectator</div>
+      </div>
+    </div>
   );
 }

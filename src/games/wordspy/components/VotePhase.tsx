@@ -21,6 +21,16 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
   const [confirmed, setConfirmed] = useState(false);
   const [voteRevealed, setVoteRevealed] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [suspiciousIds, setSuspiciousIds] = useState<Set<string>>(new Set());
+
+  function toggleSuspicion(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setSuspiciousIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
 
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
   const myPlayer = gameState.players.find((p) => p.id === localPlayer.id);
@@ -233,7 +243,12 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
                       >
                         <Avatar name={p.name} size={44} active={isSelected} />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 15, fontWeight: 600, color: tokens.black, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontSize: 15, fontWeight: 600, color: tokens.black, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
+                            {suspiciousIds.has(p.id) && (
+                              <span style={{ fontSize: 11, fontWeight: 700, color: tokens.red, background: "#FEF2F2", padding: "1px 6px", borderRadius: 6, flexShrink: 0 }}>SUS</span>
+                            )}
+                          </div>
                           {p.clue && (
                             <div style={{ fontSize: 13, color: tokens.grey2, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                               &ldquo;{p.clue}&rdquo;
@@ -262,13 +277,24 @@ export default function VotePhase({ gameState, localPlayer, isOffline = false, o
                             </div>
                           )}
                         </div>
-                        {isSelected && !hasVoted && (
-                          <div style={{
-                            width: 24, height: 24, borderRadius: 12, background: tokens.coral,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            color: "#fff", fontSize: 13, fontWeight: 800, flexShrink: 0,
-                          }}>✓</div>
-                        )}
+                        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+                          <button
+                            onClick={(e) => toggleSuspicion(p.id, e)}
+                            title={suspiciousIds.has(p.id) ? "Remove suspicion" : "Mark as suspicious"}
+                            style={{
+                              width: 28, height: 28, borderRadius: 8, border: "none", cursor: "pointer",
+                              background: suspiciousIds.has(p.id) ? "#FEF2F2" : tokens.inputBg,
+                              fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center",
+                            }}
+                          >{suspiciousIds.has(p.id) ? "🚨" : "🔍"}</button>
+                          {isSelected && !hasVoted && (
+                            <div style={{
+                              width: 24, height: 24, borderRadius: 12, background: tokens.coral,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              color: "#fff", fontSize: 13, fontWeight: 800,
+                            }}>✓</div>
+                          )}
+                        </div>
                       </motion.button>
                     );
                   })}

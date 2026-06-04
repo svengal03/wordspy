@@ -1,5 +1,6 @@
 export type Phase =
   | "lobby"
+  | "options"
   | "setup"
   | "team-assign"
   | "get-ready"
@@ -29,7 +30,10 @@ export interface GameState {
   wordOptions: [string, string, string];
   wordPool: string[];
   lastRoundCorrect: boolean | null;
+  pointsLastRound: number | null;
   roundNumber: number;
   currentDifficulty: Difficulty;
   lastDifficulty: Difficulty | null;
+  suddenDeathEnabled: boolean;
+  isSuddenDeath: boolean;
 }

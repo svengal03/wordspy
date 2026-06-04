@@ -42,10 +42,10 @@ export default function WavelengthRulesModal({ isOpen, onClose }: Props) {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {[
-            { label: "Bullseye 🎯", pts: "4 pts", desc: "within 5% of target" },
-            { label: "Close ✨", pts: "3 pts", desc: "within 15%" },
-            { label: "Almost 👍", pts: "2 pts", desc: "within 25%" },
-            { label: "Miss 😬", pts: "0 pts", desc: "more than 25% away" },
+            { label: "Bullseye", pts: "4 pts", desc: "within 5% of target" },
+            { label: "Close", pts: "3 pts", desc: "within 15%" },
+            { label: "Almost", pts: "2 pts", desc: "within 25%" },
+            { label: "Miss", pts: "0 pts", desc: "more than 25% away" },
           ].map((row) => (
             <div key={row.label} style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <span style={{

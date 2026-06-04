@@ -26,6 +26,7 @@ interface Props {
   onAssignSpymaster: (playerId: string) => void;
   onUpdatePackId: (packId: string) => void;
   onUpdateTargetWins: (n: number) => void;
+  onUpdateTimers: (clueTimerSecs: 60 | 120 | 180 | null, guessTimerSecs: 30 | 60 | null) => void;
   onStart: () => void;
   isStarting?: boolean;
   onRemovePlayer: (id: string) => void;
@@ -46,7 +47,7 @@ const TEAM = {
 
 export default function LobbyScreen({
   gameState, localPlayer,
-  onAssignTeam, onAssignSpymaster, onUpdatePackId, onUpdateTargetWins,
+  onAssignTeam, onAssignSpymaster, onUpdatePackId, onUpdateTargetWins, onUpdateTimers,
   onStart, isStarting, onRemovePlayer, onLeave,
 }: Props) {
   const isHost = localPlayer.isHost;
@@ -359,6 +360,53 @@ export default function LobbyScreen({
                       }}>{n}</button>
                     );
                   })}
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Turn Timers — host only */}
+        {isHost && (
+          <motion.div {...fadeUp(0.12)}>
+            <Card style={{ padding: "12px 16px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: tokens.grey3, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 12 }}>Turn Timers</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: tokens.grey1, marginBottom: 6 }}>Clue phase</div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {([null, 60, 120, 180] as const).map((v) => {
+                      const label = v === null ? "Off" : v === 60 ? "1 min" : v === 120 ? "2 min" : "3 min";
+                      const sel = (gameState.config.clueTimerSecs ?? null) === v;
+                      return (
+                        <button key={String(v)} onClick={() => onUpdateTimers(v, gameState.config.guessTimerSecs ?? null)} style={{
+                          flex: 1, padding: "7px 0", borderRadius: 8, fontSize: 12, fontWeight: 600,
+                          border: `1.5px solid ${sel ? tokens.coral : tokens.border}`,
+                          background: sel ? tokens.coralBg : tokens.white,
+                          color: sel ? tokens.coral : tokens.grey2,
+                          cursor: "pointer", fontFamily: "inherit",
+                        }}>{label}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: tokens.grey1, marginBottom: 6 }}>Guess phase</div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {([null, 30, 60] as const).map((v) => {
+                      const label = v === null ? "Off" : v === 30 ? "30s" : "60s";
+                      const sel = (gameState.config.guessTimerSecs ?? null) === v;
+                      return (
+                        <button key={String(v)} onClick={() => onUpdateTimers(gameState.config.clueTimerSecs ?? null, v)} style={{
+                          flex: 1, padding: "7px 0", borderRadius: 8, fontSize: 12, fontWeight: 600,
+                          border: `1.5px solid ${sel ? tokens.coral : tokens.border}`,
+                          background: sel ? tokens.coralBg : tokens.white,
+                          color: sel ? tokens.coral : tokens.grey2,
+                          cursor: "pointer", fontFamily: "inherit",
+                        }}>{label}</button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </Card>

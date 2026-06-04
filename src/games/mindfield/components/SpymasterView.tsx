@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 const NOOP = () => {};
 import { tokens, PlayHubLogo, OptionsMenu } from "@playhub/ui";
@@ -13,15 +13,38 @@ interface Props {
   gameState: GameState;
   localPlayer: Player;
   onSubmitClue: (clue: string, num: number) => void;
+  onSkipTurn?: () => void;
   onLeave: () => void;
   onNewGame?: () => void;
 }
 
-export default function SpymasterView({ gameState, localPlayer, onSubmitClue, onLeave, onNewGame }: Props) {
+export default function SpymasterView({ gameState, localPlayer, onSubmitClue, onSkipTurn, onLeave, onNewGame }: Props) {
   const [showRules, setShowRules] = useState(false);
   const isMyTurn = gameState.currentTeam === localPlayer.team;
   const isGivingClue = gameState.turnPhase === "giving-clue";
   const showInput = isMyTurn && isGivingClue;
+
+  const clueTimerSecs = gameState.config.clueTimerSecs ?? null;
+  const [clueTimeLeft, setClueTimeLeft] = useState(clueTimerSecs);
+  const clueTimerExpiredRef = useRef(false);
+
+  useEffect(() => {
+    if (!showInput || !clueTimerSecs) { setClueTimeLeft(clueTimerSecs); clueTimerExpiredRef.current = false; return; }
+    setClueTimeLeft(clueTimerSecs);
+    clueTimerExpiredRef.current = false;
+    const tick = setInterval(() => {
+      setClueTimeLeft((t) => {
+        if (t === null || t <= 1) {
+          clearInterval(tick);
+          if (!clueTimerExpiredRef.current) { clueTimerExpiredRef.current = true; onSkipTurn?.(); }
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => clearInterval(tick);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showInput, clueTimerSecs]);
 
   const { redLeft, blueLeft } = useMemo(() => {
     let r = 0, b = 0;
@@ -128,7 +151,18 @@ export default function SpymasterView({ gameState, localPlayer, onSubmitClue, on
 
         {/* Clue input or status */}
         {showInput ? (
-          <ClueInput tiles={gameState.tiles} onSubmit={onSubmitClue} />
+          <>
+            {clueTimerSecs && clueTimeLeft !== null && (
+              <div style={{
+                textAlign: "center", marginBottom: 8,
+                fontSize: 13, fontWeight: 700,
+                color: clueTimeLeft <= 15 ? "#DC2626" : tokens.grey2,
+              }}>
+                {clueTimeLeft <= 15 ? "⚠ " : "⏱ "}Clue timer: {clueTimeLeft}s
+              </div>
+            )}
+            <ClueInput tiles={gameState.tiles} onSubmit={onSubmitClue} />
+          </>
         ) : (
           <div style={{
             background: tokens.white, borderRadius: 12, padding: "14px", textAlign: "center",

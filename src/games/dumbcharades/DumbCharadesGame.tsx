@@ -5,7 +5,7 @@ import { ActingScreen } from "@/games/dumbcharades/components/ActingScreen";
 import { RulesModal } from "@/games/dumbcharades/components/RulesModal";
 import { RoundResult } from "@playhub/ui/game";
 import { GameOver } from "@playhub/ui/game";
-import { useGoHome, GameLobbyScreen, tokens, LoadingScreen, EmptyState, Btn } from "@playhub/ui";
+import { useGoHome, GameLobbyScreen, tokens, LoadingScreen, EmptyState, Btn, Card, Toggle, Screen, TopBar, OptionsMenu } from "@playhub/ui";
 import { TEAM_PALETTE_DUMBCHARADES as TEAM_PALETTE } from "@playhub/core";
 import type { GameState, Team, Difficulty } from "@/games/dumbcharades/types";
 import { calcScore } from "@/lib/scoringUtils";
@@ -27,9 +27,12 @@ const defaultState: GameState = {
   wordOptions: ["", "", ""],
   wordPool: [],
   lastRoundCorrect: null,
+  pointsLastRound: null,
   roundNumber: 0,
   currentDifficulty: "medium",
   lastDifficulty: null,
+  suddenDeathEnabled: false,
+  isSuddenDeath: false,
 };
 
 const SESSION_KEY = "dc-game-state";
@@ -61,6 +64,8 @@ export function DumbCharadesGame() {
       ...defaultState,
       phase: "team-assign",
       hostName: s.hostName,
+      suddenDeathEnabled: s.suddenDeathEnabled,
+      isSuddenDeath: false,
       teams,
       timerDuration,
       selectedPackIds,
@@ -82,9 +87,12 @@ export function DumbCharadesGame() {
       wordOptions: options,
       wordPool: remaining,
       lastRoundCorrect: null,
+      pointsLastRound: null,
       roundNumber: 1,
       currentDifficulty: "medium",
       lastDifficulty: null,
+      suddenDeathEnabled: s.suddenDeathEnabled,
+      isSuddenDeath: false,
     }));
   }, [state.selectedPackIds]);
 
@@ -102,7 +110,7 @@ export function DumbCharadesGame() {
       const newTeams = s.teams.map((team, i) =>
         i === s.currentTeamIdx && correct ? { ...team, score: team.score + points } : team
       );
-      return { ...s, phase: "round-result", lastRoundCorrect: correct, teams: newTeams, lastDifficulty: s.currentDifficulty };
+      return { ...s, phase: "round-result", lastRoundCorrect: correct, pointsLastRound: points, teams: newTeams, lastDifficulty: s.currentDifficulty };
     });
   }, []);
 
@@ -124,6 +132,7 @@ export function DumbCharadesGame() {
         wordOptions: options,
         wordPool: remaining,
         lastRoundCorrect: null,
+        pointsLastRound: null,
         roundNumber: s.roundNumber + 1,
         lastDifficulty: null,
       };
@@ -131,7 +140,38 @@ export function DumbCharadesGame() {
   }, []);
 
   const handleEndGame = useCallback(() => {
-    setState((s) => ({ ...s, phase: "game-over" }));
+    setState((s) => {
+      if (s.suddenDeathEnabled) {
+        const scores = s.teams.map((t) => t.score);
+        const max = Math.max(...scores);
+        const tied = scores.filter((sc) => sc === max).length > 1;
+        if (tied) {
+          // Pick next team and word — continue SD until one team pulls ahead
+          const nextTeamIdx = (s.currentTeamIdx + 1) % s.teams.length;
+          const nextTeam = s.teams[nextTeamIdx]!;
+          const nextActorIdx = (nextTeam.actorIdx + 1) % Math.max(nextTeam.players.length, 1);
+          const updatedTeams = s.teams.map((team, i) =>
+            i === nextTeamIdx ? { ...team, actorIdx: nextActorIdx } : team
+          );
+          const { options, remaining } = pickThree(s.wordPool, s.selectedPackIds, dbRowsRef.current, true);
+          return {
+            ...s,
+            phase: "word-reveal",
+            teams: updatedTeams,
+            currentTeamIdx: nextTeamIdx,
+            currentWord: "",
+            wordOptions: options,
+            wordPool: remaining,
+            lastRoundCorrect: null,
+            pointsLastRound: null,
+            roundNumber: s.roundNumber + 1,
+            lastDifficulty: null,
+            isSuddenDeath: true,
+          };
+        }
+      }
+      return { ...s, phase: "game-over" };
+    });
   }, []);
 
   const handleNewGame = useCallback(() => {
@@ -139,11 +179,12 @@ export function DumbCharadesGame() {
       ...defaultState,
       phase: "setup",
       hostName: s.hostName,
+      suddenDeathEnabled: s.suddenDeathEnabled,
       teams: s.teams.map((t) => ({ ...t, score: 0, actorIdx: 0 })),
     }));
   }, []);
 
-  const { phase, teams, currentTeamIdx, timerDuration, currentWord, wordOptions, lastRoundCorrect, lastDifficulty } = state;
+  const { phase, teams, currentTeamIdx, timerDuration, currentWord, wordOptions, lastRoundCorrect, lastDifficulty, pointsLastRound, isSuddenDeath } = state;
   const currentTeam = teams[currentTeamIdx];
   const currentActor = currentTeam?.players[currentTeam.actorIdx] ?? "Actor";
   const color = teamColor(currentTeamIdx);
@@ -159,10 +200,45 @@ export function DumbCharadesGame() {
           { icon: "🎭", title: "One player acts it out", desc: "No talking, no sounds. Just wild gestures and desperate faces." },
           { icon: "🏆", title: "Your team guesses", desc: "Get it right before the timer runs out for points." },
         ]}
-        onSubmit={(name) => setState((s) => ({ ...s, phase: "setup", hostName: name }))}
+        onSubmit={(name) => setState((s) => ({ ...s, phase: "options", hostName: name }))}
         onExit={goHome}
         rulesModal={({ isOpen, onClose }) => <RulesModal isOpen={isOpen} onClose={onClose} />}
       />
+    );
+  }
+
+  if (phase === "options") {
+    return (
+      <Screen style={{ display: "flex", flexDirection: "column" }}>
+        <TopBar
+          appName="Dumb Charades"
+          right={
+            <div style={{ display: "flex", gap: 8 }}>
+              <OptionsMenu onNewGame={() => setState((s) => ({ ...s, phase: "lobby" }))} onExit={goHome} />
+            </div>
+          }
+        />
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px" }}>
+          <div style={{ width: "100%", maxWidth: 420, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: tokens.black, letterSpacing: -0.5, marginBottom: 4 }}>Game Options</div>
+            <Card>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: tokens.black }}>Sudden Death Tiebreaker</div>
+                  <div style={{ fontSize: 12, color: tokens.grey3, marginTop: 2 }}>If teams are tied at game end, play extra rounds until one team pulls ahead</div>
+                </div>
+                <Toggle
+                  value={state.suddenDeathEnabled}
+                  onChange={(v) => setState((s) => ({ ...s, suddenDeathEnabled: v }))}
+                />
+              </div>
+            </Card>
+            <Btn fullWidth onClick={() => setState((s) => ({ ...s, phase: "setup" }))} style={{ padding: "15px", fontSize: 16 }}>
+              Continue →
+            </Btn>
+          </div>
+        </div>
+      </Screen>
     );
   }
 
@@ -170,7 +246,7 @@ export function DumbCharadesGame() {
     if (wordsLoading) return <LoadingScreen label="Loading word packs…" />;
     if (wordsError) return (
       <EmptyState
-        icon="⚠️"
+        icon="!"
         title="Failed to load word packs"
         body={wordsError}
         action={<Btn onClick={goHome} variant="ghost">← PlayHub</Btn>}
@@ -217,8 +293,11 @@ export function DumbCharadesGame() {
       <GetReadyScreen
         appName="Dumb Charades"
         accentColor={color}
-        title="Let the miming begin"
-        subtitle={<>First up: <strong style={{ color }}>{currentTeam.name}</strong> — {currentActor} is acting.</>}
+        title={isSuddenDeath ? "Sudden Death!" : "Let the miming begin"}
+        subtitle={isSuddenDeath
+          ? <><strong style={{ color }}>Tied game</strong> — first team to pull ahead wins. <strong style={{ color }}>{currentTeam.name}</strong> acts next.</>
+          : <>First up: <strong style={{ color }}>{currentTeam.name}</strong> — {currentActor} is acting.</>
+        }
         hints={[
           { icon: "🎭", text: "No talking, no sounds — gestures only." },
           { icon: "📱", text: "Pass the phone to the actor when ready." },
@@ -275,6 +354,7 @@ export function DumbCharadesGame() {
         appName="Dumb Charades"
         actingTeamName={currentTeam?.name}
         actingTeamIdx={currentTeamIdx}
+        pointsEarned={pointsLastRound}
         onNext={handleNextRound}
         onEndGame={handleEndGame}
         onNewGame={handleNewGame}

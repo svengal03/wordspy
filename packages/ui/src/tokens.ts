@@ -60,4 +60,6 @@ export const tokens = {
   space: { 1: 4, 2: 8, 3: 12, 4: 16, 5: 24, 6: 32, 7: 48 } as const,
   radius: { sm: 6, md: 10, lg: 14, xl: 20, full: 9999 } as const,
   zIndex: { topbar: 50, dropdown: 100, backdrop: 150, modal: 200 } as const,
+  font: { h1: 28, h2: 22, h3: 18, h4: 16, body: 14, label: 12, caption: 11 } as const,
+  iconSize: { sm: 32, md: 40, lg: 48, xl: 56 } as const,
 };

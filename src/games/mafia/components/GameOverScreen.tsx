@@ -50,7 +50,7 @@ export default function GameOverScreen({ onPlayAgain }: Props) {
             background: winner === "villager" ? tokens.greenBg : tokens.redBg,
             color: winner === "villager" ? tokens.green : tokens.red,
             fontSize: 14, fontWeight: 600,
-            border: `1px solid ${winner === "villager" ? "#BBF7D0" : "#FECACA"}`,
+            border: `1px solid ${winner === "villager" ? `${tokens.green}40` : `${tokens.red}40`}`,
           }}>
             {winner === "villager" ? "All Mafia eliminated" : "Mafia outnumbered the village"}
           </div>

@@ -80,7 +80,7 @@ export default function DayScreen() {
             <div style={{
               borderRadius: 14, padding: "14px 18px",
               background: lastNightResult.killedId ? tokens.redBg : tokens.greenBg,
-              border: `1.5px solid ${lastNightResult.killedId ? "#FECACA" : "#BBF7D0"}`,
+              border: `1.5px solid ${lastNightResult.killedId ? `${tokens.red}40` : `${tokens.green}40`}`,
             }}>
               {lastNightResult.killedId ? (
                 <>
@@ -100,7 +100,7 @@ export default function DayScreen() {
               )}
 
               {/* Round log — no emojis */}
-              <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4, borderTop: `1px solid ${lastNightResult.killedId ? "#FECACA" : "#BBF7D0"}`, paddingTop: 10 }}>
+              <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4, borderTop: `1px solid ${lastNightResult.killedId ? `${tokens.red}40` : `${tokens.green}40`}`, paddingTop: 10 }}>
                 {lastNightResult.mafiaTargetName && (
                   <div style={{ fontSize: 12, color: tokens.grey1 }}>
                     Mafia targeted <strong>{lastNightResult.mafiaTargetName}</strong>

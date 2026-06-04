@@ -11,10 +11,10 @@ import RecapModal from "./RecapModal";
 import SpectrumDial from "./SpectrumDial";
 
 const ZONE_LABELS: Record<string, string> = {
-  bullseye: "Bullseye! 🎯",
-  close: "Close! ✨",
-  almost: "Almost 👍",
-  miss: "Miss 😬",
+  bullseye: "Bullseye!",
+  close: "Close!",
+  almost: "Almost",
+  miss: "Miss",
 };
 
 export default function RevealScreen() {

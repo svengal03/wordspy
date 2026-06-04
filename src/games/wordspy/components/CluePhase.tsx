@@ -26,6 +26,15 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
   const [clueScreenActive, setClueScreenActive] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [wordRevealed, setWordRevealed] = useState(false);
+  const [suspiciousIds, setSuspiciousIds] = useState<Set<string>>(new Set());
+
+  function toggleSuspicion(id: string) {
+    setSuspiciousIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
 
   const activePlayers = gameState.players.filter((p) => !p.isEliminated);
   const currentPlayer = gameState.players[gameState.currentCluePlayerIndex];
@@ -315,6 +324,18 @@ export default function CluePhase({ gameState, localPlayer, isOffline, onSubmitC
                       <div style={{ fontSize: 12, color: tokens.grey4 }}>Waiting</div>
                     )}
                   </div>
+                  {!isMe && (
+                    <button
+                      onClick={() => toggleSuspicion(p.id)}
+                      title={suspiciousIds.has(p.id) ? "Remove suspicion" : "Mark as suspicious"}
+                      style={{
+                        width: 28, height: 28, borderRadius: 8, border: "none", cursor: "pointer",
+                        background: suspiciousIds.has(p.id) ? "#FEF2F2" : "transparent",
+                        fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0, transition: "background 0.15s",
+                      }}
+                    >{suspiciousIds.has(p.id) ? "🚨" : "🔍"}</button>
+                  )}
                   {p.clue ? (
                     <div style={{
                       width: 22, height: 22, borderRadius: 11, background: tokens.green,

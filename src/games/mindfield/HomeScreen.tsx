@@ -19,7 +19,7 @@ export function MindFieldHome() {
   const { setLocalPlayer, setRoomCode } = useMindFieldStore();
   const [name, setName] = useState("");
   const [joinCode, setJoinCode] = useState("");
-  const [mode, setMode] = useState<null | "create" | "join">(null);
+  const [mode, setMode] = useState<null | "create" | "join" | "watch">(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showRules, setShowRules] = useState(false);
@@ -144,6 +144,11 @@ export function MindFieldHome() {
                     Join with Code
                   </Btn>
                 </motion.div>
+                <motion.div {...fadeUp(0.13)}>
+                  <Btn variant="ghost" fullWidth onClick={() => setMode("watch")} style={{ padding: "13px", fontSize: 14, color: tokens.grey3 }}>
+                    👁 Watch a Game
+                  </Btn>
+                </motion.div>
               </div>
 
               <div className="ph-hiw-inline">{howItWorksSection}</div>
@@ -165,6 +170,47 @@ export function MindFieldHome() {
                   <Btn variant="ghost" onClick={back} style={{ flex: 1, padding: "13px" }}>← Back</Btn>
                   <Btn onClick={handleCreate} disabled={loading || !name.trim()} style={{ flex: 2, padding: "13px" }}>
                     {loading ? "Creating…" : "Create →"}
+                  </Btn>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+
+          {mode === "watch" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} style={{ paddingTop: 32 }}>
+              <Card>
+                <div style={{ fontSize: 18, fontWeight: 800, color: tokens.black, marginBottom: 4 }}>Watch a Game</div>
+                <div style={{ fontSize: 13, color: tokens.grey2, marginBottom: 16 }}>Enter a room code to spectate — no name needed.</div>
+                <input
+                  type="text"
+                  placeholder="Room code (e.g. AB3X7Z)"
+                  value={joinCode}
+                  onChange={e => { setJoinCode(e.target.value.toUpperCase()); setError(""); }}
+                  maxLength={6}
+                  style={{
+                    width: "100%", padding: "12px 14px", borderRadius: 10,
+                    border: `1.5px solid ${tokens.border}`, fontSize: 18, fontWeight: 700,
+                    fontFamily: "'DM Sans', system-ui, sans-serif", letterSpacing: 3,
+                    background: tokens.inputBg, color: tokens.black, outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                />
+                {error && <div style={{ fontSize: 13, color: tokens.red, marginTop: 6 }}>{error}</div>}
+                <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+                  <Btn variant="ghost" onClick={back} style={{ flex: 1, padding: "13px" }}>← Back</Btn>
+                  <Btn
+                    onClick={() => {
+                      const code = joinCode.trim().toUpperCase();
+                      if (!code) return setError("Enter a room code");
+                      setRoomCode(code);
+                      router.push(`/mindfield/room/${code}`);
+                    }}
+                    disabled={!joinCode.trim()}
+                    style={{ flex: 2, padding: "13px" }}
+                  >
+                    Watch →
                   </Btn>
                 </div>
               </Card>
