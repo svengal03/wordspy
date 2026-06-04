@@ -21,7 +21,7 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onFlag
   const canGuess = isMyTeam && gameState.turnPhase === "guessing";
 
   const guessTimerSecs = gameState.config.guessTimerSecs ?? null;
-  const [guessTimeLeft, setGuessTimeLeft] = useState(guessTimerSecs);
+  const [guessTimeLeft, setGuessTimeLeft] = useState<number | null>(guessTimerSecs);
   const guessTimerExpiredRef = useRef(false);
   const onPassRef = useRef(onPass);
   onPassRef.current = onPass;
@@ -35,7 +35,7 @@ export default function AgentView({ gameState, localPlayer, onRevealTile, onFlag
         if (t === null || t <= 1) {
           clearInterval(tick);
           if (!guessTimerExpiredRef.current) { guessTimerExpiredRef.current = true; onPassRef.current(); }
-          return 0;
+          return null;
         }
         return t - 1;
       });

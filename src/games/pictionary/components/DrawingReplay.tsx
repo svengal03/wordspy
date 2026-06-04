@@ -36,6 +36,7 @@ export function DrawingReplay({ strokes, teamColor }: Props) {
     const speed = Math.max(1, Math.floor(strokes.length / 300)); // batch strokes for smooth speed
 
     function step() {
+      if (!ctx) return;
       const end = Math.min(i + speed, strokes.length);
       for (; i < end; i++) {
         const s = strokes[i];
