@@ -203,6 +203,11 @@ export function castVote(
 
 // ─── Process votes & eliminate ────────────────────────────────────────────────
 function processVotes(state: GameState): GameState {
+  // Safe round: skip elimination in round 1 — advance directly to next round
+  if (state.config.safeRound && state.round === 1) {
+    return nextRound(state);
+  }
+
   const activePlayers = state.players.filter((p) => !p.isEliminated);
   if (activePlayers.length === 0) return { ...state, phase: "summary", winner: "civilians" };
   const maxVotes = Math.max(...activePlayers.map((p) => p.votes));

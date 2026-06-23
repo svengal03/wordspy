@@ -32,6 +32,17 @@ export function pickThree(
   let p = pool.length >= 3 ? pool : [...pool, ...buildWordPool(fallback, rows, allVariants)];
   if (p.length === 0) return { options: ["", "", ""], remaining: [] };
   while (p.length < 3) p = [...p, ...p];
-  const options: [string, string, string] = [p[0]!, p[1]!, p[2]!];
-  return { options, remaining: p.slice(3) };
+
+  const options: string[] = [];
+  const remaining: string[] = [];
+  for (const word of p) {
+    if (options.length < 3 && !options.includes(word)) {
+      options.push(word);
+    } else {
+      remaining.push(word);
+    }
+  }
+  while (options.length < 3) options.push(options[0] ?? "");
+
+  return { options: options as [string, string, string], remaining };
 }
